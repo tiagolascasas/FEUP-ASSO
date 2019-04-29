@@ -2,44 +2,32 @@ import { Shape, Circle, Rectangle } from './shape'
 import { SimpleDrawDocument } from './document'
 
 export interface Action<T> {
-    shape: Shape
     do(): T
     undo(): void
 }
 
-interface CreateAction extends Action<Shape> {
-    shape: Shape
-}
+abstract class CreateShapeAction<S extends Shape> implements Action<S> {
+    constructor(private doc: SimpleDrawDocument, public readonly shape: S) { }
 
-export class CreateCircleAction implements CreateAction {
-    shape: Circle
-
-    constructor(private doc: SimpleDrawDocument, private x: number, private y: number, private radius: number) {}
-
-    do(): Circle {
-        this.shape = new Circle(this.x, this.y, this.radius)
-        this.doc.add(this.shape)        
-        return this.shape
-    }
-
-    undo() {
-        this.doc.objects = this.doc.objects.filter(o => o !== this.shape)
-    }
-}
-
-export class CreateRectangleAction {
-    shape: Rectangle
-
-    constructor(private doc: SimpleDrawDocument, private x: number, private y: number, private width: number, private height: number) { }
-
-    do(): Rectangle {
-        this.shape = new Rectangle(this.x, this.y, this.width, this.height)
+    do(): S {
         this.doc.add(this.shape)
         return this.shape
     }
 
     undo() {
         this.doc.objects = this.doc.objects.filter(o => o !== this.shape)
+    }
+}
+
+export class CreateCircleAction extends CreateShapeAction<Circle> {
+    constructor(doc: SimpleDrawDocument, private x: number, private y: number, private radius: number) {
+        super(doc, new Circle(x, y, radius))
+    }
+}
+
+export class CreateRectangleAction extends CreateShapeAction<Rectangle> {
+    constructor(doc: SimpleDrawDocument, private x: number, private y: number, private width: number, private height: number) {
+        super(doc, new Rectangle(x, y, width, height))
     }
 }
 
