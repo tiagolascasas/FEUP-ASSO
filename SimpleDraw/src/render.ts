@@ -19,15 +19,21 @@ export class SVGRender implements Render {
                 const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
                 g.setAttribute('transform', `translate(${shape.x}, ${shape.y}) rotate(${shape.angle})`)
-                e.setAttribute('style', 'stroke: black; fill: white')
+                e.setAttribute('style', 'stroke: black; fill: transparent')
                 e.setAttribute('width', shape.width.toString())
                 e.setAttribute('height', shape.height.toString())
                 e.setAttribute('x', (-shape.width/2).toString())
                 e.setAttribute('y', (-shape.height / 2).toString())
-                
                 g.appendChild(e)
                 this.svg.appendChild(g)
-                
+            }else if(shape instanceof Circle){
+                const e = document.createElementNS("http://www.w3.org/2000/svg", "circle")
+                e.setAttribute('style', 'stroke: black; fill: transparent')
+
+                e.setAttribute("cx", shape.x.toString());
+                e.setAttribute("cy", shape.y.toString());
+                e.setAttribute("r", shape.radius.toString());
+                this.svg.appendChild(e);
             }
         }
     }
