@@ -39,8 +39,19 @@ export class CanvasRender implements Render {
             if (shape instanceof Circle) {
                 this.ctx.ellipse(shape.x, shape.y, shape.radius, shape.radius, 0, 0, 2 * Math.PI)
                 this.ctx.stroke()
+                //meter rotate num circulo? 
             } else if (shape instanceof Rectangle) {
-                this.ctx.strokeRect(shape.x, shape.y, shape.width, shape.height)   
+                //save the state to prevent all the objects from rotating
+                this.ctx.save()
+
+                this.ctx.translate(shape.x, shape.y)
+                this.ctx.rotate(shape.angle * Math.PI / 180)
+                this.ctx.strokeRect(-shape.width/2, -shape.height/2, shape.width, shape.height)
+
+                this.ctx.ellipse(0, 0, 5, 5, 0, 0, 2 * Math.PI)
+                this.ctx.stroke()
+                //restore the state before drawing next shape
+                this.ctx.restore()
             }
         }
     }

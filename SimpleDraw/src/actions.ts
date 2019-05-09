@@ -46,6 +46,23 @@ export class TranslateAction implements Action<void> {
     undo() {
         this.shape.x = this.oldX
         this.shape.y = this.oldY
-       // this.shape.translate(-this.xd, -this.yd)
     }
+}
+
+export class RotateAction implements Action<void> {
+
+    oldAngle: number
+
+    constructor(private doc: SimpleDrawDocument, public shape: Shape, public angled: number){}
+
+    do(): void {
+        this.oldAngle = this.shape.angle
+        this.shape.rotate(this.angled)
+    } 
+    undo(): void {
+        this.shape.angle = this.oldAngle
+    }
+
+
+
 }
