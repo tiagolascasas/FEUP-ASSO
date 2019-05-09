@@ -11,7 +11,7 @@ const r1 = sdd.createRectangle(40, 40,60, 60)
 const r2 = sdd.createRectangle(40, 40, 60, 60)
 //const r2 = sdd.createRectangle(30, 30, 40, 40)
 sdd.rotate(r1,45);
-sdd.undo();
+//sdd.undo();
 
 /* const s1 = sdd.createSelection(c1, r1, r2)
 sdd.translate(s1, 10, 10) */
