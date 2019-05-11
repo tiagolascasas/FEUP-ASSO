@@ -1,5 +1,6 @@
 import { Shape, Circle, Rectangle } from "./shape"
 import {selectedShape} from "./operation"
+import { Page } from "page";
 
 
 export interface Render {
@@ -10,8 +11,9 @@ export class SVGRender implements Render {
     svg: HTMLElement
     objs = new Array<Shape>()
 
-    constructor() {
+    constructor(private page:Page) {
         this.svg = <HTMLElement>document.getElementById('svgcanvas')
+        page.addRender(this)
     }
   
     draw(objs: Array<Shape>): void {
@@ -27,26 +29,19 @@ export class SVGRender implements Render {
                 e.setAttribute('height', shape.height.toString())
                 e.setAttribute('x', (-shape.width/2).toString())
                 e.setAttribute('y', (-shape.height / 2).toString())
-                // e.setAttribute('onclick',`window.parent.manel()`)
                 e.onclick = (event: MouseEvent)=>{
-                    selectedShape(shape)
-                    this.draw(this.objs)
-                    
+                    selectedShape(shape,this.page)
                 }
-
                 g.appendChild(e)
                 this.svg.appendChild(g)
             }else if(shape instanceof Circle){
                 const e = document.createElementNS("http://www.w3.org/2000/svg", "circle")
                 e.setAttribute('style', `stroke: black; fill: ${shape.color}`)
-
                 e.setAttribute("cx", shape.x.toString());
                 e.setAttribute("cy", shape.y.toString());
                 e.setAttribute("r", shape.radius.toString());
                 e.onclick = (event: MouseEvent) => {
-                    selectedShape(shape)
-                    this.draw(this.objs)
-
+                    selectedShape(shape,this.page)
                 }
                 this.svg.appendChild(e);
             }
@@ -59,12 +54,13 @@ export class CanvasRender implements Render {
     ctx: CanvasRenderingContext2D
     canvas: HTMLCanvasElement
 
-    constructor() {
+    constructor(private page:Page) {
         this.canvas = <HTMLCanvasElement>document.getElementById('canvas')
         this.ctx = this.canvas.getContext('2d')
         this.canvas.onclick = (ev: MouseEvent)=>{
             this.draw(this.objs,ev) 
-        }        
+        }
+        page.addRender(this)        
     }
 
     IsInPath(event: MouseEvent) {
@@ -83,7 +79,7 @@ export class CanvasRender implements Render {
                 this.ctx.ellipse(shape.x, shape.y, shape.radius, shape.radius, 0, 0, 2 * Math.PI)
                 if (event) {
                     if (this.IsInPath(event)) {
-                        selectedShape(shape)
+                        selectedShape(shape,this.page)
                     }
                 }
                 this.ctx.closePath()
@@ -95,23 +91,22 @@ export class CanvasRender implements Render {
                 //save the state to prevent all the objects from rotating
                 this.ctx.save()
                 this.ctx.beginPath()
-                
+                this.ctx.fillStyle = shape.color;
                 this.ctx.translate(shape.x, shape.y)
                 this.ctx.rotate(shape.angle * Math.PI / 180)
                 this.ctx.rect(-shape.width/2, -shape.height/2, shape.width, shape.height)
 
-                if (event) {
-                    if(this.IsInPath(event)){
-                        selectedShape(shape)
-                    }
-                }
-
                 this.ctx.closePath()
-                this.ctx.fillStyle = shape.color;
                 this.ctx.stroke()
                 this.ctx.fill()
                 //restore the state before drawing next shape
                 this.ctx.restore()
+
+                if (event) {
+                    if (this.IsInPath(event)) {
+                        selectedShape(shape, this.page)
+                    }
+                }
                 
             }
         }
