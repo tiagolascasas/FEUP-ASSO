@@ -2,6 +2,7 @@
 export abstract class Shape {
 
     angle: number = 0
+    color: string = "#FFFFFF"
 
     constructor(public x: number, public y: number) { }
 

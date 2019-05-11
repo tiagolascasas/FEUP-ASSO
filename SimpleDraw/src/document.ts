@@ -17,7 +17,7 @@ export class SimpleDrawDocument {
 
   draw(render: Render): void {
     // this.objects.forEach(o => o.draw(ctx))
-    render.draw(null,this.objects)
+    render.draw(this.objects)
   }
 
   add(r: Shape): void {
