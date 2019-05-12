@@ -26,8 +26,8 @@ export class CreateCircleAction extends CreateShapeAction<Circle> {
 }
 
 export class CreateRectangleAction extends CreateShapeAction<Rectangle> {
-    constructor(doc: SimpleDrawDocument, private x: number, private y: number, private width: number, private height: number) {
-        super(doc, new Rectangle(x, y, width, height), doc.layersManager.activeLayer)
+    constructor(doc: SimpleDrawDocument, private x: number, private y: number, private width: number, private height: number, private color: string) {
+        super(doc, new Rectangle(x, y, width, height, color), doc.layersManager.activeLayer)
     }
 }
 

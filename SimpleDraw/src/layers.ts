@@ -17,6 +17,8 @@ export class LayersManager {
     setActiveLayer(layerName: String): boolean {
         if (this.layers.indexOf(layerName) != -1) {
             this.activeLayer = layerName
+            this.layers.splice(this.layers.indexOf(layerName), 1);
+            this.layers.unshift(layerName);
             return true
         } else return false
     }
@@ -33,5 +35,9 @@ export class LayersManager {
             map.set(layer, objsInLayer)
         }
         return map
+    }
+
+    getOrderedLayers(): Array<String> {
+        return this.layers.reverse()
     }
 }

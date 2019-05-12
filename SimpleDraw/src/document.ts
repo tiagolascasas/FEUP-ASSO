@@ -26,7 +26,7 @@ export class SimpleDrawDocument {
     draw(render: Renderer): void {
         // this.objects.forEach(o => o.draw(ctx))
         const objects = this.layersManager.mapObjectsToLayers(this.objects)
-        const layers = this.layersManager.layers;
+        const layers = this.layersManager.getOrderedLayers();
         render.draw(objects, layers)
     }
 
@@ -44,9 +44,10 @@ export class SimpleDrawDocument {
         x: number,
         y: number,
         width: number,
-        height: number
+        height: number,
+        color: string
     ): Shape {
-        return this.do(new CreateRectangleAction(this, x, y, width, height))
+        return this.do(new CreateRectangleAction(this, x, y, width, height, color))
     }
 
     createCircle(x: number, y: number, radius: number): Shape {

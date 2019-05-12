@@ -12,6 +12,18 @@ describe('Layers', () => {
         expect(sdd.layersManager.layers.length).to.equal(2)
     })
 
+    it('Active layer has the most priority, others are unchanged', () => {
+        const sdd = new SimpleDrawDocument()
+        sdd.layersManager.createLayer("1")
+        sdd.layersManager.createLayer("2")
+        sdd.layersManager.createLayer("3")
+        sdd.layersManager.createLayer("4")
+        expect(sdd.layersManager.layers).to.eql(["4", "3", "2", "1", "default"])
+        sdd.layersManager.setActiveLayer("2")
+        expect(sdd.layersManager.layers).to.eql(["2", "4", "3", "1", "default"])
+        expect(sdd.layersManager.getOrderedLayers()).to.eql(["2", "4", "3", "1", "default"].reverse())
+    })
+
     it('New objects belong to the active layer', () => {
         const sdd = new SimpleDrawDocument()
         const c1 = sdd.createCircle(50, 50, 30)
@@ -23,7 +35,6 @@ describe('Layers', () => {
 
     it('Objects are mapped to their respective layers', () => {
         const sdd = new SimpleDrawDocument()
-
         sdd.layersManager.createLayer("1")
         const s1 = sdd.createCircle(50, 50, 30)
         const s2 = sdd.createCircle(50, 50, 30)

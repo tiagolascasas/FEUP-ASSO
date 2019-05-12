@@ -18,7 +18,7 @@ export abstract class Shape {
 }
 
 export class Rectangle extends Shape {
-    constructor(public x: number, public y: number, public width: number, public height: number) {
+    constructor(public x: number, public y: number, public width: number, public height: number, public color: string) {
         super(x, y)
     }
 }
