@@ -1,5 +1,5 @@
 import { SimpleDrawDocument } from './document'
-import { CanvasRender, SVGRender } from './render'
+import { CanvasRender, SVGRender } from './renderer'
 import { UndoManager } from './undo'
 import { Page } from './page'
 
@@ -23,3 +23,5 @@ let testRender = () => {
     // sdd.draw(canvasrender)
     // sdd.draw(svgrender)
 }
+
+testRender()

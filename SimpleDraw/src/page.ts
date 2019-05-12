@@ -1,13 +1,13 @@
 import { SimpleDrawDocument } from './document'
-import { Render } from 'render';
+import { Renderer } from 'renderer';
 
 export class Page{
 
-    renders= new Array<Render>()
+    renders= new Array<Renderer>()
 
     constructor(public document: SimpleDrawDocument){}
 
-    addRender(render:Render){
+    addRender(render:Renderer){
         this.renders.push(render)
     }
 

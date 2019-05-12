@@ -7,7 +7,7 @@ export interface Action<T> {
 }
 
 abstract class CreateShapeAction<S extends Shape> implements Action<S> {
-    constructor(private doc: SimpleDrawDocument, public readonly shape: S) { }
+    constructor(private doc: SimpleDrawDocument, public readonly shape: S, public layer: String) { }
 
     do(): S {
         this.doc.add(this.shape)
@@ -21,13 +21,13 @@ abstract class CreateShapeAction<S extends Shape> implements Action<S> {
 
 export class CreateCircleAction extends CreateShapeAction<Circle> {
     constructor(doc: SimpleDrawDocument, private x: number, private y: number, private radius: number) {
-        super(doc, new Circle(x, y, radius))
+        super(doc, new Circle(x, y, radius), doc.layersManager.activeLayer)
     }
 }
 
 export class CreateRectangleAction extends CreateShapeAction<Rectangle> {
     constructor(doc: SimpleDrawDocument, private x: number, private y: number, private width: number, private height: number) {
-        super(doc, new Rectangle(x, y, width, height))
+        super(doc, new Rectangle(x, y, width, height), doc.layersManager.activeLayer)
     }
 }
 
