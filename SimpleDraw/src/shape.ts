@@ -2,7 +2,8 @@
 export abstract class Shape {
 
     angle: number = 0
-    color: string = "#FFFFFF"
+    color: String = "#FFFFFF"
+    layer: String
 
     constructor(public x: number, public y: number) { }
 

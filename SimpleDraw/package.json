@@ -8,16 +8,27 @@
     "main": "script.js",
     "dependencies": {},
     "devDependencies": {
+        "@types/chai": "^4.1.7",
+        "@types/mocha": "^5.2.6",
         "browserify": "^16.2.2",
+        "chai": "^4.2.0",
+        "mocha": "^6.1.4",
         "npm": "^6.0.1",
         "opn-cli": "^4.0.0",
-        "ts-node": "^8.0.3",
+        "ts-node": "^8.1.0",
         "typescript": "^3.3.3333"
     },
     "scripts": {
         "build": "tsc",
         "browserify": "browserify build/script.js -o dist/bundle.js",
         "browser": "npm run build && npm run browserify && opn index.html",
-        "start": "npm run build && node build/main.js"
+        "start": "npm run build && node build/main.js",
+        "test": "mocha -r ts-node/register src/tests.ts"
+    },
+    "prettier": {
+        "trailingComma": "es5",
+        "tabWidth": 4,
+        "semi": false,
+        "singleQuote": true
     }
 }
