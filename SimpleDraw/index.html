@@ -1,15 +1,38 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>SimpleDraw</title>
-    <meta charset="UTF-8">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 
 <body>
-    <canvas id="canvas" width="200" height="200" style="border: 1px solid red;"></canvas>
-    <svg id="svgcanvas" width="200" height="200" style="border: 1px solid blue;">
+    <canvas id="canvas" width="600" height="500" style="border: 1px solid red;"></canvas>
+    <svg id="svgcanvas" width="600" height="500" style="border: 1px solid blue;">
     </svg>
-    
+
+    <form>
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <input type="email" class="form-control" id="prompt" aria-describedby="prompt"
+                    placeholder="> Your command here">
+            </div>
+            <div class="form-group col-md-1">
+                <button type="submit" class="btn btn-primary">Execute</button>
+            </div>
+        </div>
+    </form>
+
     <script src="dist/bundle.js"></script>
+    <!-- Including Bootstrap JS (with its jQuery dependency) so that dynamic components work -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 </body>
+
 </html>
