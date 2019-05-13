@@ -12,7 +12,11 @@
        "noImplicitReturns":false,
        "noImplicitUseStrict":false,
        "outDir":"build/",
-       "baseUrl":"src/"
+       "baseUrl":"src/",
+       "lib": [
+        "es2016",
+        "dom"
+      ]
     },
     "include":[
        "src/**/*"

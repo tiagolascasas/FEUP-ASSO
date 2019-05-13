@@ -17,14 +17,17 @@
     <svg id="svgcanvas" width="600" height="500" style="border: 1px solid blue;">
     </svg>
 
-    <form>
+    <form id="repl">
         <div class="form-row">
-            <div class="form-group col-md-4">
-                <input type="email" class="form-control" id="prompt" aria-describedby="prompt"
+            <div class="form-group col-md-3">
+                <input class="form-control" id="prompt" aria-describedby="prompt"
                     placeholder="> Your command here">
             </div>
             <div class="form-group col-md-1">
-                <button type="submit" class="btn btn-primary">Execute</button>
+                <button id="execute" type="submit" class="btn btn-primary">Execute</button>
+            </div>
+            <div class="form-group col-md-2">
+                <label id="res"></label>
             </div>
         </div>
     </form>
