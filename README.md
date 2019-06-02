@@ -1,4 +1,4 @@
-# SimpleDrawTS
+# SimpleDraw
 
 SimpleDraw is a browser-only drawing tool written in TypeScript
 
@@ -18,4 +18,4 @@ Here are the descriptions of how we implemented some of the features, including 
 
 ### REPL
 
-We implemented the REPL using the Interpeter Pattern
+We implemented the REPL using the [**Interpeter Pattern**](https://en.wikipedia.org/wiki/Interpreter_pattern)

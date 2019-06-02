@@ -5,8 +5,8 @@ import { SimpleDrawDocument } from './document'
 /*
 REPL Grammar:
 
-S :=  <add> AddExpr 
-    | <move> MoveExpr
+Start :=  <add> AddExpr 
+        | <move> MoveExpr
 AddExpr := <square> SquareExpr
         |  <circle> CircleExpr 
         |  <triangle> TriangleExpr
@@ -17,103 +17,181 @@ MoveExpr := <number> <number> <number> <number>
 
 */
 
-export class REPL {
-    index: number = 0
+class Context {
+    private tokens: Array<string>
+    public index: number = 0
 
-    constructor(private sdd: SimpleDrawDocument, private res: HTMLLabelElement) {}
+    constructor(private sentence: string) {
+        this.tokens = sentence.split(' ')
+    }
 
-    eval(text: string): boolean {
-        this.index = 0
-        const tokens = text.split(' ')
+    hasNext(): boolean {
+        return this.index < this.tokens.length
+    }
 
-        if (tokens[this.index] === 'add') {
-            this.index++
-            return this.addExpr(tokens)
-        }
-        if (tokens[this.index] === 'move') {
-            this.index++
-            return this.moveExpr(tokens)
-        }
-        this.print('Unable to parse action', false)
+    next(): string {
+        let current = this.tokens[this.index]
+        this.index++
+        return current
+    }
+
+    clone(): Context {
+        let newContext = new Context(this.sentence)
+        newContext.index = this.index
+        return newContext
+    }
+}
+
+interface Expression {
+    interpret(context: Context): boolean
+}
+
+abstract class TerminalExpression implements Expression {
+    interpret(context: Context): boolean {
         return false
     }
+}
 
-    print(text: string, success: boolean): void {
-        if (this.res != null) {
-            this.res.classList.add(success ? 'text-success' : 'text-danger')
-            this.res.innerHTML = text
-        }
+class TerminalTokenExpression extends TerminalExpression {
+    constructor(private token: string) {
+        super()
     }
 
-    isNumber(token: string): boolean {
-        return !isNaN(Number(token)) || parseInt(token) > 0
+    interpret(context: Context): boolean {
+        if (context.hasNext()) return context.next() == this.token
+        else return false
+    }
+}
+
+class TerminalColorExpression extends TerminalExpression {
+    constructor() {
+        super()
     }
 
-    isColor(token: string): boolean {
-        const regex = new RegExp('^#(?:[0-9a-fA-F]{3}){1,2}$')
-        return regex.test(token)
+    interpret(context: Context): boolean {
+        if (context.hasNext()) {
+            let token = context.next()
+            const regex = new RegExp('^#(?:[0-9a-fA-F]{3}){1,2}$')
+            return regex.test(token)
+        } else return false
+    }
+}
+
+class TerminalNumberExpression extends TerminalExpression {
+    constructor() {
+        super()
     }
 
-    addExpr(tokens: Array<string>): boolean {
-        if (tokens[this.index] === 'square') {
-            this.index++
-            return this.squareExpr(tokens)
-        }
-        if (tokens[this.index] === 'circle') {
-            this.index++
-            return this.circleExpr(tokens)
-        }
-        if (tokens[this.index] === 'triangle') {
-            this.index++
-            return this.triangleExpr(tokens)
-        }
-        return false
+    interpret(context: Context): boolean {
+        if (context.hasNext()) {
+            let token = context.next()
+            const regex = new RegExp('^[0-9]+$')
+            return regex.test(token)
+        } else return false
     }
+}
 
-    moveExpr(tokens: Array<string>): boolean {
-        for (let i = 0; i < 4; i++) {
-            if (!this.isNumber(tokens[this.index])) return false
-            else this.index++
-        }
-        this.print('Move executed', true)
-        return true
-    }
-
-    squareExpr(tokens: Array<string>): boolean {
-        for (let i = 0; i < 4; i++) {
-            if (!this.isNumber(tokens[this.index])) return false
-            else this.index++
-        }
-        if (!this.isColor(tokens[this.index])) return false
-        this.sdd.createRectangle(
-            Number(tokens[2]),
-            Number(tokens[3]),
-            Number(tokens[4]),
-            Number(tokens[5]),
-            tokens[6]
+class MoveExpression implements Expression {
+    interpret(context: Context): boolean {
+        let termExp = new TerminalNumberExpression()
+        return (
+            termExp.interpret(context) &&
+            termExp.interpret(context) &&
+            termExp.interpret(context) &&
+            termExp.interpret(context)
         )
-        this.print('Square added', true)
+    }
+}
+
+class TriangleExpression implements Expression {
+    interpret(context: Context): boolean {
+        let termNumberExp = new TerminalNumberExpression()
+        let termColorExp = new TerminalColorExpression()
+        return (
+            termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termColorExp.interpret(context)
+        )
+    }
+}
+
+class CircleExpression implements Expression {
+    interpret(context: Context): boolean {
+        let termNumberExp = new TerminalNumberExpression()
+        let termColorExp = new TerminalColorExpression()
+        return (
+            termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termColorExp.interpret(context)
+        )
+    }
+}
+
+class SquareExpression implements Expression {
+    interpret(context: Context): boolean {
+        let termNumberExp = new TerminalNumberExpression()
+        let termColorExp = new TerminalColorExpression()
+        if (!termNumberExp.interpret(context))
+            return false
+        if (!termNumberExp.interpret(context))
+            return false
+        if (!termNumberExp.interpret(context))
+            return false
+        if (!termNumberExp.interpret(context))
+            return false
+        if (!termColorExp.interpret(context))
+            return false
         return true
     }
+}
 
-    circleExpr(tokens: Array<string>): boolean {
-        for (let i = 0; i < 2; i++) {
-            if (!this.isNumber(tokens[this.index])) return false
-            else this.index++
-        }
-        if (!this.isColor(tokens[this.index])) return false
-        this.print('Circle added', true)
-        return true
+class AddExpression implements Expression {
+    interpret(context: Context): boolean {
+        let termTokenExpSq = new TerminalTokenExpression('square')
+        let expSq = new SquareExpression()
+        let newContext = context.clone()
+        if (termTokenExpSq.interpret(newContext) && expSq.interpret(newContext)) return true
+
+        let termTokenExpCi = new TerminalTokenExpression('circle')
+        let expCi = new CircleExpression()
+        newContext = context.clone()
+        if (termTokenExpCi.interpret(newContext) && expCi.interpret(newContext)) return true
+
+        let termTokenExpTri = new TerminalTokenExpression('triangle')
+        let expTri = new TriangleExpression()
+        newContext = context.clone()
+        if (termTokenExpTri.interpret(newContext) && expTri.interpret(newContext)) return true
+
+        return false
     }
+}
 
-    triangleExpr(tokens: Array<string>): boolean {
-        for (let i = 0; i < 6; i++) {
-            if (!this.isNumber(tokens[this.index])) return false
-            else this.index++
-        }
-        if (!this.isColor(tokens[this.index])) return false
-        //this.sdd.createTriangle
-        this.print('Triangle added', true)
-        return true
+class StartExpression implements Expression {
+    interpret(context: Context): boolean {
+        let termTokenExpAdd = new TerminalTokenExpression('add')
+        let expAdd = new AddExpression()
+        let newContext = context.clone()
+        if (termTokenExpAdd.interpret(newContext) && expAdd.interpret(newContext)) return true
+
+        let termTokenExpMove = new TerminalTokenExpression('move')
+        let expMove = new MoveExpression()
+        newContext = context.clone()
+        if (termTokenExpMove.interpret(newContext) && expMove.interpret(newContext)) return true
+
+        return false
+    }
+}
+
+export class Interpreter {
+    constructor(private sdd: SimpleDrawDocument) { }
+
+    eval(sentence: string): boolean {
+        let ctx = new Context(sentence)
+        let startExpr = new StartExpression()
+        return startExpr.interpret(ctx)
     }
 }

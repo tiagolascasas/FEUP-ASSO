@@ -62,7 +62,4 @@ export class RotateAction implements Action<void> {
     undo(): void {
         this.shape.angle = this.oldAngle
     }
-
-
-
 }

@@ -1,7 +1,7 @@
 import 'mocha'
 import { expect } from 'chai'
 import { SimpleDrawDocument } from './document'
-import { REPL } from './REPL'
+import { Interpreter } from './REPL'
 
 describe('Layers', () => {
     it('Layers are added', () => {
@@ -61,22 +61,22 @@ describe('Layers', () => {
 describe('REPL', () => {
     it('Valid strings are parsed correctly', () => {
         const sdd = new SimpleDrawDocument()
-        const repl = new REPL(sdd, null)
+        const inter = new Interpreter(sdd)
 
-        expect(repl.eval('add square 12 13 14 15 #ffffff')).to.equal(true)
-        expect(repl.eval('add circle 20 30 #abcdef')).to.equal(true)
-        expect(repl.eval('add triangle 5 6 6 7 1 4 #123ABC')).to.equal(true)
-        expect(repl.eval('move 100 244 124 764')).to.equal(true)
+        expect(inter.eval('add square 12 13 14 15 #ffffff')).to.equal(true)
+        expect(inter.eval('add circle 20 30 #abcdef')).to.equal(true)
+        expect(inter.eval('add triangle 5 6 6 7 1 4 #123ABC')).to.equal(true)
+        expect(inter.eval('move 100 244 124 764')).to.equal(true)
     })
 
     it('Invalid strings are detected as such', () => {
         const sdd = new SimpleDrawDocument()
-        const repl = new REPL(sdd, null)
+        const inter = new Interpreter(sdd)
 
-        expect(repl.eval('asdgf asda asd')).to.equal(false)
-        expect(repl.eval('add ajsdasf 20 30 #abcdef')).to.equal(false)
-        expect(repl.eval('add triangle 5 6 6 1 4 #123ABC')).to.equal(false)
-        expect(repl.eval('add triangle 5 6 6 1 1 4 #1234J4')).to.equal(false)
-        expect(repl.eval('move 100 244 124')).to.equal(false)
+        expect(inter.eval('asdgf asda asd')).to.equal(false)
+        expect(inter.eval('add ajsdasf 20 30 #abcdef')).to.equal(false)
+        expect(inter.eval('add triangle 5 6 6 1 4 #123ABC')).to.equal(false)
+        expect(inter.eval('add triangle 5 6 6 1 1 4 #1234J4')).to.equal(false)
+        expect(inter.eval('move 100 244 124')).to.equal(false)
     })
 })
