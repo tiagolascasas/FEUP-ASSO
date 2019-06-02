@@ -1,0 +1,80 @@
+html,
+body,
+.grid-container {
+    height: 100%;
+    margin: 0;
+}
+
+.grid-container * {
+    border: 1px solid darkgrey;
+    position: relative;
+}
+
+.grid-container *:after {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 0.4fr 1.6fr 1.7fr 0.3fr;
+    grid-template-rows: 1.35fr 1.35fr 0.3fr;
+    grid-template-areas: "B1 Canvas-1 Canvas-2 B3" "B2 Canvas-3 Canvas-4 B4" "C1 Repl Layers C2";
+}
+
+.Canvas-1 {
+    grid-area: Canvas-1;
+}
+
+.Canvas-2 {
+    grid-area: Canvas-2;
+}
+
+.Canvas-3 {
+    grid-area: Canvas-3;
+}
+
+.Canvas-4 {
+    grid-area: Canvas-4;
+}
+
+.B1 {
+    grid-area: B1;
+}
+
+.B2 {
+    grid-area: B2;
+}
+
+.B3 {
+    grid-area: B3;
+}
+
+.B4 {
+    grid-area: B4;
+}
+
+.Repl {
+    grid-area: Repl;
+}
+
+.Layers {
+    grid-area: Layers;
+}
+
+.C2 {
+    grid-area: C2;
+}
+
+.C1 {
+    grid-area: C1;
+}
+
+#repl {
+    margin: auto;
+    width: 100%;
+    height: 50%;
+    padding: 10px;
+    display: flex;
+}

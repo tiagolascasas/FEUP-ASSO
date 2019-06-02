@@ -1,41 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" >
 
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>SimpleDraw</title>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
-    <canvas id="canvas" width="600" height="500" style="border: 1px solid red;"></canvas>
-    <svg id="svgcanvas" width="600" height="500" style="border: 1px solid blue;">
-    </svg>
-
-    <form id="repl">
-        <div class="form-row">
-            <div class="form-group col-md-3">
-                <input class="form-control" id="prompt" aria-describedby="prompt"
-                    placeholder="> Your command here">
-            </div>
-            <div class="form-group col-md-1">
-                <button id="execute" type="submit" class="btn btn-primary">Execute</button>
-            </div>
-            <div class="form-group col-md-2">
+    <div class="grid-container">
+        <div class="Canvas-1" id="divCanvas1"></div>
+        <div class="Canvas-2" id="divCanvas2"></div>
+        <div class="Canvas-3" id="divSVG1"></div>
+        <div class="Canvas-4" id="divSVG2"></div>
+        <div class="B1" style="background-color:#36393F"></div>
+        <div class="B2" style="background-color:#36393F"></div>
+        <div class="B3" style="background-color:#36393F"></div>
+        <div class="B4" style="background-color:#36393F"></div>
+        <div class="Repl" style="background-color:#36393F">
+            <form id="repl">
+                <input type="text" id="prompt" placeholder="> enter your command" size="50" name="prompt">
+                <button type="submit" id="execute">Execute</button>
                 <label id="res"></label>
-            </div>
+            </form> 
         </div>
-    </form>
-
+        <div class="Layers" style="background-color:#36393F"></div>
+        <div class="C2" style="background-color:#36393F"></div>
+        <div class="C1" style="background-color:#36393F"></div>
+    </div>
     <script src="dist/bundle.js"></script>
-    <!-- Including Bootstrap JS (with its jQuery dependency) so that dynamic components work -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 </body>
 
 </html>
