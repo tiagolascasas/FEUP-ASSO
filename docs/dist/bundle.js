@@ -247,7 +247,7 @@ class RotateAction {
 }
 exports.RotateAction = RotateAction;
 
-},{"./shape":7}],3:[function(require,module,exports){
+},{"./shape":9}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("./actions");
@@ -294,7 +294,7 @@ class SimpleDrawDocument {
 }
 exports.SimpleDrawDocument = SimpleDrawDocument;
 
-},{"./actions":2,"./layers":4,"./undo":8}],4:[function(require,module,exports){
+},{"./actions":2,"./layers":4,"./undo":10}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class LayersManager {
@@ -342,8 +342,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const document_1 = require("./document");
 const page_1 = require("./page");
 const REPL_1 = require("./REPL");
+const renderer_1 = require("./renderer");
 //create SimpleDraw
-const ssd = new document_1.SimpleDrawDocument();
+const sdd = new document_1.SimpleDrawDocument();
 //create Canvas and SVG elements
 const divCanvas1 = document.querySelector('#divCanvas1');
 const divCanvas2 = document.querySelector('#divCanvas2');
@@ -365,18 +366,18 @@ canvas2.style.zIndex = '8';
 canvas2.style.position = 'absolute';
 canvas2.style.border = '1px solid green';
 divCanvas2.appendChild(canvas2);
-const svg1 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+const svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 svg1.id = 'svg1';
-svg1.setAttribute("width", divSVG1.clientWidth.toString());
-svg1.setAttribute("height", divSVG1.clientHeight.toString());
+svg1.setAttribute('width', divSVG1.clientWidth.toString());
+svg1.setAttribute('height', divSVG1.clientHeight.toString());
 svg1.style.zIndex = '8';
 svg1.style.position = 'absolute';
 svg1.style.border = '1px solid blue';
 divSVG1.appendChild(svg1);
-const svg2 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+const svg2 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 svg2.id = 'svg2';
-svg2.setAttribute("width", divSVG2.clientWidth.toString());
-svg2.setAttribute("height", divSVG2.clientHeight.toString());
+svg2.setAttribute('width', divSVG2.clientWidth.toString());
+svg2.setAttribute('height', divSVG2.clientHeight.toString());
 svg2.style.zIndex = '8';
 svg2.style.position = 'absolute';
 svg2.style.border = '1px solid yellow';
@@ -385,19 +386,34 @@ divSVG2.appendChild(svg2);
 const replForm = document.querySelector('#repl');
 const replPrint = document.querySelector('#res');
 const replPrompt = document.querySelector('#prompt');
-const interpreter = new REPL_1.Interpreter(ssd);
+const interpreter = new REPL_1.Interpreter(sdd);
 replForm.addEventListener('submit', (e) => {
     e.preventDefault();
     let res = interpreter.eval(replPrompt.value);
     replPrint.innerHTML = res ? '&nbsp;&nbsp;✔️' : '&nbsp;&nbsp;❌';
 });
 //create page
-const page = new page_1.Page(ssd);
+const page = new page_1.Page(sdd);
 setInterval(() => {
     page.render();
 }, 16);
+const r1 = new renderer_1.CanvasRender(page, 'divCanvas1');
+const r2 = new renderer_1.CanvasRender(page, 'divCanvas2');
+const r3 = new renderer_1.SVGRender(page, 'divSVG1');
+const r4 = new renderer_1.SVGRender(page, 'divSVG2');
+sdd.createRectangle(100, 100, 100, 100, "#ff0000");
 
-},{"./REPL":1,"./document":3,"./page":6}],6:[function(require,module,exports){
+},{"./REPL":1,"./document":3,"./page":7,"./renderer":8}],6:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function selectedShape(shape, page) {
+    console.log(shape);
+    shape.color = "#FF0000";
+    page.render();
+}
+exports.selectedShape = selectedShape;
+
+},{}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Page {
@@ -416,7 +432,114 @@ class Page {
 }
 exports.Page = Page;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const shape_1 = require("./shape");
+const operation_1 = require("./operation");
+class SVGRender {
+    constructor(page, elementID) {
+        this.page = page;
+        this.objs = new Array();
+        this.svg = document.getElementById(elementID);
+        page.addRender(this);
+    }
+    draw(objs, layers) {
+        for (const layer of layers) {
+            for (const shape of objs.get(layer)) {
+                if (shape instanceof shape_1.Rectangle) {
+                    const e = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    g.setAttribute('transform', `translate(${shape.x}, ${shape.y}) rotate(${shape.angle})`);
+                    e.setAttribute('style', `stroke: black; fill: ${shape.color}`);
+                    e.setAttribute('width', shape.width.toString());
+                    e.setAttribute('height', shape.height.toString());
+                    e.setAttribute('x', (-shape.width / 2).toString());
+                    e.setAttribute('y', (-shape.height / 2).toString());
+                    e.onclick = (event) => {
+                        operation_1.selectedShape(shape, this.page);
+                    };
+                    g.appendChild(e);
+                    this.svg.appendChild(g);
+                }
+                else if (shape instanceof shape_1.Circle) {
+                    const e = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    e.setAttribute('style', `stroke: black; fill: ${shape.color}`);
+                    e.setAttribute('cx', shape.x.toString());
+                    e.setAttribute('cy', shape.y.toString());
+                    e.setAttribute('r', shape.radius.toString());
+                    e.onclick = (event) => {
+                        operation_1.selectedShape(shape, this.page);
+                    };
+                    this.svg.appendChild(e);
+                }
+            }
+        }
+    }
+}
+exports.SVGRender = SVGRender;
+class CanvasRender {
+    constructor(page, elementID) {
+        this.page = page;
+        this.canvas = document.getElementById(elementID);
+        this.ctx = this.canvas.getContext('2d');
+        this.canvas.onclick = (ev) => {
+            this.draw(this.objs, this.layers, ev);
+        };
+        page.addRender(this);
+    }
+    IsInPath(event) {
+        var bb, x, y;
+        bb = this.canvas.getBoundingClientRect();
+        x = (event.clientX - bb.left) * (this.canvas.width / bb.width);
+        y = (event.clientY - bb.top) * (this.canvas.height / bb.height);
+        return this.ctx.isPointInPath(x, y);
+    }
+    draw(objs, layers, event) {
+        this.objs = objs;
+        this.layers = layers;
+        for (const layer of layers) {
+            for (const shape of objs.get(layer)) {
+                if (shape instanceof shape_1.Circle) {
+                    this.ctx.beginPath();
+                    this.ctx.ellipse(shape.x, shape.y, shape.radius, shape.radius, 0, 0, 2 * Math.PI);
+                    if (event) {
+                        if (this.IsInPath(event)) {
+                            operation_1.selectedShape(shape, this.page);
+                        }
+                    }
+                    this.ctx.closePath();
+                    this.ctx.fillStyle = shape.color;
+                    this.ctx.stroke();
+                    this.ctx.fill();
+                    //meter rotate num circulo?
+                }
+                else if (shape instanceof shape_1.Rectangle) {
+                    //save the state to prevent all the objects from rotating
+                    this.ctx.save();
+                    this.ctx.beginPath();
+                    this.ctx.fillStyle = shape.color;
+                    this.ctx.translate(shape.x, shape.y);
+                    this.ctx.rotate((shape.angle * Math.PI) / 180);
+                    this.ctx.rect(-shape.width / 2, -shape.height / 2, shape.width, shape.height);
+                    this.ctx.closePath();
+                    this.ctx.stroke();
+                    this.ctx.fill();
+                    //restore the state before drawing next shape
+                    this.ctx.restore();
+                    if (event) {
+                        if (this.IsInPath(event)) {
+                            operation_1.selectedShape(shape, this.page);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+exports.CanvasRender = CanvasRender;
+
+},{"./operation":6,"./shape":9}],9:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Shape {
@@ -456,7 +579,7 @@ class Circle extends Shape {
 }
 exports.Circle = Circle;
 
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class UndoManager {

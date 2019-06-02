@@ -1,6 +1,6 @@
 import { Shape, Circle, Rectangle } from './shape'
 import { selectedShape } from './operation'
-import { Page } from 'page'
+import { Page } from './page'
 
 export interface Renderer {
     draw(objs: Map<String, Array<Shape>>, layers: Array<String>, event?: MouseEvent): void
@@ -10,8 +10,8 @@ export class SVGRender implements Renderer {
     svg: HTMLElement
     objs = new Array<Shape>()
 
-    constructor(private page: Page) {
-        this.svg = <HTMLElement>document.getElementById('svgcanvas')
+    constructor(private page: Page, elementID: string) {
+        this.svg = <HTMLElement>document.getElementById(elementID)
         page.addRender(this)
     }
 
@@ -58,8 +58,8 @@ export class CanvasRender implements Renderer {
     ctx: CanvasRenderingContext2D
     canvas: HTMLCanvasElement
 
-    constructor(private page: Page) {
-        this.canvas = <HTMLCanvasElement>document.getElementById('canvas')
+    constructor(private page: Page, elementID: string) {
+        this.canvas = <HTMLCanvasElement>document.getElementById(elementID)
         this.ctx = this.canvas.getContext('2d')
         this.canvas.onclick = (ev: MouseEvent) => {
             this.draw(this.objs, this.layers, ev)

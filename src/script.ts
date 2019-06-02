@@ -17,7 +17,7 @@ let testRender = () => {
     /* const s1 = sdd.createSelection(c1, r1, r2)
     sdd.translate(s1, 10, 10) */
     const page = new Page(sdd)
-    const canvasrender = new CanvasRender(page)
+    const canvasrender = new CanvasRender(page, "divCanvas1")
     //const svgrender = new SVGRender(page)
     page.render()
     // sdd.draw(canvasrender)
@@ -32,8 +32,8 @@ let testLayers = () => {
     sdd.layersManager.setActiveLayer('default')
 
     const page = new Page(sdd)
-    const canvasrender = new CanvasRender(page)
-    const svgrender = new SVGRender(page)
+    const canvasrender = new CanvasRender(page, "divSVG1")
+    const svgrender = new SVGRender(page, "divSVG1")
     page.render()
 }
 

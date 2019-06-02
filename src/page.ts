@@ -1,5 +1,5 @@
 import { SimpleDrawDocument } from './document'
-import { Renderer } from 'renderer';
+import { Renderer } from './renderer';
 
 export class Page{
 
