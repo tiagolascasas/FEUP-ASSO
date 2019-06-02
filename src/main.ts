@@ -49,7 +49,6 @@ svg2.style.position = 'absolute'
 svg2.style.border = '1px solid yellow'
 divSVG2.appendChild(svg2)
 
-
 //create REPL
 const replForm: HTMLFormElement = document.querySelector('#repl')
 const replPrint: HTMLLabelElement = document.querySelector('#res')

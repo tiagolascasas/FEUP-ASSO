@@ -6,7 +6,7 @@ body,
 }
 
 .grid-container * {
-    border: 1px solid darkgrey;
+    /*border: 1px solid darkgrey;*/
     position: relative;
 }
 
@@ -77,4 +77,9 @@ body,
     height: 50%;
     padding: 10px;
     display: flex;
+}
+
+label {
+    color: white;
+    font-family: "Arial", sans-serif;
 }
