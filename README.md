@@ -4,7 +4,7 @@ SimpleDraw is a browser-only drawing tool written in TypeScript
 
 ASSO / FEUP 2018/2019
 
-[**Try it here**](tiagolascasas.github.io/FEUP-ASSO)
+[**Try it here**](https://tiagolascasas.github.io/FEUP-ASSO/)
 
 ## Team Members
 
