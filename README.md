@@ -1,8 +1,5 @@
-# FEUP-ASSO
+# SimpleDrawTS
 
-SimpleDraw
+Typescript Browser-only SimpleDraw.
 
-## Team Members
-- Catarina Ferreira <up201506671@fe.up.pt>
-- Tiago Neves <up201506203@fe.up.pt>
-- Tiago Santos <up201503616@fe.up.pt>
+ASSO / FEUP 2018/2019
