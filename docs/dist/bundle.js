@@ -3,8 +3,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("../view/simpledraw_view");
 class ClickController {
-    constructor(executor) {
-        this.executor = executor;
+    constructor(api) {
+        this.api = api;
         this.currState = new IdleState();
     }
     processEvent(event) {
@@ -26,7 +26,7 @@ class ActionPressedState {
     processEvent(context, event) {
         if (event instanceof simpledraw_view_1.UserEventPoint) {
             if (this.event.action != simpledraw_view_1.Action.TRANSLATE) {
-                context.executor.execute(this.event.action, this.event.args, [event.point]);
+                context.api.execute(this.event.action, this.event.args, [event.point]);
                 context.currState = new IdleState();
             }
             else
@@ -44,7 +44,7 @@ class FirstPointClickedState {
     }
     processEvent(context, event) {
         if (event instanceof simpledraw_view_1.UserEventPoint) {
-            context.executor.execute(this.event.action, this.event.args, [this.point1, event.point]);
+            context.api.execute(this.event.action, this.event.args, [this.point1, event.point]);
         }
         context.currState = new IdleState();
     }
@@ -52,20 +52,6 @@ class FirstPointClickedState {
 exports.FirstPointClickedState = FirstPointClickedState;
 
 },{"../view/simpledraw_view":11}],2:[function(require,module,exports){
-'use strict';
-Object.defineProperty(exports, "__esModule", { value: true });
-const simpledraw_view_1 = require("../view/simpledraw_view");
-class Executor {
-    constructor(document) {
-        this.document = document;
-    }
-    execute(action, args, points) {
-        console.log(simpledraw_view_1.Action[action] + " with args " + args + " and " + points.length + " points");
-    }
-}
-exports.Executor = Executor;
-
-},{"../view/simpledraw_view":11}],3:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 /*
@@ -86,9 +72,9 @@ TranslateExpr := <number> <number> <number> <number>
 
 */
 class Context {
-    constructor(sentence, executor) {
+    constructor(sentence, api) {
         this.sentence = sentence;
-        this.executor = executor;
+        this.api = api;
         this.index = 0;
         this.tokens = sentence.split(' ');
     }
@@ -101,7 +87,7 @@ class Context {
         return current;
     }
     clone() {
-        let newContext = new Context(this.sentence, this.executor);
+        let newContext = new Context(this.sentence, this.api);
         newContext.index = this.index;
         return newContext;
     }
@@ -235,18 +221,78 @@ class StartExpression {
     }
 }
 class Interpreter {
-    constructor(executor) {
-        this.executor = executor;
+    constructor(api) {
+        this.api = api;
     }
     eval(sentence) {
-        let ctx = new Context(sentence, this.executor);
+        let ctx = new Context(sentence, this.api);
         let startExpr = new StartExpression();
         return startExpr.interpret(ctx);
     }
 }
 exports.Interpreter = Interpreter;
 
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
+'use strict';
+Object.defineProperty(exports, "__esModule", { value: true });
+const simpledraw_view_1 = require("../view/simpledraw_view");
+class SimpleDrawAPI {
+    constructor(document) {
+        this.document = document;
+        this.executers = new Map();
+        this.executers.set(simpledraw_view_1.Action.CREATE_CIRCLE, new CreateCircleExecuter());
+        this.executers.set(simpledraw_view_1.Action.CREATE_SQUARE, new CreateSquareExecuter());
+        this.executers.set(simpledraw_view_1.Action.CREATE_TRIANGLE, new CreateTriangleExecuter());
+        this.executers.set(simpledraw_view_1.Action.TRANSLATE, new TranslateExecuter());
+        this.executers.set(simpledraw_view_1.Action.ROTATE, new RotateExecuter());
+        this.executers.set(simpledraw_view_1.Action.SCALE, new ScaleExecuter());
+        this.executers.set(simpledraw_view_1.Action.GRID, new GridExecuter());
+    }
+    execute(action, args, points) {
+        console.log(simpledraw_view_1.Action[action] + " with args " + args + " and " + points.length + " points");
+        this.executers.get(action).executeAction(this.document, args, points);
+    }
+}
+exports.SimpleDrawAPI = SimpleDrawAPI;
+class CreateCircleExecuter {
+    executeAction(document, args, points) {
+        document.createCircle(100, 100, 40);
+        console.log("create circle");
+    }
+}
+class CreateSquareExecuter {
+    executeAction(document, args, points) {
+        document.createRectangle(100, 100, 100, 100, "#123123");
+        console.log("create square");
+    }
+}
+class CreateTriangleExecuter {
+    executeAction(document, args, points) {
+        console.log("create triangle");
+    }
+}
+class TranslateExecuter {
+    executeAction(document, args, points) {
+        console.log("translate");
+    }
+}
+class RotateExecuter {
+    executeAction(document, args, points) {
+        console.log("rotate");
+    }
+}
+class ScaleExecuter {
+    executeAction(document, args, points) {
+        console.log("scale");
+    }
+}
+class GridExecuter {
+    executeAction(document, args, points) {
+        console.log("grid");
+    }
+}
+
+},{"../view/simpledraw_view":11}],4:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("./view/simpledraw_view");
@@ -637,16 +683,16 @@ exports.CanvasRenderer = CanvasRenderer;
 Object.defineProperty(exports, "__esModule", { value: true });
 const document_1 = require("../model/document");
 const interpreter_1 = require("../controller/interpreter");
-const executor_1 = require("../controller/executor");
+const simpledraw_api_1 = require("../controller/simpledraw_api");
 const click_controller_1 = require("../controller/click_controller");
 class SimpleDrawView {
     constructor() {
         this.FRAMERATE_MS = 16;
         this.renderers = new Array();
         this.document = new document_1.SimpleDrawDocument();
-        this.executor = new executor_1.Executor(this.document);
-        this.interpreter = new interpreter_1.Interpreter(this.executor);
-        this.click_controller = new click_controller_1.ClickController(this.executor);
+        this.api = new simpledraw_api_1.SimpleDrawAPI(this.document);
+        this.interpreter = new interpreter_1.Interpreter(this.api);
+        this.click_controller = new click_controller_1.ClickController(this.api);
         window.setInterval(() => {
             this.render();
         }, this.FRAMERATE_MS);
@@ -734,4 +780,4 @@ class UserEventPoint extends UserEvent {
 }
 exports.UserEventPoint = UserEventPoint;
 
-},{"../controller/click_controller":1,"../controller/executor":2,"../controller/interpreter":3,"../model/document":6}]},{},[4]);
+},{"../controller/click_controller":1,"../controller/interpreter":2,"../controller/simpledraw_api":3,"../model/document":6}]},{},[4]);

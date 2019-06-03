@@ -10,6 +10,8 @@ Start :=  <add> AddExpr
         | <rotate> RotateExpr
         | <scale> ScaleExpr
         | <grid> GridExpr
+        | <undo>
+        | <redo>
 AddExpr := <square> SquareExpr
         |  <circle> CircleExpr 
         |  <triangle> TriangleExpr
@@ -17,7 +19,9 @@ SquareExpr := <number> <number> <number> <number> <color>
 CircleExpr := <number> <number> <color>
 TriangleExpr := <number> <number> <number> <number> <number> <number> <color>
 TranslateExpr := <number> <number> <number> <number>
-
+RotateExpr := <number> <number> <number>
+ScaleExpr := <number> <number> <number>
+GridExpr := <number> <number> <number> <number>
 */
 
 class Context {
@@ -94,7 +98,7 @@ class TerminalNumberExpression extends TerminalExpression {
     }
 }
 
-class MoveExpression implements Expression {
+class TranslateExpression implements Expression {
     interpret(context: Context): boolean {
         let termExp = new TerminalNumberExpression()
         return (
@@ -175,15 +179,45 @@ class AddExpression implements Expression {
 
 class StartExpression implements Expression {
     interpret(context: Context): boolean {
+        //Add expr
         let termTokenExpAdd = new TerminalTokenExpression('add')
         let expAdd = new AddExpression()
         let newContext = context.clone()
         if (termTokenExpAdd.interpret(newContext) && expAdd.interpret(newContext)) return true
 
-        let termTokenExpMove = new TerminalTokenExpression('move')
-        let expMove = new MoveExpression()
+        //Translate expr
+        let termTokenExpMove = new TerminalTokenExpression('translate')
+        let expMove = new TranslateExpression()
         newContext = context.clone()
         if (termTokenExpMove.interpret(newContext) && expMove.interpret(newContext)) return true
+
+        //Scale expr
+        let termTokenExpScale = new TerminalTokenExpression('scale')
+        let expScale = new TranslateExpression()
+        newContext = context.clone()
+        if (termTokenExpScale.interpret(newContext) && expScale.interpret(newContext)) return true
+
+        //Rotate expr
+        let termTokenExpRotate = new TerminalTokenExpression('rotate')
+        let expRotate = new TranslateExpression()
+        newContext = context.clone()
+        if (termTokenExpRotate.interpret(newContext) && expRotate.interpret(newContext)) return true
+
+        //Grid expr
+        let termTokenExpGrid = new TerminalTokenExpression('grid')
+        let expGrid = new TranslateExpression()
+        newContext = context.clone()
+        if (termTokenExpGrid.interpret(newContext) && expGrid.interpret(newContext)) return true
+
+        //Undo
+        let termTokenUndo = new TerminalTokenExpression('undo')
+        newContext = context.clone()
+        if (termTokenUndo.interpret(newContext)) return true
+
+        //Redo
+        let termTokenRedo = new TerminalTokenExpression('redo')
+        newContext = context.clone()
+        if (termTokenRedo.interpret(newContext)) return true
 
         return false
     }
