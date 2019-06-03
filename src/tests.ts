@@ -2,6 +2,9 @@ import 'mocha'
 import { expect } from 'chai'
 import { SimpleDrawDocument } from './model/document'
 import { Interpreter } from './controller/interpreter'
+import { Executor } from './controller/executor';
+import { ClickController, IdleState, ActionPressedState, FirstPointClickedState } from './controller/click_controller';
+import { UserEventAction, Action, UserEventPoint, Point } from './view/simpledraw_view';
 
 describe('Layers', () => {
     it('Layers are added', () => {
@@ -60,8 +63,7 @@ describe('Layers', () => {
 
 describe('REPL', () => {
     it('Valid strings are parsed correctly', () => {
-        const sdd = new SimpleDrawDocument()
-        const inter = new Interpreter(sdd)
+        const inter = new Interpreter(new Executor(new SimpleDrawDocument()))
 
         expect(inter.eval('add square 12 13 14 15 #ffffff')).to.equal(true)
         expect(inter.eval('add circle 20 30 #abcdef')).to.equal(true)
@@ -70,13 +72,53 @@ describe('REPL', () => {
     })
 
     it('Invalid strings are detected as such', () => {
-        const sdd = new SimpleDrawDocument()
-        const inter = new Interpreter(sdd)
+        const inter = new Interpreter(new Executor(new SimpleDrawDocument()))
 
         expect(inter.eval('asdgf asda asd')).to.equal(false)
         expect(inter.eval('add ajsdasf 20 30 #abcdef')).to.equal(false)
         expect(inter.eval('add triangle 5 6 6 1 4 #123ABC')).to.equal(false)
         expect(inter.eval('add triangle 5 6 6 1 1 4 #1234J4')).to.equal(false)
         expect(inter.eval('move 100 244 124')).to.equal(false)
+    })
+})
+
+describe('GUI input state machine', () => {
+    it ('Goes through the right states on button -> point actions', () => {
+        const cc = new ClickController(new Executor(new SimpleDrawDocument()))
+        const event1 = new UserEventAction(Action.CREATE_CIRCLE)
+        const event2 = new UserEventPoint(new Point(100, 100))
+
+        expect(cc.currState.constructor.name).to.equal(IdleState.name)
+        cc.processEvent(event1)
+        expect(cc.currState.constructor.name).to.equal(ActionPressedState.name)
+        cc.processEvent(event2)
+        expect(cc.currState.constructor.name).to.equal(IdleState.name)
+    })
+
+    it ('Goes through the right states on button -> point -> point actions', () => {
+        const cc = new ClickController(new Executor(new SimpleDrawDocument()))
+        const event1 = new UserEventAction(Action.TRANSLATE)
+        const event2 = new UserEventPoint(new Point(100, 100))
+        const event3 = new UserEventPoint(new Point(200, 200))
+
+        expect(cc.currState.constructor.name).to.equal(IdleState.name)
+        cc.processEvent(event1)
+        expect(cc.currState.constructor.name).to.equal(ActionPressedState.name)
+        cc.processEvent(event2)
+        expect(cc.currState.constructor.name).to.equal(FirstPointClickedState.name)
+        cc.processEvent(event3)
+        expect(cc.currState.constructor.name).to.equal(IdleState.name)
+    })
+
+    it ('Resets to the Idle state when an invalid input sequence is done', () => {
+        const cc = new ClickController(new Executor(new SimpleDrawDocument()))
+        const event1 = new UserEventAction(Action.TRANSLATE)
+        const event2 = new UserEventAction(Action.TRANSLATE)
+
+        expect(cc.currState.constructor.name).to.equal(IdleState.name)
+        cc.processEvent(event1)
+        expect(cc.currState.constructor.name).to.equal(ActionPressedState.name)
+        cc.processEvent(event2)
+        expect(cc.currState.constructor.name).to.equal(IdleState.name)
     })
 })

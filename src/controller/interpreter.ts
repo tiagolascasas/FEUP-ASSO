@@ -1,6 +1,6 @@
 'use strict'
 
-import { SimpleDrawDocument } from '../model/document'
+import { Executor } from './executor';
 
 /*
 REPL Grammar:
@@ -187,7 +187,7 @@ class StartExpression implements Expression {
 }
 
 export class Interpreter {
-    constructor(private sdd: SimpleDrawDocument) { }
+    constructor(private executor: Executor) { }
 
     eval(sentence: string): boolean {
         let ctx = new Context(sentence)

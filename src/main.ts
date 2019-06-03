@@ -1,6 +1,6 @@
 'use strict'
 
-import { SimpleDrawView } from './view/simpledrawview'
+import { SimpleDrawView } from './view/simpledraw_view'
 import { CanvasRenderer, SVGRenderer } from './view/renderer'
 
 const divCanvas1 = document.querySelector('#divCanvas1')
