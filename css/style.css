@@ -18,7 +18,7 @@ body,
 
 .grid-container {
     display: grid;
-    grid-template-columns: 0.4fr 1.6fr 1.7fr 0.3fr;
+    grid-template-columns: 0.4fr 1.6fr 1.6fr 0.4fr;
     grid-template-rows: 1.35fr 1.35fr 0.3fr;
     grid-template-areas: "B1 Canvas-1 Canvas-2 B3" "B2 Canvas-3 Canvas-4 B4" "C1 Repl Layers C2";
 }
@@ -82,4 +82,9 @@ body,
 label {
     color: white;
     font-family: "Arial", sans-serif;
+}
+
+.operation {
+    float: right;
+    clear: both;
 }

@@ -6,14 +6,17 @@ import { Executor } from './executor';
 REPL Grammar:
 
 Start :=  <add> AddExpr 
-        | <move> MoveExpr
+        | <translate> TranslateExpr
+        | <rotate> RotateExpr
+        | <scale> ScaleExpr
+        | <grid> GridExpr
 AddExpr := <square> SquareExpr
         |  <circle> CircleExpr 
         |  <triangle> TriangleExpr
 SquareExpr := <number> <number> <number> <number> <color>
 CircleExpr := <number> <number> <color>
 TriangleExpr := <number> <number> <number> <number> <number> <number> <color>
-MoveExpr := <number> <number> <number> <number>
+TranslateExpr := <number> <number> <number> <number>
 
 */
 
@@ -21,7 +24,7 @@ class Context {
     private tokens: Array<string>
     public index: number = 0
 
-    constructor(private sentence: string) {
+    constructor(private sentence: string, public executor: Executor) {
         this.tokens = sentence.split(' ')
     }
 
@@ -36,7 +39,7 @@ class Context {
     }
 
     clone(): Context {
-        let newContext = new Context(this.sentence)
+        let newContext = new Context(this.sentence, this.executor)
         newContext.index = this.index
         return newContext
     }
@@ -190,7 +193,7 @@ export class Interpreter {
     constructor(private executor: Executor) { }
 
     eval(sentence: string): boolean {
-        let ctx = new Context(sentence)
+        let ctx = new Context(sentence, this.executor)
         let startExpr = new StartExpression()
         return startExpr.interpret(ctx)
     }
