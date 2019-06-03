@@ -1,14 +1,8 @@
 'use strict'
 
-import { SimpleDrawDocument } from './document'
-import { Page } from './page'
-import { Interpreter } from './REPL'
-import { CanvasRender, SVGRender } from './renderer'
+import { SimpleDrawView } from './view/simpledrawview'
+import { CanvasRenderer, SVGRenderer } from './view/renderer'
 
-//create SimpleDraw
-const sdd = new SimpleDrawDocument()
-
-//create Canvas and SVG elements
 const divCanvas1 = document.querySelector('#divCanvas1')
 const divCanvas2 = document.querySelector('#divCanvas2')
 const divSVG1 = document.querySelector('#divSVG1')
@@ -50,28 +44,9 @@ svg2.style.position = 'absolute'
 svg2.style.border = '1px solid yellow'
 divSVG2.appendChild(svg2)
 
-//create REPL
-const replForm: HTMLFormElement = document.querySelector('#repl')
-const replPrint: HTMLLabelElement = document.querySelector('#res')
-const replPrompt: HTMLInputElement = document.querySelector('#prompt')
-
-const interpreter = new Interpreter(sdd)
-
-replForm.addEventListener('submit', (e: Event) => {
-    e.preventDefault()
-    let res = interpreter.eval(replPrompt.value)
-    replPrint.innerHTML = res ? '&nbsp;&nbsp;✔️' : '&nbsp;&nbsp;❌'
-})
-
-//create page
-const page = new Page(sdd)
-setInterval(() => {
-    page.render()
-}, 16)
-
-const r1 = new CanvasRender(page, 'divCanvas1')
-const r2 = new CanvasRender(page, 'divCanvas2')
-const r3 = new SVGRender(page, 'divSVG1')
-const r4 = new SVGRender(page, 'divSVG2')
-
-sdd.createRectangle(100, 100, 100, 100, "#ff0000")
+//Create view and add renderers
+const simpleDraw: SimpleDrawView = new SimpleDrawView()
+simpleDraw.addRenderer(new CanvasRenderer('divCanvas1'))
+simpleDraw.addRenderer(new CanvasRenderer('divCanvas2'))
+simpleDraw.addRenderer(new SVGRenderer('divSVG1'))
+simpleDraw.addRenderer(new SVGRenderer('divSVG2'))

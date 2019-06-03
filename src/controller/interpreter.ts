@@ -1,6 +1,6 @@
 'use strict'
 
-import { SimpleDrawDocument } from './document'
+import { SimpleDrawDocument } from '../model/document'
 
 /*
 REPL Grammar:

@@ -1,7 +1,7 @@
 import 'mocha'
 import { expect } from 'chai'
-import { SimpleDrawDocument } from './document'
-import { Interpreter } from './REPL'
+import { SimpleDrawDocument } from './model/document'
+import { Interpreter } from './controller/interpreter'
 
 describe('Layers', () => {
     it('Layers are added', () => {

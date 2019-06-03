@@ -1,18 +1,18 @@
-import { Shape, Circle, Rectangle } from './shape'
-import { selectedShape } from './operation'
-import { Page } from './page'
+import { Shape, Circle, Rectangle } from '../model/shape'
 
-export interface Renderer {
-    draw(objs: Map<String, Array<Shape>>, layers: Array<String>, event?: MouseEvent): void
+export abstract class Renderer {
+    constructor(elementID: string){}
+
+    abstract draw(objs: Map<String, Array<Shape>>, layers: Array<String>, event?: MouseEvent): void
 }
 
-export class SVGRender implements Renderer {
+export class SVGRenderer extends Renderer {
     svg: HTMLElement
     objs = new Array<Shape>()
 
-    constructor(private page: Page, elementID: string) {
+    constructor(elementID: string) {
+        super(elementID);
         this.svg = <HTMLElement>document.getElementById(elementID)
-        page.addRender(this)
     }
 
     draw(objs: Map<String, Array<Shape>>, layers: Array<String>): void {
@@ -32,7 +32,7 @@ export class SVGRender implements Renderer {
                     e.setAttribute('x', (-shape.width / 2).toString())
                     e.setAttribute('y', (-shape.height / 2).toString())
                     e.onclick = (event: MouseEvent) => {
-                        selectedShape(shape, this.page)
+                        //selectedShape(shape, this.page)
                     }
                     g.appendChild(e)
                     this.svg.appendChild(g)
@@ -43,7 +43,7 @@ export class SVGRender implements Renderer {
                     e.setAttribute('cy', shape.y.toString())
                     e.setAttribute('r', shape.radius.toString())
                     e.onclick = (event: MouseEvent) => {
-                        selectedShape(shape, this.page)
+                        //selectedShape(shape, this.page)
                     }
                     this.svg.appendChild(e)
                 }
@@ -52,19 +52,19 @@ export class SVGRender implements Renderer {
     }
 }
 
-export class CanvasRender implements Renderer {
+export class CanvasRenderer extends Renderer {
     objs: Map<String, Array<Shape>>
     layers: Array<String>
     ctx: CanvasRenderingContext2D
     canvas: HTMLCanvasElement
 
-    constructor(private page: Page, elementID: string) {
+    constructor(elementID: string) {
+        super(elementID)
         this.canvas = <HTMLCanvasElement>document.getElementById(elementID)
         this.ctx = this.canvas.getContext('2d')
         this.canvas.onclick = (ev: MouseEvent) => {
             this.draw(this.objs, this.layers, ev)
         }
-        page.addRender(this)
     }
 
     IsInPath(event: MouseEvent) {
@@ -94,7 +94,7 @@ export class CanvasRender implements Renderer {
                     )
                     if (event) {
                         if (this.IsInPath(event)) {
-                            selectedShape(shape, this.page)
+                            //selectedShape(shape, this.page)
                         }
                     }
                     this.ctx.closePath()
@@ -119,7 +119,7 @@ export class CanvasRender implements Renderer {
 
                     if (event) {
                         if (this.IsInPath(event)) {
-                            selectedShape(shape, this.page)
+                            //selectedShape(shape, this.page)
                         }
                     }
                 }

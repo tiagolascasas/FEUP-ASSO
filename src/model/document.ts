@@ -6,7 +6,7 @@ import {
     TranslateAction,
     RotateAction,
 } from './actions'
-import { Renderer } from './renderer'
+import { Renderer } from '../view/renderer'
 import { UndoManager } from './undo'
 import { LayersManager } from './layers'
 
