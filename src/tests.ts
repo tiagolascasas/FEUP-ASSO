@@ -2,7 +2,7 @@ import 'mocha'
 import { expect } from 'chai'
 import { SimpleDrawDocument } from './model/document'
 import { Interpreter } from './controller/interpreter'
-import { Executor } from './controller/executor';
+import { SimpleDrawAPI } from './controller/simpledraw_api';
 import { ClickController, IdleState, ActionPressedState, FirstPointClickedState } from './controller/click_controller';
 import { UserEventAction, Action, UserEventPoint, Point } from './view/simpledraw_view';
 
@@ -63,7 +63,7 @@ describe('Layers', () => {
 
 describe('REPL', () => {
     it('Valid strings are parsed correctly', () => {
-        const inter = new Interpreter(new Executor(new SimpleDrawDocument()))
+        const inter = new Interpreter(new SimpleDrawAPI(new SimpleDrawDocument()))
 
         expect(inter.eval('add square 12 13 14 15 #ffffff')).to.equal(true)
         expect(inter.eval('add circle 20 30 #abcdef')).to.equal(true)
@@ -72,7 +72,7 @@ describe('REPL', () => {
     })
 
     it('Invalid strings are detected as such', () => {
-        const inter = new Interpreter(new Executor(new SimpleDrawDocument()))
+        const inter = new Interpreter(new SimpleDrawAPI(new SimpleDrawDocument()))
 
         expect(inter.eval('asdgf asda asd')).to.equal(false)
         expect(inter.eval('add ajsdasf 20 30 #abcdef')).to.equal(false)
@@ -84,7 +84,7 @@ describe('REPL', () => {
 
 describe('GUI input state machine', () => {
     it ('Goes through the right states on button -> point actions', () => {
-        const cc = new ClickController(new Executor(new SimpleDrawDocument()))
+        const cc = new ClickController(new SimpleDrawAPI(new SimpleDrawDocument()))
         const event1 = new UserEventAction(Action.CREATE_CIRCLE)
         const event2 = new UserEventPoint(new Point(100, 100))
 
@@ -96,7 +96,7 @@ describe('GUI input state machine', () => {
     })
 
     it ('Goes through the right states on button -> point -> point actions', () => {
-        const cc = new ClickController(new Executor(new SimpleDrawDocument()))
+        const cc = new ClickController(new SimpleDrawAPI(new SimpleDrawDocument()))
         const event1 = new UserEventAction(Action.TRANSLATE)
         const event2 = new UserEventPoint(new Point(100, 100))
         const event3 = new UserEventPoint(new Point(200, 200))
@@ -111,7 +111,7 @@ describe('GUI input state machine', () => {
     })
 
     it ('Resets to the Idle state when an invalid input sequence is done', () => {
-        const cc = new ClickController(new Executor(new SimpleDrawDocument()))
+        const cc = new ClickController(new SimpleDrawAPI(new SimpleDrawDocument()))
         const event1 = new UserEventAction(Action.TRANSLATE)
         const event2 = new UserEventAction(Action.TRANSLATE)
 

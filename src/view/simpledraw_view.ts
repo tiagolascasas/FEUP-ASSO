@@ -1,25 +1,70 @@
 import { SimpleDrawDocument } from '../model/document'
 import { Renderer } from './renderer'
 import { Interpreter } from '../controller/interpreter';
-import { Executor } from '../controller/executor';
+import { SimpleDrawAPI } from '../controller/simpledraw_api';
 import { ClickController } from '../controller/click_controller';
 
 export class SimpleDrawView {
     readonly FRAMERATE_MS = 16
     renderers = new Array<Renderer>()
     document = new SimpleDrawDocument()
-    executor: Executor
+    api: SimpleDrawAPI
     interpreter: Interpreter
     click_controller: ClickController
 
     constructor() {
-        this.executor = new Executor(this.document)
-        this.interpreter = new Interpreter(this.executor)
-        this.click_controller = new ClickController(this.executor)
+        this.api = new SimpleDrawAPI(this.document)
+        this.interpreter = new Interpreter(this.api)
+        this.click_controller = new ClickController(this.api)
 
         window.setInterval(() => {
             this.render()
         }, this.FRAMERATE_MS)
+
+        document.getElementById("circle").addEventListener("click", (e: Event) => {
+            e.preventDefault()
+            this.click_controller.processEvent(new UserEventAction(Action.CREATE_CIRCLE))
+        })
+
+        document.getElementById("square").addEventListener("click", (e: Event) => {
+            e.preventDefault()
+            this.click_controller.processEvent(new UserEventAction(Action.CREATE_SQUARE))
+        })
+
+        document.getElementById("triangle").addEventListener("click", (e: Event) => {
+            e.preventDefault()
+            this.click_controller.processEvent(new UserEventAction(Action.CREATE_TRIANGLE))
+        })
+
+        document.getElementById("translate").addEventListener("submit", (e: Event) => {
+            e.preventDefault()
+            this.click_controller.processEvent(new UserEventAction(Action.TRANSLATE))
+        })
+
+        document.getElementById("rotate").addEventListener("submit", (e: Event) => {
+            e.preventDefault()
+            const angle = Number(document.getElementById("angle").nodeValue);
+
+            if (!isNaN(angle))
+                this.click_controller.processEvent(new UserEventAction(Action.ROTATE, {"angle": angle}))
+        })
+        document.getElementById("grid").addEventListener("submit", (e: Event) => {
+            e.preventDefault()
+            this.click_controller.processEvent(new UserEventAction(Action.GRID))
+        })
+
+        document.getElementById("scale").addEventListener("submit", (e: Event) => {
+            e.preventDefault()
+            const sx = Number(document.getElementById("sx").nodeValue);
+            const sy = Number(document.getElementById("sy").nodeValue);
+
+            if (!isNaN(sx) && !isNaN(sy))
+                this.click_controller.processEvent(new UserEventAction(Action.SCALE, {"sx": sx, "sy": sy}))
+        })
+
+        document.body.addEventListener('click', (e: Event) => {
+            this.click_controller.processEvent(new UserEventPoint(new Point(100, 100)))
+        }, true); 
     }
 
     addRenderer(render: Renderer) {
@@ -43,14 +88,18 @@ export enum Action {
     CREATE_TRIANGLE,
     TRANSLATE,
     ROTATE,
-    GRID
+    GRID,
+    SCALE
 }
 
 export abstract class UserEvent {}
 
 export class UserEventAction extends UserEvent {
-    constructor(public action: Action){
+    args: any = {}
+
+    constructor(public action: Action, args?: any){
         super()
+        this.args = args;
     }
 }
 

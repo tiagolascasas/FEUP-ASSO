@@ -1,6 +1,6 @@
 'use strict'
 
-import { Executor } from './executor';
+import { SimpleDrawAPI } from './simpledraw_api';
 
 /*
 REPL Grammar:
@@ -24,7 +24,7 @@ class Context {
     private tokens: Array<string>
     public index: number = 0
 
-    constructor(private sentence: string, public executor: Executor) {
+    constructor(private sentence: string, public api: SimpleDrawAPI) {
         this.tokens = sentence.split(' ')
     }
 
@@ -39,7 +39,7 @@ class Context {
     }
 
     clone(): Context {
-        let newContext = new Context(this.sentence, this.executor)
+        let newContext = new Context(this.sentence, this.api)
         newContext.index = this.index
         return newContext
     }
@@ -190,10 +190,10 @@ class StartExpression implements Expression {
 }
 
 export class Interpreter {
-    constructor(private executor: Executor) { }
+    constructor(private api: SimpleDrawAPI) { }
 
     eval(sentence: string): boolean {
-        let ctx = new Context(sentence, this.executor)
+        let ctx = new Context(sentence, this.api)
         let startExpr = new StartExpression()
         return startExpr.interpret(ctx)
     }

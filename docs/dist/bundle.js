@@ -1,7 +1,255 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
-const simpledrawview_1 = require("./view/simpledrawview");
+const simpledraw_view_1 = require("../view/simpledraw_view");
+class ClickController {
+    constructor(executor) {
+        this.executor = executor;
+        this.currState = new IdleState();
+    }
+    processEvent(event) {
+        this.currState.processEvent(this, event);
+    }
+}
+exports.ClickController = ClickController;
+class IdleState {
+    processEvent(context, event) {
+        if (event instanceof simpledraw_view_1.UserEventAction)
+            context.currState = new ActionPressedState(event);
+    }
+}
+exports.IdleState = IdleState;
+class ActionPressedState {
+    constructor(event) {
+        this.event = event;
+    }
+    processEvent(context, event) {
+        if (event instanceof simpledraw_view_1.UserEventPoint) {
+            if (this.event.action != simpledraw_view_1.Action.TRANSLATE) {
+                context.executor.execute(this.event.action, this.event.args, [event.point]);
+                context.currState = new IdleState();
+            }
+            else
+                context.currState = new FirstPointClickedState(this.event, event.point);
+        }
+        else
+            context.currState = new IdleState();
+    }
+}
+exports.ActionPressedState = ActionPressedState;
+class FirstPointClickedState {
+    constructor(event, point1) {
+        this.event = event;
+        this.point1 = point1;
+    }
+    processEvent(context, event) {
+        if (event instanceof simpledraw_view_1.UserEventPoint) {
+            context.executor.execute(this.event.action, this.event.args, [this.point1, event.point]);
+        }
+        context.currState = new IdleState();
+    }
+}
+exports.FirstPointClickedState = FirstPointClickedState;
+
+},{"../view/simpledraw_view":11}],2:[function(require,module,exports){
+'use strict';
+Object.defineProperty(exports, "__esModule", { value: true });
+const simpledraw_view_1 = require("../view/simpledraw_view");
+class Executor {
+    constructor(document) {
+        this.document = document;
+    }
+    execute(action, args, points) {
+        console.log(simpledraw_view_1.Action[action] + " with args " + args + " and " + points.length + " points");
+    }
+}
+exports.Executor = Executor;
+
+},{"../view/simpledraw_view":11}],3:[function(require,module,exports){
+'use strict';
+Object.defineProperty(exports, "__esModule", { value: true });
+/*
+REPL Grammar:
+
+Start :=  <add> AddExpr
+        | <translate> TranslateExpr
+        | <rotate> RotateExpr
+        | <scale> ScaleExpr
+        | <grid> GridExpr
+AddExpr := <square> SquareExpr
+        |  <circle> CircleExpr
+        |  <triangle> TriangleExpr
+SquareExpr := <number> <number> <number> <number> <color>
+CircleExpr := <number> <number> <color>
+TriangleExpr := <number> <number> <number> <number> <number> <number> <color>
+TranslateExpr := <number> <number> <number> <number>
+
+*/
+class Context {
+    constructor(sentence, executor) {
+        this.sentence = sentence;
+        this.executor = executor;
+        this.index = 0;
+        this.tokens = sentence.split(' ');
+    }
+    hasNext() {
+        return this.index < this.tokens.length;
+    }
+    next() {
+        let current = this.tokens[this.index];
+        this.index++;
+        return current;
+    }
+    clone() {
+        let newContext = new Context(this.sentence, this.executor);
+        newContext.index = this.index;
+        return newContext;
+    }
+}
+class TerminalExpression {
+    interpret(context) {
+        return false;
+    }
+}
+class TerminalTokenExpression extends TerminalExpression {
+    constructor(token) {
+        super();
+        this.token = token;
+    }
+    interpret(context) {
+        if (context.hasNext())
+            return context.next() == this.token;
+        else
+            return false;
+    }
+}
+class TerminalColorExpression extends TerminalExpression {
+    constructor() {
+        super();
+    }
+    interpret(context) {
+        if (context.hasNext()) {
+            let token = context.next();
+            const regex = new RegExp('^#(?:[0-9a-fA-F]{3}){1,2}$');
+            return regex.test(token);
+        }
+        else
+            return false;
+    }
+}
+class TerminalNumberExpression extends TerminalExpression {
+    constructor() {
+        super();
+    }
+    interpret(context) {
+        if (context.hasNext()) {
+            let token = context.next();
+            const regex = new RegExp('^[0-9]+$');
+            return regex.test(token);
+        }
+        else
+            return false;
+    }
+}
+class MoveExpression {
+    interpret(context) {
+        let termExp = new TerminalNumberExpression();
+        return (termExp.interpret(context) &&
+            termExp.interpret(context) &&
+            termExp.interpret(context) &&
+            termExp.interpret(context));
+    }
+}
+class TriangleExpression {
+    interpret(context) {
+        let termNumberExp = new TerminalNumberExpression();
+        let termColorExp = new TerminalColorExpression();
+        return (termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termColorExp.interpret(context));
+    }
+}
+class CircleExpression {
+    interpret(context) {
+        let termNumberExp = new TerminalNumberExpression();
+        let termColorExp = new TerminalColorExpression();
+        return (termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termColorExp.interpret(context));
+    }
+}
+class SquareExpression {
+    interpret(context) {
+        let termNumberExp = new TerminalNumberExpression();
+        let termColorExp = new TerminalColorExpression();
+        if (!termNumberExp.interpret(context))
+            return false;
+        if (!termNumberExp.interpret(context))
+            return false;
+        if (!termNumberExp.interpret(context))
+            return false;
+        if (!termNumberExp.interpret(context))
+            return false;
+        if (!termColorExp.interpret(context))
+            return false;
+        return true;
+    }
+}
+class AddExpression {
+    interpret(context) {
+        let termTokenExpSq = new TerminalTokenExpression('square');
+        let expSq = new SquareExpression();
+        let newContext = context.clone();
+        if (termTokenExpSq.interpret(newContext) && expSq.interpret(newContext))
+            return true;
+        let termTokenExpCi = new TerminalTokenExpression('circle');
+        let expCi = new CircleExpression();
+        newContext = context.clone();
+        if (termTokenExpCi.interpret(newContext) && expCi.interpret(newContext))
+            return true;
+        let termTokenExpTri = new TerminalTokenExpression('triangle');
+        let expTri = new TriangleExpression();
+        newContext = context.clone();
+        if (termTokenExpTri.interpret(newContext) && expTri.interpret(newContext))
+            return true;
+        return false;
+    }
+}
+class StartExpression {
+    interpret(context) {
+        let termTokenExpAdd = new TerminalTokenExpression('add');
+        let expAdd = new AddExpression();
+        let newContext = context.clone();
+        if (termTokenExpAdd.interpret(newContext) && expAdd.interpret(newContext))
+            return true;
+        let termTokenExpMove = new TerminalTokenExpression('move');
+        let expMove = new MoveExpression();
+        newContext = context.clone();
+        if (termTokenExpMove.interpret(newContext) && expMove.interpret(newContext))
+            return true;
+        return false;
+    }
+}
+class Interpreter {
+    constructor(executor) {
+        this.executor = executor;
+    }
+    eval(sentence) {
+        let ctx = new Context(sentence, this.executor);
+        let startExpr = new StartExpression();
+        return startExpr.interpret(ctx);
+    }
+}
+exports.Interpreter = Interpreter;
+
+},{}],4:[function(require,module,exports){
+'use strict';
+Object.defineProperty(exports, "__esModule", { value: true });
+const simpledraw_view_1 = require("./view/simpledraw_view");
 const renderer_1 = require("./view/renderer");
 const divCanvas1 = document.querySelector('#divCanvas1');
 const divCanvas2 = document.querySelector('#divCanvas2');
@@ -40,13 +288,13 @@ svg2.style.position = 'absolute';
 svg2.style.border = '1px solid yellow';
 divSVG2.appendChild(svg2);
 //Create view and add renderers
-const simpleDraw = new simpledrawview_1.SimpleDrawView();
+const simpleDraw = new simpledraw_view_1.SimpleDrawView();
 simpleDraw.addRenderer(new renderer_1.CanvasRenderer('divCanvas1'));
 simpleDraw.addRenderer(new renderer_1.CanvasRenderer('divCanvas2'));
 simpleDraw.addRenderer(new renderer_1.SVGRenderer('divSVG1'));
 simpleDraw.addRenderer(new renderer_1.SVGRenderer('divSVG2'));
 
-},{"./view/renderer":7,"./view/simpledrawview":8}],2:[function(require,module,exports){
+},{"./view/renderer":10,"./view/simpledraw_view":11}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const shape_1 = require("./shape");
@@ -118,7 +366,7 @@ class RotateAction {
 }
 exports.RotateAction = RotateAction;
 
-},{"./shape":5}],3:[function(require,module,exports){
+},{"./shape":8}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("./actions");
@@ -165,7 +413,7 @@ class SimpleDrawDocument {
 }
 exports.SimpleDrawDocument = SimpleDrawDocument;
 
-},{"./actions":2,"./layers":4,"./undo":6}],4:[function(require,module,exports){
+},{"./actions":5,"./layers":7,"./undo":9}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class LayersManager {
@@ -207,7 +455,7 @@ class LayersManager {
 }
 exports.LayersManager = LayersManager;
 
-},{}],5:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Shape {
@@ -247,7 +495,7 @@ class Circle extends Shape {
 }
 exports.Circle = Circle;
 
-},{}],6:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class UndoManager {
@@ -276,7 +524,7 @@ class UndoManager {
 }
 exports.UndoManager = UndoManager;
 
-},{}],7:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const shape_1 = require("../model/shape");
@@ -384,19 +632,60 @@ class CanvasRenderer extends Renderer {
 }
 exports.CanvasRenderer = CanvasRenderer;
 
-},{"../model/shape":5}],8:[function(require,module,exports){
+},{"../model/shape":8}],11:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const document_1 = require("../model/document");
+const interpreter_1 = require("../controller/interpreter");
+const executor_1 = require("../controller/executor");
+const click_controller_1 = require("../controller/click_controller");
 class SimpleDrawView {
-    //interpreter = new Interpreter(document)
     constructor() {
         this.FRAMERATE_MS = 16;
         this.renderers = new Array();
         this.document = new document_1.SimpleDrawDocument();
+        this.executor = new executor_1.Executor(this.document);
+        this.interpreter = new interpreter_1.Interpreter(this.executor);
+        this.click_controller = new click_controller_1.ClickController(this.executor);
         window.setInterval(() => {
             this.render();
         }, this.FRAMERATE_MS);
+        document.getElementById("circle").addEventListener("click", (e) => {
+            e.preventDefault();
+            this.click_controller.processEvent(new UserEventAction(Action.CREATE_CIRCLE));
+        });
+        document.getElementById("square").addEventListener("click", (e) => {
+            e.preventDefault();
+            this.click_controller.processEvent(new UserEventAction(Action.CREATE_SQUARE));
+        });
+        document.getElementById("triangle").addEventListener("click", (e) => {
+            e.preventDefault();
+            this.click_controller.processEvent(new UserEventAction(Action.CREATE_TRIANGLE));
+        });
+        document.getElementById("translate").addEventListener("submit", (e) => {
+            e.preventDefault();
+            this.click_controller.processEvent(new UserEventAction(Action.TRANSLATE));
+        });
+        document.getElementById("rotate").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const angle = Number(document.getElementById("angle").nodeValue);
+            if (!isNaN(angle))
+                this.click_controller.processEvent(new UserEventAction(Action.ROTATE, { "angle": angle }));
+        });
+        document.getElementById("grid").addEventListener("submit", (e) => {
+            e.preventDefault();
+            this.click_controller.processEvent(new UserEventAction(Action.GRID));
+        });
+        document.getElementById("scale").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const sx = Number(document.getElementById("sx").nodeValue);
+            const sy = Number(document.getElementById("sy").nodeValue);
+            if (!isNaN(sx) && !isNaN(sy))
+                this.click_controller.processEvent(new UserEventAction(Action.SCALE, { "sx": sx, "sy": sy }));
+        });
+        document.body.addEventListener('click', (e) => {
+            this.click_controller.processEvent(new UserEventPoint(new Point(100, 100)));
+        }, true);
     }
     addRenderer(render) {
         this.renderers.push(render);
@@ -408,5 +697,41 @@ class SimpleDrawView {
     }
 }
 exports.SimpleDrawView = SimpleDrawView;
+class Point {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+exports.Point = Point;
+var Action;
+(function (Action) {
+    Action[Action["CREATE_SQUARE"] = 0] = "CREATE_SQUARE";
+    Action[Action["CREATE_CIRCLE"] = 1] = "CREATE_CIRCLE";
+    Action[Action["CREATE_TRIANGLE"] = 2] = "CREATE_TRIANGLE";
+    Action[Action["TRANSLATE"] = 3] = "TRANSLATE";
+    Action[Action["ROTATE"] = 4] = "ROTATE";
+    Action[Action["GRID"] = 5] = "GRID";
+    Action[Action["SCALE"] = 6] = "SCALE";
+})(Action = exports.Action || (exports.Action = {}));
+class UserEvent {
+}
+exports.UserEvent = UserEvent;
+class UserEventAction extends UserEvent {
+    constructor(action, args) {
+        super();
+        this.action = action;
+        this.args = {};
+        this.args = args;
+    }
+}
+exports.UserEventAction = UserEventAction;
+class UserEventPoint extends UserEvent {
+    constructor(point) {
+        super();
+        this.point = point;
+    }
+}
+exports.UserEventPoint = UserEventPoint;
 
-},{"../model/document":3}]},{},[1]);
+},{"../controller/click_controller":1,"../controller/executor":2,"../controller/interpreter":3,"../model/document":6}]},{},[4]);

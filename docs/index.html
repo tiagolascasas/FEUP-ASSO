@@ -36,12 +36,35 @@
                 <label id="res"></label>
             </form> 
         </div>
-        <div class="Layers" style="background-color:#36393F">
-            <input type="image" src="assets/square.png" />
-            <input type="image" src="assets/circle.png" />
-            <input type="image" src="assets/triangle.png" />
+        <div class="Layers" style="background-color:#36393F; float:left">
+            <form style="display: inline-block;">
+                <input id="square" type="image" src="assets/square.png" />
+                <input id="circle" type="image" src="assets/circle.png" />
+                <input id="triangle" type="image" src="assets/triangle.png" />
+            </form>
+            <div style="display: inline-block;">
+            <form class="operation" id="rotate">
+                <label>Angle:</label>
+                <input id="angle" type="text" size="4">
+                <input type="submit" value="Rotate">
+            </form>
+            <form class="operation" id="scale">
+                <label>sx:</label>
+                <input id="sx" type="text" size="4">
+                <label>sy:</label>
+                <input id="sy" type="text" size="4">
+                <input type="submit" value="Scale">
+            </form>
+            <form class="operation" id="translate">
+                <input type="submit" value="Translate">
+            </form>
+            <form class="operation" id="grid">
+                <input type="submit" value="Grid">
+            </form>
+            </div>
         </div>
-        <div class="C2" style="background-color:#36393F"></div>
+        <div class="C2" style="background-color:#36393F">
+        </div>
         <div class="C1" style="background-color:#36393F">
             <input type="image" src="assets/undo.png" />
             <input type="image" src="assets/redo.png" />
