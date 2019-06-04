@@ -17,7 +17,8 @@ export abstract class Shape {
         this.angle = (this.angle + angled) % 360
     }
 
-    abstract accept(visitor: Visitor): Element;
+    //any for now until better solution -> when solution change in converter too
+    abstract accept(visitor: Visitor): any;
 }
 
 export class Rectangle extends Shape {

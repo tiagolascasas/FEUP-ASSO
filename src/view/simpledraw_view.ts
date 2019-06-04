@@ -3,6 +3,7 @@ import { Renderer } from './renderer'
 import { Interpreter } from '../controller/interpreter';
 import { SimpleDrawAPI } from '../controller/simpledraw_api';
 import { ClickController } from '../controller/click_controller';
+import { XMLConverterVisitor, TXTConverterVisitor } from '../controller/converter';
 
 export class SimpleDrawView {
     readonly FRAMERATE_MS = 16
@@ -81,7 +82,8 @@ export class SimpleDrawView {
         document.getElementById("save").addEventListener("click", (e: Event)=>{
             e.preventDefault();
             console.log("Save");
-            this.document.save();
+            //para ja so temos XML ou TXT (escolher um)
+            this.document.save(new TXTConverterVisitor);
         })
 
         document.body.addEventListener('click', (e: Event) => {
