@@ -53,7 +53,38 @@ class FirstPointClickedState {
 }
 exports.FirstPointClickedState = FirstPointClickedState;
 
-},{"../view/simpledraw_view":11}],2:[function(require,module,exports){
+},{"../view/simpledraw_view":12}],2:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+class XMLConverterVisitor {
+    constructor(doc) {
+        this.doc = doc;
+    }
+    visitRectangle(rect) {
+        var rectElem = this.doc.createElement("rect");
+        rectElem.setAttribute("angle", rect.angle.toString());
+        rectElem.setAttribute("color", rect.color);
+        rectElem.setAttribute("height", rect.height.toString());
+        rectElem.setAttribute("layer", rect.layer.toString());
+        rectElem.setAttribute("width", rect.width.toString());
+        rectElem.setAttribute("x", rect.x.toString());
+        rectElem.setAttribute("y", rect.y.toString());
+        return rectElem;
+    }
+    visitCircle(circle) {
+        var circleElem = this.doc.createElement("circ");
+        circleElem.setAttribute("angle", circle.angle.toString());
+        circleElem.setAttribute("color", circle.color);
+        circleElem.setAttribute("layer", circle.layer.toString());
+        circleElem.setAttribute("radius", circle.radius.toString());
+        circleElem.setAttribute("x", circle.x.toString());
+        circleElem.setAttribute("y", circle.y.toString());
+        return circleElem;
+    }
+}
+exports.XMLConverterVisitor = XMLConverterVisitor;
+
+},{}],3:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 /*
@@ -268,7 +299,7 @@ class Interpreter {
 }
 exports.Interpreter = Interpreter;
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("../view/simpledraw_view");
@@ -329,7 +360,7 @@ class GridExecuter {
     }
 }
 
-},{"../view/simpledraw_view":11}],4:[function(require,module,exports){
+},{"../view/simpledraw_view":12}],5:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("./view/simpledraw_view");
@@ -377,7 +408,7 @@ simpleDraw.addRenderer(new renderer_1.CanvasRenderer('canvas2'));
 simpleDraw.addRenderer(new renderer_1.SVGRenderer('svg1'));
 simpleDraw.addRenderer(new renderer_1.SVGRenderer('svg2'));
 
-},{"./view/renderer":10,"./view/simpledraw_view":11}],5:[function(require,module,exports){
+},{"./view/renderer":11,"./view/simpledraw_view":12}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const shape_1 = require("./shape");
@@ -449,12 +480,13 @@ class RotateAction {
 }
 exports.RotateAction = RotateAction;
 
-},{"./shape":8}],6:[function(require,module,exports){
+},{"./shape":9}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("./actions");
 const undo_1 = require("./undo");
 const layers_1 = require("./layers");
+const converter_1 = require("../controller/converter");
 class SimpleDrawDocument {
     constructor() {
         this.objects = new Array();
@@ -481,6 +513,16 @@ class SimpleDrawDocument {
         this.undoManager.onActionDone(a);
         return a.do();
     }
+    save() {
+        let doc = document.implementation.createDocument("", "", null);
+        let savedObjets = doc.createElement("objects");
+        let visitor = new converter_1.XMLConverterVisitor(doc);
+        for (const object of this.objects) {
+            savedObjets.appendChild(object.accept(visitor));
+        }
+        doc.appendChild(savedObjets);
+        console.log(doc);
+    }
     createRectangle(x, y, width, height, color) {
         return this.do(new actions_1.CreateRectangleAction(this, x, y, width, height, color));
     }
@@ -496,7 +538,7 @@ class SimpleDrawDocument {
 }
 exports.SimpleDrawDocument = SimpleDrawDocument;
 
-},{"./actions":5,"./layers":7,"./undo":9}],7:[function(require,module,exports){
+},{"../controller/converter":2,"./actions":6,"./layers":8,"./undo":10}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class LayersManager {
@@ -538,7 +580,7 @@ class LayersManager {
 }
 exports.LayersManager = LayersManager;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Shape {
@@ -566,6 +608,9 @@ class Rectangle extends Shape {
         this.height = height;
         this.color = color;
     }
+    accept(visitor) {
+        return visitor.visitRectangle(this);
+    }
 }
 exports.Rectangle = Rectangle;
 class Circle extends Shape {
@@ -575,10 +620,13 @@ class Circle extends Shape {
         this.y = y;
         this.radius = radius;
     }
+    accept(visitor) {
+        return visitor.visitCircle(this);
+    }
 }
 exports.Circle = Circle;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class UndoManager {
@@ -608,7 +656,7 @@ class UndoManager {
 }
 exports.UndoManager = UndoManager;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const shape_1 = require("../model/shape");
@@ -716,7 +764,7 @@ class CanvasRenderer extends Renderer {
 }
 exports.CanvasRenderer = CanvasRenderer;
 
-},{"../model/shape":8}],11:[function(require,module,exports){
+},{"../model/shape":9}],12:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const document_1 = require("../model/document");
@@ -769,6 +817,11 @@ class SimpleDrawView {
             if (!isNaN(sx) && !isNaN(sy))
                 this.click_controller.processEvent(new UserEventAction(Action.SCALE, { "sx": sx, "sy": sy }));
         });
+        document.getElementById("save").addEventListener("click", (e) => {
+            e.preventDefault();
+            console.log("Save");
+            this.document.save();
+        });
         document.body.addEventListener('click', (e) => {
             this.click_controller.processEvent(new UserEventPoint(new Point(100, 100)));
         }, true);
@@ -820,4 +873,4 @@ class UserEventPoint extends UserEvent {
 }
 exports.UserEventPoint = UserEventPoint;
 
-},{"../controller/click_controller":1,"../controller/interpreter":2,"../controller/simpledraw_api":3,"../model/document":6}]},{},[4]);
+},{"../controller/click_controller":1,"../controller/interpreter":3,"../controller/simpledraw_api":4,"../model/document":7}]},{},[5]);

@@ -1,76 +1,82 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>SimpleDraw</title>
 
-    <title>SimpleDraw</title>
+        <link rel="stylesheet" href="css/style.css" />
+    </head>
 
-    <link rel="stylesheet" href="css/style.css">
-</head>
-
-<body>
-    <div class="grid-container">
-        <div class="Canvas-1" id="divCanvas1"></div>
-        <div class="Canvas-2" id="divCanvas2"></div>
-        <div class="Canvas-3" id="divSVG1"></div>
-        <div class="Canvas-4" id="divSVG2"></div>
-        <div class="B1" style="background-color:#36393F">
-            <label>Canvas Render 1</label>
-        </div>   
-        <div class="B2" style="background-color:#36393F">
-            <label>Canvas Render 2</label>
-        </div>
-        <div class="B3" style="background-color:#36393F">
-            <label>SVG Render 1</label>
-        </div>
-        <div class="B4" style="background-color:#36393F">
-            <label>SVG Render 2</label>
-        </div>
-        <div class="Repl" style="background-color:#36393F">
-            <form id="repl">
-                <input type="text" id="prompt" placeholder="> enter your command" size="50" name="prompt">
-                <button type="submit" id="execute">Execute</button>
-                <label id="res"></label>
-            </form> 
-        </div>
-        <div class="Layers" style="background-color:#36393F; float:left">
-            <form style="display: inline-block;">
-                <input id="square" type="image" src="assets/square.png" />
-                <input id="circle" type="image" src="assets/circle.png" />
-                <input id="triangle" type="image" src="assets/triangle.png" />
-            </form>
-            <div style="display: inline-block;">
-            <form class="operation" id="rotate">
-                <label>Angle:</label>
-                <input id="angle" type="text" size="4">
-                <input type="submit" value="Rotate">
-            </form>
-            <form class="operation" id="scale">
-                <label>sx:</label>
-                <input id="sx" type="text" size="4">
-                <label>sy:</label>
-                <input id="sy" type="text" size="4">
-                <input type="submit" value="Scale">
-            </form>
-            <form class="operation" id="translate">
-                <input type="submit" value="Translate">
-            </form>
-            <form class="operation" id="grid">
-                <input type="submit" value="Grid">
-            </form>
+    <body>
+        <div class="grid-container">
+            <div class="Canvas-1" id="divCanvas1"></div>
+            <div class="Canvas-2" id="divCanvas2"></div>
+            <div class="Canvas-3" id="divSVG1"></div>
+            <div class="Canvas-4" id="divSVG2"></div>
+            <div class="B1" style="background-color:#36393F">
+                <label>Canvas Render 1</label>
+            </div>
+            <div class="B2" style="background-color:#36393F">
+                <label>Canvas Render 2</label>
+            </div>
+            <div class="B3" style="background-color:#36393F">
+                <label>SVG Render 1</label>
+            </div>
+            <div class="B4" style="background-color:#36393F">
+                <label>SVG Render 2</label>
+            </div>
+            <div class="Repl" style="background-color:#36393F">
+                <form id="repl">
+                    <input
+                        type="text"
+                        id="prompt"
+                        placeholder="> enter your command"
+                        size="50"
+                        name="prompt"
+                    />
+                    <button type="submit" id="execute">Execute</button>
+                    <label id="res"></label>
+                </form>
+            </div>
+            <div class="Layers" style="background-color:#36393F; float:left">
+                <form style="display: inline-block;">
+                    <input id="square" type="image" src="assets/square.png" />
+                    <input id="circle" type="image" src="assets/circle.png" />
+                    <input id="triangle" type="image" src="assets/triangle.png" />
+                </form>
+                <div style="display: inline-block;">
+                    <form class="operation" id="rotate">
+                        <label>Angle:</label>
+                        <input id="angle" type="text" size="4" />
+                        <input type="submit" value="Rotate" />
+                    </form>
+                    <form class="operation" id="scale">
+                        <label>sx:</label>
+                        <input id="sx" type="text" size="4" />
+                        <label>sy:</label>
+                        <input id="sy" type="text" size="4" />
+                        <input type="submit" value="Scale" />
+                    </form>
+                    <form class="operation" id="translate">
+                        <input type="submit" value="Translate" />
+                    </form>
+                    <form class="operation" id="grid">
+                        <input type="submit" value="Grid" />
+                    </form>
+                </div>
+                <form style="display: inline-block;">
+                    <input id="save" type="image" src="assets/save.png" height="50"/>
+                </form>
+            </div>
+            <div class="C2" style="background-color:#36393F"></div>
+            <div class="C1" style="background-color:#36393F">
+                <input type="image" src="assets/undo.png" />
+                <input type="image" src="assets/redo.png" />
             </div>
         </div>
-        <div class="C2" style="background-color:#36393F">
-        </div>
-        <div class="C1" style="background-color:#36393F">
-            <input type="image" src="assets/undo.png" />
-            <input type="image" src="assets/redo.png" />
-        </div>
-    </div>
-    <script src="dist/bundle.js"></script>
-</body>
-
+        <script src="dist/bundle.js"></script>
+    </body>
 </html>
