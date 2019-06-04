@@ -10,12 +10,12 @@
         <link rel="stylesheet" href="css/style.css" />
     </head>
 
-    <body>
+    <body style="background-color:#36393F">
         <div class="grid-container">
-            <div class="Canvas-1" id="divCanvas1"></div>
-            <div class="Canvas-2" id="divCanvas2"></div>
-            <div class="Canvas-3" id="divSVG1"></div>
-            <div class="Canvas-4" id="divSVG2"></div>
+            <div class="Canvas-1" id="divCanvas1" style="background-color:#FFFFFF"></div>
+            <div class="Canvas-2" id="divCanvas2" style="background-color:#FFFFFF"></div>
+            <div class="Canvas-3" id="divSVG1" style="background-color:#FFFFFF"></div>
+            <div class="Canvas-4" id="divSVG2" style="background-color:#FFFFFF"></div>
             <div class="B1" style="background-color:#36393F">
                 <label>Canvas Render 1</label>
             </div>
@@ -38,7 +38,25 @@
                         name="prompt"
                     />
                     <button type="submit" id="execute">Execute</button>
-                    <label id="res"></label>
+                    <label id="res">...</label>
+                    <div class="tooltip">
+                        <label>&nbsp;&nbsp;Help</label>
+                        <span class="tooltiptext">
+                            <pre>
+Command syntax is the following:
+
+add square x1 y1 x2 y2 #color          (x1, y1) and (x2, y2) are opposite corners
+add circle x1 y1 radius #color         (x1, y1) is the centre
+add triangle x1 y1 x2 y2 x3 y3 #color  3 points representing vertices
+translate x1 y1 x2 y2                  translate objects in (x1, y1) into (x2, y2)
+scale sx sy x1 y1                      scale by factor s all objects in (x1, x2)
+rotate angle x1 y1                     rotate angle degrees all objects in (x1, x2)
+grid x_replicas y_replicas x1 y1       replicates the objects in (x1, y1)
+undo                                   undoes the last command
+redo                                   redoes the last undo command
+                            </pre>
+                        </span>
+                    </div> 
                 </form>
             </div>
             <div class="Layers" style="background-color:#36393F; float:left">

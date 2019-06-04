@@ -84,6 +84,7 @@ describe('REPL', () => {
         expect(inter.eval('add triangle 5 6 6 1 4 #123ABC')).to.equal(false)
         expect(inter.eval('add triangle 5 6 6 1 1 4 #1234J4')).to.equal(false)
         expect(inter.eval('translate 100 244 124')).to.equal(false)
+        expect(inter.eval('unde')).to.equal(false)
     })
 })
 

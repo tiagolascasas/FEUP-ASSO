@@ -49,7 +49,7 @@ export class SimpleDrawDocument {
             savedObjets.appendChild(object.accept(visitor));
         }
         doc.appendChild(savedObjets);
-        console.log(doc);
+        //console.log(doc);
         
     }
 

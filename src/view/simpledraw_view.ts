@@ -21,6 +21,18 @@ export class SimpleDrawView {
             this.render()
         }, this.FRAMERATE_MS)
 
+        document.getElementById("repl").addEventListener("submit", (e: Event) => {
+            e.preventDefault()
+            const replPrompt: HTMLInputElement = document.querySelector('#prompt')
+            const replRes: HTMLLabelElement = document.querySelector('#res')
+            const command = replPrompt.value
+            if (command == null)
+                return
+            const success = this.interpreter.eval(command)
+            console.log(success)
+            replRes.innerHTML = success? "&nbsp;✔️" : "&nbsp;❌"
+        })
+
         document.getElementById("circle").addEventListener("click", (e: Event) => {
             e.preventDefault()
             this.click_controller.processEvent(new UserEventAction(Action.CREATE_CIRCLE))
@@ -51,6 +63,7 @@ export class SimpleDrawView {
             if (!isNaN(angle))
                 this.click_controller.processEvent(new UserEventAction(Action.ROTATE, {"angle": angle}))
         })
+
         document.getElementById("grid").addEventListener("submit", (e: Event) => {
             e.preventDefault()
             this.click_controller.processEvent(new UserEventAction(Action.GRID))
@@ -98,7 +111,9 @@ export enum Action {
     TRANSLATE,
     ROTATE,
     GRID,
-    SCALE
+    SCALE,
+    UNDO,
+    REDO
 }
 
 export abstract class UserEvent {}

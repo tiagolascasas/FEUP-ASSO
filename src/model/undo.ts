@@ -23,7 +23,7 @@ export class UndoManager<S, A extends UndoableAction<S>> {
   onActionDone(a: A): void {
     this.doStack.push(a);
     this.undoStack.length = 0;
-    console.log(this.doStack);
+    //console.log(this.doStack);
     
   }
 

@@ -1,6 +1,7 @@
 'use strict'
 
-import { SimpleDrawAPI } from './simpledraw_api';
+import { SimpleDrawAPI } from './simpledraw_api'
+import { Action, Point } from '../view/simpledraw_view'
 
 /*
 REPL Grammar:
@@ -16,7 +17,7 @@ AddExpr := <square> SquareExpr
         |  <circle> CircleExpr 
         |  <triangle> TriangleExpr
 SquareExpr := <number> <number> <number> <number> <color>
-CircleExpr := <number> <number> <color>
+CircleExpr := <number> <number> <number> <color>
 TriangleExpr := <number> <number> <number> <number> <number> <number> <color>
 TranslateExpr := <number> <number> <number> <number>
 RotateExpr := <number> <number> <number>
@@ -46,6 +47,10 @@ class Context {
         let newContext = new Context(this.sentence, this.api)
         newContext.index = this.index
         return newContext
+    }
+
+    get(i: number): string {
+        return this.tokens[i]
     }
 }
 
@@ -107,47 +112,73 @@ class TerminalNumberExpression extends TerminalExpression {
 class GridExpression implements Expression {
     interpret(context: Context): boolean {
         let termExp = new TerminalNumberExpression()
-        return (
+        if (
             termExp.interpret(context) &&
             termExp.interpret(context) &&
             termExp.interpret(context) &&
             termExp.interpret(context)
-        )
+        ) {
+            let p1 = new Point(Number(context.get(3)), Number(context.get(4)))
+            let horizontal_units = context.get(1)
+            let vertical_units = context.get(2)
+            context.api.execute(
+                Action.GRID,
+                { horizontal_units: horizontal_units, vertical_units: vertical_units },
+                [p1]
+            )
+            return true
+        } else return false
     }
 }
 
 class ScaleExpression implements Expression {
     interpret(context: Context): boolean {
         let termExp = new TerminalNumberExpression()
-        return (
+        if (
             termExp.interpret(context) &&
             termExp.interpret(context) &&
             termExp.interpret(context) &&
             termExp.interpret(context)
-        )
+        ) {
+            let p1 = new Point(Number(context.get(3)), Number(context.get(4)))
+            let sx = context.get(1)
+            let sy = context.get(2)
+            context.api.execute(Action.SCALE, { sx: sx, sy: sy }, [p1])
+            return true
+        } else return false
     }
 }
 
 class RotateExpression implements Expression {
     interpret(context: Context): boolean {
         let termExp = new TerminalNumberExpression()
-        return (
+        if (
             termExp.interpret(context) &&
             termExp.interpret(context) &&
             termExp.interpret(context)
-        )
+        ) {
+            let p1 = new Point(Number(context.get(2)), Number(context.get(3)))
+            let angle = context.get(1)
+            context.api.execute(Action.ROTATE, { angle: angle }, [p1])
+            return true
+        } else return false
     }
 }
 
 class TranslateExpression implements Expression {
     interpret(context: Context): boolean {
         let termExp = new TerminalNumberExpression()
-        return (
+        if (
             termExp.interpret(context) &&
             termExp.interpret(context) &&
             termExp.interpret(context) &&
             termExp.interpret(context)
-        )
+        ) {
+            let p1 = new Point(Number(context.get(1)), Number(context.get(2)))
+            let p2 = new Point(Number(context.get(4)), Number(context.get(3)))
+            context.api.execute(Action.TRANSLATE, {}, [p1, p2])
+            return true
+        } else return false
     }
 }
 
@@ -155,7 +186,7 @@ class TriangleExpression implements Expression {
     interpret(context: Context): boolean {
         let termNumberExp = new TerminalNumberExpression()
         let termColorExp = new TerminalColorExpression()
-        return (
+        if (
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
@@ -163,7 +194,13 @@ class TriangleExpression implements Expression {
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
             termColorExp.interpret(context)
-        )
+        ) {
+            let p1 = new Point(Number(context.get(2)), Number(context.get(3)))
+            let p2 = new Point(Number(context.get(4)), Number(context.get(5)))
+            let p3 = new Point(Number(context.get(6)), Number(context.get(7)))
+            context.api.execute(Action.CREATE_TRIANGLE, {}, [p1, p2, p3])
+            return true
+        } else return false
     }
 }
 
@@ -171,12 +208,17 @@ class CircleExpression implements Expression {
     interpret(context: Context): boolean {
         let termNumberExp = new TerminalNumberExpression()
         let termColorExp = new TerminalColorExpression()
-        return (
+        if (
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
             termColorExp.interpret(context)
-        )
+        ) {
+            let p1 = new Point(Number(context.get(2)), Number(context.get(3)))
+            let radius = context.get(4)
+            context.api.execute(Action.CREATE_CIRCLE, { radius: radius }, [p1])
+            return true
+        } else return false
     }
 }
 
@@ -184,13 +226,18 @@ class SquareExpression implements Expression {
     interpret(context: Context): boolean {
         let termNumberExp = new TerminalNumberExpression()
         let termColorExp = new TerminalColorExpression()
-        return (
+        if (
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
             termColorExp.interpret(context)
-        )
+        ) {
+            let p1 = new Point(Number(context.get(2)), Number(context.get(3)))
+            let p2 = new Point(Number(context.get(4)), Number(context.get(5)))
+            context.api.execute(Action.CREATE_SQUARE, {}, [p1, p2])
+            return true
+        } else return false
     }
 }
 
@@ -250,19 +297,25 @@ class StartExpression implements Expression {
         //Undo
         let termTokenUndo = new TerminalTokenExpression('undo')
         newContext = context.clone()
-        if (termTokenUndo.interpret(newContext)) return true
+        if (termTokenUndo.interpret(newContext)) {
+            context.api.execute(Action.UNDO, {}, [])
+            return true
+        }
 
         //Redo
         let termTokenRedo = new TerminalTokenExpression('redo')
         newContext = context.clone()
-        if (termTokenRedo.interpret(newContext)) return true
+        if (termTokenRedo.interpret(newContext)){
+            context.api.execute(Action.REDO, {}, [])
+            return true
+        } 
 
         return false
     }
 }
 
 export class Interpreter {
-    constructor(private api: SimpleDrawAPI) { }
+    constructor(private api: SimpleDrawAPI) {}
 
     eval(sentence: string): boolean {
         let ctx = new Context(sentence, this.api)

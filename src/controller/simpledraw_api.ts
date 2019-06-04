@@ -16,11 +16,14 @@ export class SimpleDrawAPI {
         this.executers.set(Action.GRID, new GridExecuter())
     }
 
-    execute(action: Action, args: any, points: Array<Point>): void {
-        console.log(Action[action] + " with args " + args + " and " + points.length + " points")
-        console.log(args);
-        
-        this.executers.get(action).executeAction(this.document, args, points)
+    execute(action: Action, args: any, points: Array<Point>): boolean {
+        console.log(Action[action] + ' with args ' + args + ' and ' + points.length + ' points')
+        console.log(args)
+
+        if (this.executers.has(action)) {
+            this.executers.get(action).executeAction(this.document, args, points)
+            return true
+        } else return false
     }
 }
 
@@ -28,46 +31,84 @@ interface ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Array<Point>): void
 }
 
+//args = {radius}, points = [center]
 class CreateCircleExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        document.createCircle(100, 100, 40)
-        console.log("create circle")
+        const point = points[0]
+        const radius = args.radius
+        document.createCircle(point.x, point.y, radius)
+        console.log('create circle')
     }
 }
 
+//args = {}, points = [corner1, corner2]
 class CreateSquareExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        document.createRectangle(100, 100, 100, 100, "#123123")
-        console.log("create square")
+        const dimensions = this.calculateDimensions(points[0], points[1])
+        document.createRectangle(dimensions[0].x, dimensions[0].y, dimensions[1], dimensions[2], '#123123')
+        console.log('create square')
+    }
+
+    calculateDimensions(p1: Point, p2: Point): any[] {
+        let topLeftCorner: Point
+        let width: Number
+        let height: Number
+
+        if (p2.x >= p1.x && p2.y >= p1.y) {
+            topLeftCorner = p1
+            width = p2.x - p1.x
+            height = p2.y - p1.y
+        }
+        if (p2.x >= p1.x && p2.y <= p1.y) {
+            topLeftCorner = new Point(p1.x, p2.y)
+            width = p2.x - p1.x
+            height = p1.y - p2.y
+        }
+        if (p2.x <= p1.x && p2.y <= p1.y) {
+            topLeftCorner = p2;
+            width = p1.x - p2.x
+            height = p1.y - p2.y
+        }
+        if (p2.x <= p1.x && p2.y >= p1.y) {
+            topLeftCorner = new Point(p2.x, p1.y)
+            width = p1.x - p2.x
+            height = p2.y - p1.y
+        }
+        return [topLeftCorner, width, height]
     }
 }
 
+//args = {}, points = [vertex1, vertex2, vertex3]
 class CreateTriangleExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        console.log("create triangle")
+        console.log('create triangle')
     }
 }
 
+//args = {}, points = [origin, destiny]
 class TranslateExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        console.log("translate")
+        console.log('translate')
     }
 }
 
+//args = {angle}, points = [point]
 class RotateExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        console.log("rotate")
+        console.log('rotate')
     }
 }
 
+//args = {sx, sy}, points = [point]
 class ScaleExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        console.log("scale")
+        console.log('scale')
     }
 }
 
+//args = {horizontal_units, vertical_units}, points = [point]
 class GridExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        console.log("grid")
+        console.log('grid')
     }
 }

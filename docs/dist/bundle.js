@@ -87,6 +87,7 @@ exports.XMLConverterVisitor = XMLConverterVisitor;
 },{}],3:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
+const simpledraw_view_1 = require("../view/simpledraw_view");
 /*
 REPL Grammar:
 
@@ -101,11 +102,11 @@ AddExpr := <square> SquareExpr
         |  <circle> CircleExpr
         |  <triangle> TriangleExpr
 SquareExpr := <number> <number> <number> <number> <color>
-CircleExpr := <number> <number> <color>
+CircleExpr := <number> <number> <number> <color>
 TriangleExpr := <number> <number> <number> <number> <number> <number> <color>
 TranslateExpr := <number> <number> <number> <number>
 RotateExpr := <number> <number> <number>
-ScaleExpr := <number> <number> <number>
+ScaleExpr := <number> <number> <number> <number>
 GridExpr := <number> <number> <number> <number>
 */
 class Context {
@@ -128,10 +129,18 @@ class Context {
         newContext.index = this.index;
         return newContext;
     }
+    get(i) {
+        return this.tokens[i];
+    }
 }
 class TerminalExpression {
     interpret(context) {
         return false;
+    }
+}
+class EmptyExpression extends TerminalExpression {
+    interpret(context) {
+        return context.hasNext() == false;
     }
 }
 class TerminalTokenExpression extends TerminalExpression {
@@ -174,52 +183,125 @@ class TerminalNumberExpression extends TerminalExpression {
             return false;
     }
 }
+class GridExpression {
+    interpret(context) {
+        let termExp = new TerminalNumberExpression();
+        if (termExp.interpret(context) &&
+            termExp.interpret(context) &&
+            termExp.interpret(context) &&
+            termExp.interpret(context)) {
+            let p1 = new simpledraw_view_1.Point(Number(context.get(3)), Number(context.get(4)));
+            let horizontal_units = context.get(1);
+            let vertical_units = context.get(2);
+            context.api.execute(simpledraw_view_1.Action.GRID, { horizontal_units: horizontal_units, vertical_units: vertical_units }, [p1]);
+            return true;
+        }
+        else
+            return false;
+    }
+}
+class ScaleExpression {
+    interpret(context) {
+        let termExp = new TerminalNumberExpression();
+        if (termExp.interpret(context) &&
+            termExp.interpret(context) &&
+            termExp.interpret(context) &&
+            termExp.interpret(context)) {
+            let p1 = new simpledraw_view_1.Point(Number(context.get(3)), Number(context.get(4)));
+            let sx = context.get(1);
+            let sy = context.get(2);
+            context.api.execute(simpledraw_view_1.Action.SCALE, { sx: sx, sy: sy }, [p1]);
+            return true;
+        }
+        else
+            return false;
+    }
+}
+class RotateExpression {
+    interpret(context) {
+        let termExp = new TerminalNumberExpression();
+        if (termExp.interpret(context) &&
+            termExp.interpret(context) &&
+            termExp.interpret(context)) {
+            let p1 = new simpledraw_view_1.Point(Number(context.get(2)), Number(context.get(3)));
+            let angle = context.get(1);
+            context.api.execute(simpledraw_view_1.Action.ROTATE, { angle: angle }, [p1]);
+            return true;
+        }
+        else
+            return false;
+    }
+}
 class TranslateExpression {
     interpret(context) {
         let termExp = new TerminalNumberExpression();
-        return (termExp.interpret(context) &&
+        if (termExp.interpret(context) &&
             termExp.interpret(context) &&
             termExp.interpret(context) &&
-            termExp.interpret(context));
+            termExp.interpret(context)) {
+            let p1 = new simpledraw_view_1.Point(Number(context.get(1)), Number(context.get(2)));
+            let p2 = new simpledraw_view_1.Point(Number(context.get(4)), Number(context.get(3)));
+            context.api.execute(simpledraw_view_1.Action.TRANSLATE, {}, [p1, p2]);
+            return true;
+        }
+        else
+            return false;
     }
 }
 class TriangleExpression {
     interpret(context) {
         let termNumberExp = new TerminalNumberExpression();
         let termColorExp = new TerminalColorExpression();
-        return (termNumberExp.interpret(context) &&
+        if (termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
-            termColorExp.interpret(context));
+            termColorExp.interpret(context)) {
+            let p1 = new simpledraw_view_1.Point(Number(context.get(2)), Number(context.get(3)));
+            let p2 = new simpledraw_view_1.Point(Number(context.get(4)), Number(context.get(5)));
+            let p3 = new simpledraw_view_1.Point(Number(context.get(6)), Number(context.get(7)));
+            context.api.execute(simpledraw_view_1.Action.CREATE_TRIANGLE, {}, [p1, p2, p3]);
+            return true;
+        }
+        else
+            return false;
     }
 }
 class CircleExpression {
     interpret(context) {
         let termNumberExp = new TerminalNumberExpression();
         let termColorExp = new TerminalColorExpression();
-        return (termNumberExp.interpret(context) &&
+        if (termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
-            termColorExp.interpret(context));
+            termNumberExp.interpret(context) &&
+            termColorExp.interpret(context)) {
+            let p1 = new simpledraw_view_1.Point(Number(context.get(2)), Number(context.get(3)));
+            let radius = context.get(4);
+            context.api.execute(simpledraw_view_1.Action.CREATE_CIRCLE, { radius: radius }, [p1]);
+            return true;
+        }
+        else
+            return false;
     }
 }
 class SquareExpression {
     interpret(context) {
         let termNumberExp = new TerminalNumberExpression();
         let termColorExp = new TerminalColorExpression();
-        if (!termNumberExp.interpret(context))
+        if (termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termColorExp.interpret(context)) {
+            let p1 = new simpledraw_view_1.Point(Number(context.get(2)), Number(context.get(3)));
+            let p2 = new simpledraw_view_1.Point(Number(context.get(4)), Number(context.get(5)));
+            context.api.execute(simpledraw_view_1.Action.CREATE_SQUARE, {}, [p1, p2]);
+            return true;
+        }
+        else
             return false;
-        if (!termNumberExp.interpret(context))
-            return false;
-        if (!termNumberExp.interpret(context))
-            return false;
-        if (!termNumberExp.interpret(context))
-            return false;
-        if (!termColorExp.interpret(context))
-            return false;
-        return true;
     }
 }
 class AddExpression {
@@ -258,32 +340,36 @@ class StartExpression {
             return true;
         //Scale expr
         let termTokenExpScale = new TerminalTokenExpression('scale');
-        let expScale = new TranslateExpression();
+        let expScale = new ScaleExpression();
         newContext = context.clone();
         if (termTokenExpScale.interpret(newContext) && expScale.interpret(newContext))
             return true;
         //Rotate expr
         let termTokenExpRotate = new TerminalTokenExpression('rotate');
-        let expRotate = new TranslateExpression();
+        let expRotate = new RotateExpression();
         newContext = context.clone();
         if (termTokenExpRotate.interpret(newContext) && expRotate.interpret(newContext))
             return true;
         //Grid expr
         let termTokenExpGrid = new TerminalTokenExpression('grid');
-        let expGrid = new TranslateExpression();
+        let expGrid = new GridExpression();
         newContext = context.clone();
         if (termTokenExpGrid.interpret(newContext) && expGrid.interpret(newContext))
             return true;
         //Undo
         let termTokenUndo = new TerminalTokenExpression('undo');
         newContext = context.clone();
-        if (termTokenUndo.interpret(newContext))
+        if (termTokenUndo.interpret(newContext)) {
+            context.api.execute(simpledraw_view_1.Action.UNDO, {}, []);
             return true;
+        }
         //Redo
         let termTokenRedo = new TerminalTokenExpression('redo');
         newContext = context.clone();
-        if (termTokenRedo.interpret(newContext))
+        if (termTokenRedo.interpret(newContext)) {
+            context.api.execute(simpledraw_view_1.Action.REDO, {}, []);
             return true;
+        }
         return false;
     }
 }
@@ -299,7 +385,7 @@ class Interpreter {
 }
 exports.Interpreter = Interpreter;
 
-},{}],4:[function(require,module,exports){
+},{"../view/simpledraw_view":12}],4:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("../view/simpledraw_view");
@@ -316,47 +402,88 @@ class SimpleDrawAPI {
         this.executers.set(simpledraw_view_1.Action.GRID, new GridExecuter());
     }
     execute(action, args, points) {
-        console.log(simpledraw_view_1.Action[action] + " with args " + args + " and " + points.length + " points");
+        console.log(simpledraw_view_1.Action[action] + ' with args ' + args + ' and ' + points.length + ' points');
         console.log(args);
-        this.executers.get(action).executeAction(this.document, args, points);
+        if (this.executers.has(action)) {
+            this.executers.get(action).executeAction(this.document, args, points);
+            return true;
+        }
+        else
+            return false;
     }
 }
 exports.SimpleDrawAPI = SimpleDrawAPI;
+//args = {radius}, points = [center]
 class CreateCircleExecuter {
     executeAction(document, args, points) {
-        document.createCircle(100, 100, 40);
-        console.log("create circle");
+        const point = points[0];
+        const radius = args.radius;
+        document.createCircle(point.x, point.y, radius);
+        console.log('create circle');
     }
 }
+//args = {}, points = [corner1, corner2]
 class CreateSquareExecuter {
     executeAction(document, args, points) {
-        document.createRectangle(100, 100, 100, 100, "#123123");
-        console.log("create square");
+        const dimensions = this.calculateDimensions(points[0], points[1]);
+        document.createRectangle(dimensions[0].x, dimensions[0].y, dimensions[1], dimensions[2], '#123123');
+        console.log('create square');
+    }
+    calculateDimensions(p1, p2) {
+        let topLeftCorner;
+        let width;
+        let height;
+        if (p2.x >= p1.x && p2.y >= p1.y) {
+            topLeftCorner = p1;
+            width = p2.x - p1.x;
+            height = p2.y - p1.y;
+        }
+        if (p2.x >= p1.x && p2.y <= p1.y) {
+            topLeftCorner = new simpledraw_view_1.Point(p1.x, p2.y);
+            width = p2.x - p1.x;
+            height = p1.y - p2.y;
+        }
+        if (p2.x <= p1.x && p2.y <= p1.y) {
+            topLeftCorner = p2;
+            width = p1.x - p2.x;
+            height = p1.y - p2.y;
+        }
+        if (p2.x <= p1.x && p2.y >= p1.y) {
+            topLeftCorner = new simpledraw_view_1.Point(p2.x, p1.y);
+            width = p1.x - p2.x;
+            height = p2.y - p1.y;
+        }
+        return [topLeftCorner, width, height];
     }
 }
+//args = {}, points = [vertex1, vertex2, vertex3]
 class CreateTriangleExecuter {
     executeAction(document, args, points) {
-        console.log("create triangle");
+        console.log('create triangle');
     }
 }
+//args = {}, points = [origin, destiny]
 class TranslateExecuter {
     executeAction(document, args, points) {
-        console.log("translate");
+        console.log('translate');
     }
 }
+//args = {angle}, points = [point]
 class RotateExecuter {
     executeAction(document, args, points) {
-        console.log("rotate");
+        console.log('rotate');
     }
 }
+//args = {sx, sy}, points = [point]
 class ScaleExecuter {
     executeAction(document, args, points) {
-        console.log("scale");
+        console.log('scale');
     }
 }
+//args = {horizontal_units, vertical_units}, points = [point]
 class GridExecuter {
     executeAction(document, args, points) {
-        console.log("grid");
+        console.log('grid');
     }
 }
 
@@ -521,7 +648,7 @@ class SimpleDrawDocument {
             savedObjets.appendChild(object.accept(visitor));
         }
         doc.appendChild(savedObjets);
-        console.log(doc);
+        //console.log(doc);
     }
     createRectangle(x, y, width, height, color) {
         return this.do(new actions_1.CreateRectangleAction(this, x, y, width, height, color));
@@ -651,7 +778,7 @@ class UndoManager {
     onActionDone(a) {
         this.doStack.push(a);
         this.undoStack.length = 0;
-        console.log(this.doStack);
+        //console.log(this.doStack);
     }
 }
 exports.UndoManager = UndoManager;
@@ -782,6 +909,17 @@ class SimpleDrawView {
         window.setInterval(() => {
             this.render();
         }, this.FRAMERATE_MS);
+        document.getElementById("repl").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const replPrompt = document.querySelector('#prompt');
+            const replRes = document.querySelector('#res');
+            const command = replPrompt.value;
+            if (command == null)
+                return;
+            const success = this.interpreter.eval(command);
+            console.log(success);
+            replRes.innerHTML = success ? "&nbsp;✔️" : "&nbsp;❌";
+        });
         document.getElementById("circle").addEventListener("click", (e) => {
             e.preventDefault();
             this.click_controller.processEvent(new UserEventAction(Action.CREATE_CIRCLE));
@@ -852,6 +990,8 @@ var Action;
     Action[Action["ROTATE"] = 4] = "ROTATE";
     Action[Action["GRID"] = 5] = "GRID";
     Action[Action["SCALE"] = 6] = "SCALE";
+    Action[Action["UNDO"] = 7] = "UNDO";
+    Action[Action["REDO"] = 8] = "REDO";
 })(Action = exports.Action || (exports.Action = {}));
 class UserEvent {
 }
