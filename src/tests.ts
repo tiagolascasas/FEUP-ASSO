@@ -66,9 +66,14 @@ describe('REPL', () => {
         const inter = new Interpreter(new SimpleDrawAPI(new SimpleDrawDocument()))
 
         expect(inter.eval('add square 12 13 14 15 #ffffff')).to.equal(true)
-        expect(inter.eval('add circle 20 30 #abcdef')).to.equal(true)
+        expect(inter.eval('add circle 20 30 5 #abcdef')).to.equal(true)
         expect(inter.eval('add triangle 5 6 6 7 1 4 #123ABC')).to.equal(true)
-        expect(inter.eval('move 100 244 124 764')).to.equal(true)
+        expect(inter.eval('translate 100 244 124 764')).to.equal(true)
+        expect(inter.eval('rotate 90 244 124')).to.equal(true)
+        expect(inter.eval('scale 100 244 124 764')).to.equal(true)
+        expect(inter.eval('grid 100 244 2 5')).to.equal(true)
+        expect(inter.eval('undo')).to.equal(true)
+        expect(inter.eval('redo')).to.equal(true)
     })
 
     it('Invalid strings are detected as such', () => {
@@ -78,7 +83,7 @@ describe('REPL', () => {
         expect(inter.eval('add ajsdasf 20 30 #abcdef')).to.equal(false)
         expect(inter.eval('add triangle 5 6 6 1 4 #123ABC')).to.equal(false)
         expect(inter.eval('add triangle 5 6 6 1 1 4 #1234J4')).to.equal(false)
-        expect(inter.eval('move 100 244 124')).to.equal(false)
+        expect(inter.eval('translate 100 244 124')).to.equal(false)
     })
 })
 

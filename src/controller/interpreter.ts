@@ -20,7 +20,7 @@ CircleExpr := <number> <number> <color>
 TriangleExpr := <number> <number> <number> <number> <number> <number> <color>
 TranslateExpr := <number> <number> <number> <number>
 RotateExpr := <number> <number> <number>
-ScaleExpr := <number> <number> <number>
+ScaleExpr := <number> <number> <number> <number>
 GridExpr := <number> <number> <number> <number>
 */
 
@@ -56,6 +56,12 @@ interface Expression {
 abstract class TerminalExpression implements Expression {
     interpret(context: Context): boolean {
         return false
+    }
+}
+
+class EmptyExpression extends TerminalExpression {
+    interpret(context: Context): boolean {
+        return context.hasNext() == false
     }
 }
 
@@ -98,6 +104,41 @@ class TerminalNumberExpression extends TerminalExpression {
     }
 }
 
+class GridExpression implements Expression {
+    interpret(context: Context): boolean {
+        let termExp = new TerminalNumberExpression()
+        return (
+            termExp.interpret(context) &&
+            termExp.interpret(context) &&
+            termExp.interpret(context) &&
+            termExp.interpret(context)
+        )
+    }
+}
+
+class ScaleExpression implements Expression {
+    interpret(context: Context): boolean {
+        let termExp = new TerminalNumberExpression()
+        return (
+            termExp.interpret(context) &&
+            termExp.interpret(context) &&
+            termExp.interpret(context) &&
+            termExp.interpret(context)
+        )
+    }
+}
+
+class RotateExpression implements Expression {
+    interpret(context: Context): boolean {
+        let termExp = new TerminalNumberExpression()
+        return (
+            termExp.interpret(context) &&
+            termExp.interpret(context) &&
+            termExp.interpret(context)
+        )
+    }
+}
+
 class TranslateExpression implements Expression {
     interpret(context: Context): boolean {
         let termExp = new TerminalNumberExpression()
@@ -133,6 +174,7 @@ class CircleExpression implements Expression {
         return (
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
             termColorExp.interpret(context)
         )
     }
@@ -142,17 +184,13 @@ class SquareExpression implements Expression {
     interpret(context: Context): boolean {
         let termNumberExp = new TerminalNumberExpression()
         let termColorExp = new TerminalColorExpression()
-        if (!termNumberExp.interpret(context))
-            return false
-        if (!termNumberExp.interpret(context))
-            return false
-        if (!termNumberExp.interpret(context))
-            return false
-        if (!termNumberExp.interpret(context))
-            return false
-        if (!termColorExp.interpret(context))
-            return false
-        return true
+        return (
+            termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termNumberExp.interpret(context) &&
+            termColorExp.interpret(context)
+        )
     }
 }
 
@@ -193,19 +231,19 @@ class StartExpression implements Expression {
 
         //Scale expr
         let termTokenExpScale = new TerminalTokenExpression('scale')
-        let expScale = new TranslateExpression()
+        let expScale = new ScaleExpression()
         newContext = context.clone()
         if (termTokenExpScale.interpret(newContext) && expScale.interpret(newContext)) return true
 
         //Rotate expr
         let termTokenExpRotate = new TerminalTokenExpression('rotate')
-        let expRotate = new TranslateExpression()
+        let expRotate = new RotateExpression()
         newContext = context.clone()
         if (termTokenExpRotate.interpret(newContext) && expRotate.interpret(newContext)) return true
 
         //Grid expr
         let termTokenExpGrid = new TerminalTokenExpression('grid')
-        let expGrid = new TranslateExpression()
+        let expGrid = new GridExpression()
         newContext = context.clone()
         if (termTokenExpGrid.interpret(newContext) && expGrid.interpret(newContext)) return true
 
