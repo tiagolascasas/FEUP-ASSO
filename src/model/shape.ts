@@ -1,3 +1,4 @@
+import { Visitor } from "controller/converter";
 
 export abstract class Shape {
 
@@ -15,11 +16,16 @@ export abstract class Shape {
     rotate(angled: number) {
         this.angle = (this.angle + angled) % 360
     }
+
 }
 
 export class Rectangle extends Shape {
     constructor(public x: number, public y: number, public width: number, public height: number, public color: string) {
         super(x, y)
+    }
+
+    accept(visitor: Visitor): void {
+        visitor.visitRectangle(this)
     }
 }
 

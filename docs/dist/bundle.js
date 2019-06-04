@@ -44,6 +44,8 @@ class FirstPointClickedState {
     }
     processEvent(context, event) {
         if (event instanceof simpledraw_view_1.UserEventPoint) {
+            console.log("first point clicked");
+            console.log(event);
             context.api.execute(this.event.action, this.event.args, [this.point1, event.point]);
         }
         context.currState = new IdleState();
@@ -62,6 +64,8 @@ Start :=  <add> AddExpr
         | <rotate> RotateExpr
         | <scale> ScaleExpr
         | <grid> GridExpr
+        | <undo>
+        | <redo>
 AddExpr := <square> SquareExpr
         |  <circle> CircleExpr
         |  <triangle> TriangleExpr
@@ -69,7 +73,9 @@ SquareExpr := <number> <number> <number> <number> <color>
 CircleExpr := <number> <number> <color>
 TriangleExpr := <number> <number> <number> <number> <number> <number> <color>
 TranslateExpr := <number> <number> <number> <number>
-
+RotateExpr := <number> <number> <number>
+ScaleExpr := <number> <number> <number>
+GridExpr := <number> <number> <number> <number>
 */
 class Context {
     constructor(sentence, api) {
@@ -137,7 +143,7 @@ class TerminalNumberExpression extends TerminalExpression {
             return false;
     }
 }
-class MoveExpression {
+class TranslateExpression {
     interpret(context) {
         let termExp = new TerminalNumberExpression();
         return (termExp.interpret(context) &&
@@ -207,15 +213,45 @@ class AddExpression {
 }
 class StartExpression {
     interpret(context) {
+        //Add expr
         let termTokenExpAdd = new TerminalTokenExpression('add');
         let expAdd = new AddExpression();
         let newContext = context.clone();
         if (termTokenExpAdd.interpret(newContext) && expAdd.interpret(newContext))
             return true;
-        let termTokenExpMove = new TerminalTokenExpression('move');
-        let expMove = new MoveExpression();
+        //Translate expr
+        let termTokenExpMove = new TerminalTokenExpression('translate');
+        let expMove = new TranslateExpression();
         newContext = context.clone();
         if (termTokenExpMove.interpret(newContext) && expMove.interpret(newContext))
+            return true;
+        //Scale expr
+        let termTokenExpScale = new TerminalTokenExpression('scale');
+        let expScale = new TranslateExpression();
+        newContext = context.clone();
+        if (termTokenExpScale.interpret(newContext) && expScale.interpret(newContext))
+            return true;
+        //Rotate expr
+        let termTokenExpRotate = new TerminalTokenExpression('rotate');
+        let expRotate = new TranslateExpression();
+        newContext = context.clone();
+        if (termTokenExpRotate.interpret(newContext) && expRotate.interpret(newContext))
+            return true;
+        //Grid expr
+        let termTokenExpGrid = new TerminalTokenExpression('grid');
+        let expGrid = new TranslateExpression();
+        newContext = context.clone();
+        if (termTokenExpGrid.interpret(newContext) && expGrid.interpret(newContext))
+            return true;
+        //Undo
+        let termTokenUndo = new TerminalTokenExpression('undo');
+        newContext = context.clone();
+        if (termTokenUndo.interpret(newContext))
+            return true;
+        //Redo
+        let termTokenRedo = new TerminalTokenExpression('redo');
+        newContext = context.clone();
+        if (termTokenRedo.interpret(newContext))
             return true;
         return false;
     }
@@ -250,6 +286,7 @@ class SimpleDrawAPI {
     }
     execute(action, args, points) {
         console.log(simpledraw_view_1.Action[action] + " with args " + args + " and " + points.length + " points");
+        console.log(args);
         this.executers.get(action).executeAction(this.document, args, points);
     }
 }
@@ -335,10 +372,10 @@ svg2.style.border = '1px solid yellow';
 divSVG2.appendChild(svg2);
 //Create view and add renderers
 const simpleDraw = new simpledraw_view_1.SimpleDrawView();
-simpleDraw.addRenderer(new renderer_1.CanvasRenderer('divCanvas1'));
-simpleDraw.addRenderer(new renderer_1.CanvasRenderer('divCanvas2'));
-simpleDraw.addRenderer(new renderer_1.SVGRenderer('divSVG1'));
-simpleDraw.addRenderer(new renderer_1.SVGRenderer('divSVG2'));
+simpleDraw.addRenderer(new renderer_1.CanvasRenderer('canvas1'));
+simpleDraw.addRenderer(new renderer_1.CanvasRenderer('canvas2'));
+simpleDraw.addRenderer(new renderer_1.SVGRenderer('svg1'));
+simpleDraw.addRenderer(new renderer_1.SVGRenderer('svg2'));
 
 },{"./view/renderer":10,"./view/simpledraw_view":11}],5:[function(require,module,exports){
 "use strict";
@@ -566,6 +603,7 @@ class UndoManager {
     onActionDone(a) {
         this.doStack.push(a);
         this.undoStack.length = 0;
+        console.log(this.doStack);
     }
 }
 exports.UndoManager = UndoManager;
@@ -701,6 +739,8 @@ class SimpleDrawView {
             this.click_controller.processEvent(new UserEventAction(Action.CREATE_CIRCLE));
         });
         document.getElementById("square").addEventListener("click", (e) => {
+            console.log("create square action");
+            console.log(e);
             e.preventDefault();
             this.click_controller.processEvent(new UserEventAction(Action.CREATE_SQUARE));
         });
@@ -714,7 +754,7 @@ class SimpleDrawView {
         });
         document.getElementById("rotate").addEventListener("submit", (e) => {
             e.preventDefault();
-            const angle = Number(document.getElementById("angle").nodeValue);
+            const angle = Number(document.getElementById("angle").value);
             if (!isNaN(angle))
                 this.click_controller.processEvent(new UserEventAction(Action.ROTATE, { "angle": angle }));
         });

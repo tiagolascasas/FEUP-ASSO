@@ -40,7 +40,11 @@ export class FirstPointClickedState implements State {
     constructor(public event: UserEventAction, public point1: Point) {}
 
     processEvent(context: ClickController, event: Event): void {
+               
         if (event instanceof UserEventPoint) {
+            console.log("first point clicked");
+            console.log(event);
+            
             context.api.execute(this.event.action, this.event.args, [this.point1, event.point])
         }
         context.currState = new IdleState()

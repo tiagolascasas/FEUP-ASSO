@@ -27,6 +27,9 @@ export class SimpleDrawView {
         })
 
         document.getElementById("square").addEventListener("click", (e: Event) => {
+            console.log("create square action");
+            console.log(e);
+            
             e.preventDefault()
             this.click_controller.processEvent(new UserEventAction(Action.CREATE_SQUARE))
         })
@@ -41,9 +44,9 @@ export class SimpleDrawView {
             this.click_controller.processEvent(new UserEventAction(Action.TRANSLATE))
         })
 
-        document.getElementById("rotate").addEventListener("submit", (e: Event) => {
+        document.getElementById("rotate").addEventListener("submit", (e: Event) => {           
             e.preventDefault()
-            const angle = Number(document.getElementById("angle").nodeValue);
+            const angle = Number((<HTMLInputElement>document.getElementById("angle")).value);            
 
             if (!isNaN(angle))
                 this.click_controller.processEvent(new UserEventAction(Action.ROTATE, {"angle": angle}))

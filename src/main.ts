@@ -46,7 +46,7 @@ divSVG2.appendChild(svg2)
 
 //Create view and add renderers
 const simpleDraw: SimpleDrawView = new SimpleDrawView()
-simpleDraw.addRenderer(new CanvasRenderer('divCanvas1'))
-simpleDraw.addRenderer(new CanvasRenderer('divCanvas2'))
-simpleDraw.addRenderer(new SVGRenderer('divSVG1'))
-simpleDraw.addRenderer(new SVGRenderer('divSVG2'))
+simpleDraw.addRenderer(new CanvasRenderer('canvas1'))
+simpleDraw.addRenderer(new CanvasRenderer('canvas2'))
+simpleDraw.addRenderer(new SVGRenderer('svg1'))
+simpleDraw.addRenderer(new SVGRenderer('svg2'))

@@ -18,6 +18,8 @@ export class SimpleDrawAPI {
 
     execute(action: Action, args: any, points: Array<Point>): void {
         console.log(Action[action] + " with args " + args + " and " + points.length + " points")
+        console.log(args);
+        
         this.executers.get(action).executeAction(this.document, args, points)
     }
 }
