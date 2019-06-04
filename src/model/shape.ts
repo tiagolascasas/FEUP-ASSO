@@ -17,7 +17,7 @@ export abstract class Shape {
         this.angle = (this.angle + angled) % 360
     }
 
-    abstract accept(visitor: Visitor): string;
+    abstract accept(visitor: Visitor): Element;
 }
 
 export class Rectangle extends Shape {
@@ -25,7 +25,7 @@ export class Rectangle extends Shape {
         super(x, y)
     }
 
-    accept(visitor: Visitor): string {
+    accept(visitor: Visitor): Element {
         return visitor.visitRectangle(this)
     }
 }
@@ -35,7 +35,7 @@ export class Circle extends Shape {
         super(x, y)
     }
 
-    accept(visitor: Visitor): string {
+    accept(visitor: Visitor): Element {
         return visitor.visitCircle(this)
     }
 }

@@ -42,10 +42,15 @@ export class SimpleDrawDocument {
     }
 
     save(){
-        let visitor = new XMLConverterVisitor;
+        let doc: XMLDocument = document.implementation.createDocument("", "", null);
+        let savedObjets = doc.createElement("objects");
+        let visitor = new XMLConverterVisitor(doc);
         for (const object of this.objects) {
-            console.log(object.accept(visitor));
+            savedObjets.appendChild(object.accept(visitor));
         }
+        doc.appendChild(savedObjets);
+        console.log(doc);
+        
     }
 
     createRectangle(
