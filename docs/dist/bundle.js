@@ -60,7 +60,17 @@ class XMLConverterVisitor {
     constructor(doc) {
         this.doc = doc;
     }
+    visitAll(objects) {
+        let doc = document.implementation.createDocument("", "", null);
+        let savedObjets = doc.createElement("objects");
+        for (const object of objects) {
+            savedObjets.appendChild(object.accept(this));
+        }
+        doc.appendChild(savedObjets);
+        console.log(doc);
+    }
     visitRectangle(rect) {
+        console.log("I am XML Converter for the Rectangle element");
         var rectElem = this.doc.createElement("rect");
         rectElem.setAttribute("angle", rect.angle.toString());
         rectElem.setAttribute("color", rect.color);
@@ -72,6 +82,7 @@ class XMLConverterVisitor {
         return rectElem;
     }
     visitCircle(circle) {
+        console.log("I am XML Converter for the Circle element");
         var circleElem = this.doc.createElement("circ");
         circleElem.setAttribute("angle", circle.angle.toString());
         circleElem.setAttribute("color", circle.color);
@@ -83,6 +94,41 @@ class XMLConverterVisitor {
     }
 }
 exports.XMLConverterVisitor = XMLConverterVisitor;
+class TXTConverterVisitor {
+    visitAll(objects) {
+        let saved = "";
+        for (const object of objects) {
+            saved = saved.concat(object.accept(this));
+        }
+        console.log(saved);
+    }
+    visitRectangle(rect) {
+        console.log("I am TXT Converter for the Rectangle element");
+        let saved = "Rectangle \n";
+        saved = saved.concat("angle= ", rect.angle.toString(), "\n");
+        saved = saved.concat("color= ", rect.color, "\n");
+        saved = saved.concat("height= ", rect.height.toString(), "\n");
+        saved = saved.concat("layer= ", rect.layer.toString(), "\n");
+        saved = saved.concat("width= ", rect.width.toString(), "\n");
+        saved = saved.concat("x= ", rect.x.toString(), "\n");
+        saved = saved.concat("y= ", rect.y.toString(), "\n");
+        console.log(saved);
+        return saved;
+    }
+    visitCircle(circle) {
+        console.log("I am TXT Converter for the Circle element");
+        let saved = "Circle \n";
+        saved = saved.concat("angle= ", circle.angle.toString(), "\n");
+        saved = saved.concat("color= ", circle.color, "\n");
+        saved = saved.concat("layer= ", circle.layer.toString(), "\n");
+        saved = saved.concat("radius= ", circle.radius.toString(), "\n");
+        saved = saved.concat("x= ", circle.x.toString(), "\n");
+        saved = saved.concat("y= ", circle.y.toString(), "\n");
+        console.log(saved);
+        return saved;
+    }
+}
+exports.TXTConverterVisitor = TXTConverterVisitor;
 
 },{}],3:[function(require,module,exports){
 'use strict';
@@ -486,7 +532,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("./actions");
 const undo_1 = require("./undo");
 const layers_1 = require("./layers");
-const converter_1 = require("../controller/converter");
 class SimpleDrawDocument {
     constructor() {
         this.objects = new Array();
@@ -513,15 +558,18 @@ class SimpleDrawDocument {
         this.undoManager.onActionDone(a);
         return a.do();
     }
-    save() {
-        let doc = document.implementation.createDocument("", "", null);
-        let savedObjets = doc.createElement("objects");
-        let visitor = new converter_1.XMLConverterVisitor(doc);
-        for (const object of this.objects) {
-            savedObjets.appendChild(object.accept(visitor));
-        }
-        doc.appendChild(savedObjets);
-        console.log(doc);
+    save(saveMode) {
+        // let doc: XMLDocument = document.implementation.createDocument("", "", null);
+        // let savedObjets = doc.createElement("objects");
+        // let visitor = new XMLConverterVisitor(doc);
+        // for (const object of this.objects) {
+        //     savedObjets.appendChild(object.accept(visitor));
+        // }
+        // doc.appendChild(savedObjets);
+        //try to write into file later cause it's "dangerous", either blob or file
+        //let newFile = new File(, { type: "text/xml", endings: 'native' });
+        // console.log(doc);
+        saveMode.visitAll(this.objects);
     }
     createRectangle(x, y, width, height, color) {
         return this.do(new actions_1.CreateRectangleAction(this, x, y, width, height, color));
@@ -538,7 +586,7 @@ class SimpleDrawDocument {
 }
 exports.SimpleDrawDocument = SimpleDrawDocument;
 
-},{"../controller/converter":2,"./actions":6,"./layers":8,"./undo":10}],8:[function(require,module,exports){
+},{"./actions":6,"./layers":8,"./undo":10}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class LayersManager {
@@ -771,6 +819,7 @@ const document_1 = require("../model/document");
 const interpreter_1 = require("../controller/interpreter");
 const simpledraw_api_1 = require("../controller/simpledraw_api");
 const click_controller_1 = require("../controller/click_controller");
+const converter_1 = require("../controller/converter");
 class SimpleDrawView {
     constructor() {
         this.FRAMERATE_MS = 16;
@@ -820,7 +869,8 @@ class SimpleDrawView {
         document.getElementById("save").addEventListener("click", (e) => {
             e.preventDefault();
             console.log("Save");
-            this.document.save();
+            //para ja so temos XML ou TXT (escolher um)
+            this.document.save(new converter_1.TXTConverterVisitor);
         });
         document.body.addEventListener('click', (e) => {
             this.click_controller.processEvent(new UserEventPoint(new Point(100, 100)));
@@ -873,4 +923,4 @@ class UserEventPoint extends UserEvent {
 }
 exports.UserEventPoint = UserEventPoint;
 
-},{"../controller/click_controller":1,"../controller/interpreter":3,"../controller/simpledraw_api":4,"../model/document":7}]},{},[5]);
+},{"../controller/click_controller":1,"../controller/converter":2,"../controller/interpreter":3,"../controller/simpledraw_api":4,"../model/document":7}]},{},[5]);

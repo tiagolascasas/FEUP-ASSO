@@ -9,7 +9,7 @@ import {
 import { Renderer } from '../view/renderer'
 import { UndoManager } from './undo'
 import { LayersManager } from './layers'
-import { XMLConverterVisitor } from '../controller/converter';
+import { XMLConverterVisitor, Visitor } from '../controller/converter';
 
 export class SimpleDrawDocument {
     objects = new Array<Shape>()
@@ -41,15 +41,20 @@ export class SimpleDrawDocument {
         return a.do()
     }
 
-    save(){
-        let doc: XMLDocument = document.implementation.createDocument("", "", null);
-        let savedObjets = doc.createElement("objects");
-        let visitor = new XMLConverterVisitor(doc);
-        for (const object of this.objects) {
-            savedObjets.appendChild(object.accept(visitor));
-        }
-        doc.appendChild(savedObjets);
-        console.log(doc);
+    save(saveMode: Visitor){
+
+        // let doc: XMLDocument = document.implementation.createDocument("", "", null);
+        // let savedObjets = doc.createElement("objects");
+        // let visitor = new XMLConverterVisitor(doc);
+        // for (const object of this.objects) {
+        //     savedObjets.appendChild(object.accept(visitor));
+        // }
+        // doc.appendChild(savedObjets);
+        //try to write into file later cause it's "dangerous", either blob or file
+        //let newFile = new File(, { type: "text/xml", endings: 'native' });
+        // console.log(doc);
+
+        saveMode.visitAll(this.objects)
         
     }
 
