@@ -9,6 +9,7 @@ import {
 import { Renderer } from '../view/renderer'
 import { UndoManager } from './undo'
 import { LayersManager } from './layers'
+import { XMLConverterVisitor } from '../controller/converter';
 
 export class SimpleDrawDocument {
     objects = new Array<Shape>()
@@ -38,6 +39,13 @@ export class SimpleDrawDocument {
     do<T>(a: Action<T>): T {
         this.undoManager.onActionDone(a)
         return a.do()
+    }
+
+    save(){
+        let visitor = new XMLConverterVisitor;
+        for (const object of this.objects) {
+            console.log(object.accept(visitor));
+        }
     }
 
     createRectangle(

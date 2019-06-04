@@ -65,6 +65,12 @@ export class SimpleDrawView {
                 this.click_controller.processEvent(new UserEventAction(Action.SCALE, {"sx": sx, "sy": sy}))
         })
 
+        document.getElementById("save").addEventListener("click", (e: Event)=>{
+            e.preventDefault();
+            console.log("Save");
+            this.document.save();
+        })
+
         document.body.addEventListener('click', (e: Event) => {
             this.click_controller.processEvent(new UserEventPoint(new Point(100, 100)))
         }, true); 

@@ -1,16 +1,20 @@
 
-import { Rectangle } from 'model/shape';
+import { Rectangle, Circle } from 'model/shape';
 
 export interface Visitor {
 
-    visitRectangle(rect: Rectangle) : {}
-    
+    visitRectangle(rect: Rectangle) : string
+    visitCircle(circle: Circle): string
 }
 
-export class XMLConverter implements Visitor{
+export class XMLConverterVisitor implements Visitor{
 
-    visitRectangle(rect: Rectangle): {} {
-        throw new Error("Method not implemented.");
+    visitRectangle(rect: Rectangle): string {
+        return "rectangle";
+    }
+
+    visitCircle(circle: Circle) : string{
+        return "circle"
     }
 
 }
