@@ -15,7 +15,8 @@ export class XMLConverterVisitor implements Visitor {
             savedObjets.appendChild(object.accept(this))
         }
         this.doc.appendChild(savedObjets)
-        Utils.download("save.xml",this.doc)
+         
+        Utils.download('save.xml', new XMLSerializer().serializeToString(this.doc.documentElement))
     }
 
     visitRectangle(rect: Rectangle): Element {
