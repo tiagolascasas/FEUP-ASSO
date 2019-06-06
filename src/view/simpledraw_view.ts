@@ -79,11 +79,11 @@ export class SimpleDrawView {
                 this.click_controller.processEvent(new UserEventAction(Action.SCALE, {"sx": sx, "sy": sy}))
         })
 
-        document.getElementById("save").addEventListener("click", (e: Event)=>{
+        document.getElementById("saveForm").addEventListener("submit", (e: Event)=>{
             e.preventDefault();
             console.log("Save");
             //para ja so temos XML ou TXT (escolher um)
-            this.document.save(new TXTConverterVisitor);
+            this.document.save(new XMLConverterVisitor);
         })
 
         document.body.addEventListener('click', (e: Event) => {
