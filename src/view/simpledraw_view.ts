@@ -63,7 +63,13 @@ export class SimpleDrawView {
 
         document.getElementById('grid').addEventListener('submit', (e: Event) => {
             e.preventDefault()
-            this.click_controller.processEvent(new UserEventAction(Action.GRID))
+            const units_x = Number(document.getElementById('x_units').nodeValue)
+            const units_y = Number(document.getElementById('y_units').nodeValue)
+
+            if (!isNaN(units_x) && isNaN(units_y))
+                this.click_controller.processEvent(
+                    new UserEventAction(Action.GRID, { units_x: units_x, units_y: units_y })
+                )
         })
 
         document.getElementById('scale').addEventListener('submit', (e: Event) => {

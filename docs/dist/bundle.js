@@ -891,21 +891,31 @@ class Renderer {
     constructor(elementID) {
         this.elementID = elementID;
         this.GRID_STEP = 50;
-        this.mode = "Color";
+        this.mode = 'Color';
+        this.zoom = 0;
         this.oldObjects = new Map();
         this.oldLayers = new Array();
-        const elem = document.getElementById(elementID + "_mode");
-        elem.addEventListener("change", () => {
-            this.mode = elem.value;
+        const modeElem = (document.getElementById(elementID + '_mode'));
+        modeElem.addEventListener('change', () => {
+            this.mode = modeElem.value;
             this.renderAgain();
+        });
+        const zoomElem = (document.getElementById(elementID + '_zoom'));
+        zoomElem.addEventListener('change', () => {
+            this.zoom = Number(zoomElem.value);
+            this.renderAgain();
+            console.log(this.zoom);
         });
     }
     render(objs, layers) {
         this.oldObjects = objs;
         this.oldLayers = layers;
+        this.init();
         this.clearCanvas();
+        this.applyZoom();
         this.drawGrid();
         this.drawObjects(objs, layers);
+        this.finish();
     }
     renderAgain() {
         this.render(this.oldObjects, this.oldLayers);
@@ -951,11 +961,11 @@ class SVGRenderer extends Renderer {
                     const e = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                     g.setAttribute('transform', `translate(${shape.x}, ${shape.y}) rotate(${shape.angle})`);
-                    if (this.mode == "Color")
+                    if (this.mode == 'Color')
                         e.setAttribute('style', `stroke: black; fill: ${shape.color}`);
-                    else if (this.mode == "Wireframe") {
+                    else if (this.mode == 'Wireframe') {
                         e.setAttribute('style', `stroke: black; fill: #FFFFFF`);
-                        e.setAttribute('fill-opacity', "0.0");
+                        e.setAttribute('fill-opacity', '0.0');
                     }
                     e.setAttribute('width', shape.width.toString());
                     e.setAttribute('height', shape.height.toString());
@@ -969,11 +979,11 @@ class SVGRenderer extends Renderer {
                 }
                 else if (shape instanceof shape_1.Circle) {
                     const e = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    if (this.mode == "Color")
+                    if (this.mode == 'Color')
                         e.setAttribute('style', `stroke: black; fill: ${shape.color}`);
-                    else if (this.mode == "Wireframe") {
+                    else if (this.mode == 'Wireframe') {
                         e.setAttribute('style', `stroke: black; fill: #FFFFFF`);
-                        e.setAttribute('fill-opacity', "0.0");
+                        e.setAttribute('fill-opacity', '0.0');
                     }
                     e.setAttribute('cx', shape.x.toString());
                     e.setAttribute('cy', shape.y.toString());
@@ -992,12 +1002,15 @@ class SVGRenderer extends Renderer {
         newLine.setAttribute('y1', y1.toString());
         newLine.setAttribute('x2', x2.toString());
         newLine.setAttribute('y2', y2.toString());
-        newLine.setAttribute("stroke", "#DDDDDD");
+        newLine.setAttribute('stroke', '#DDDDDD');
         this.element.appendChild(newLine);
     }
     clearCanvas() {
-        this.element.innerHTML = "";
+        this.element.innerHTML = '';
     }
+    init() { }
+    applyZoom() { }
+    finish() { }
 }
 exports.SVGRenderer = SVGRenderer;
 class CanvasRenderer extends Renderer {
@@ -1018,7 +1031,6 @@ class CanvasRenderer extends Renderer {
     drawObjects(objs, layers, event) {
         this.objs = objs;
         this.layers = layers;
-        this.drawGrid();
         for (const layer of layers) {
             for (const shape of objs.get(layer)) {
                 if (shape instanceof shape_1.Circle) {
@@ -1033,7 +1045,7 @@ class CanvasRenderer extends Renderer {
                     this.ctx.closePath();
                     this.ctx.fillStyle = shape.color;
                     this.ctx.stroke();
-                    if (this.mode == "Color")
+                    if (this.mode == 'Color')
                         this.ctx.fill();
                     //meter rotate num circulo?
                 }
@@ -1047,7 +1059,7 @@ class CanvasRenderer extends Renderer {
                     this.ctx.rect(-shape.width / 2, -shape.height / 2, shape.width, shape.height);
                     this.ctx.closePath();
                     this.ctx.stroke();
-                    if (this.mode == "Color")
+                    if (this.mode == 'Color')
                         this.ctx.fill();
                     //restore the state before drawing next shape
                     this.ctx.restore();
@@ -1064,7 +1076,7 @@ class CanvasRenderer extends Renderer {
         const defaultWidth = this.ctx.lineWidth;
         const defaultColor = this.ctx.strokeStyle;
         this.ctx.lineWidth = 1;
-        this.ctx.strokeStyle = "#DDDDDD";
+        this.ctx.strokeStyle = '#DDDDDD';
         this.ctx.beginPath();
         this.ctx.moveTo(x1, y1);
         this.ctx.lineTo(x2, y2);
@@ -1075,6 +1087,15 @@ class CanvasRenderer extends Renderer {
     clearCanvas() {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.ctx.beginPath();
+    }
+    init() {
+        this.ctx.save();
+    }
+    applyZoom() {
+        this.ctx.scale(1 + this.zoom, 1 + this.zoom);
+    }
+    finish() {
+        this.ctx.restore();
     }
 }
 exports.CanvasRenderer = CanvasRenderer;
@@ -1131,7 +1152,10 @@ class SimpleDrawView {
         });
         document.getElementById('grid').addEventListener('submit', (e) => {
             e.preventDefault();
-            this.click_controller.processEvent(new UserEventAction(Action.GRID));
+            const units_x = Number(document.getElementById('x_units').nodeValue);
+            const units_y = Number(document.getElementById('y_units').nodeValue);
+            if (!isNaN(units_x) && isNaN(units_y))
+                this.click_controller.processEvent(new UserEventAction(Action.GRID, { units_x: units_x, units_y: units_y }));
         });
         document.getElementById('scale').addEventListener('submit', (e) => {
             e.preventDefault();

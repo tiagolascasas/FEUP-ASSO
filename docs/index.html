@@ -25,6 +25,14 @@
                     <option value="Color">Color</option>
                     <option value="Wireframe">Wireframe</option>
                 </select>
+                <br>
+                <br>
+                <label>Zoom</label>
+                <select id="canvas1_zoom">
+                    <option value="0.5">50%</option>
+                    <option value="1.0" selected="selected">100%</option>
+                    <option value="1.5">150%</option>
+                </select>
             </div>
             <div class="B2" style="background-color:#36393F">
                 <label>SVG Renderer 1</label>
@@ -34,6 +42,14 @@
                 <select id="svg1_mode">
                     <option value="Color">Color</option>
                     <option value="Wireframe">Wireframe</option>
+                </select>
+                <br>
+                <br>
+                <label>Zoom</label>
+                <select id="svg1_zoom">
+                    <option value="0.5">50%</option>
+                    <option value="1.0" selected="selected">100%</option>
+                    <option value="1.5">150%</option>
                 </select>
             </div>
             <div class="B3" style="background-color:#36393F">
@@ -45,6 +61,14 @@
                     <option value="Color">Color</option>
                     <option value="Wireframe">Wireframe</option>
                 </select>
+                <br>
+                <br>
+                <label>Zoom</label>
+                <select id="canvas2_zoom">
+                    <option value="0.5">50%</option>
+                    <option value="1.0" selected="selected">100%</option>
+                    <option value="1.5">150%</option>
+                </select>
             </div>
             <div class="B4" style="background-color:#36393F">
                 <label>SVG Renderer 2</label>
@@ -54,6 +78,14 @@
                 <select id="svg2_mode">
                     <option value="Color">Color</option>
                     <option value="Wireframe">Wireframe</option>
+                </select>
+                <br>
+                <br>
+                <label>Zoom</label>
+                <select id="svg2_zoom">
+                    <option value="-0.5">50%</option>
+                    <option value="0" selected="selected">100%</option>
+                    <option value="0.5">150%</option>
                 </select>
             </div>
             <div class="Repl" style="background-color:#36393F">
@@ -94,10 +126,12 @@ redo                                   redoes the last undo command
                     <input id="triangle" type="image" src="assets/triangle.png" />
                 </form>
                 <div style="display: inline-block;">
-                    <form class="operation" id="rotate">
-                        <label>Angle:</label>
-                        <input id="angle" type="text" size="4" />
-                        <input type="submit" value="Rotate" />
+                    <form class="operation" id="grid">
+                        <label>x_units:</label>
+                        <input id="x_units" type="text" size="4" />
+                        <label>y_units:</label>
+                        <input id="y_units" type="text" size="4" />
+                        <input type="submit" value="Grid" />
                     </form>
                     <form class="operation" id="scale">
                         <label>sx:</label>
@@ -106,22 +140,25 @@ redo                                   redoes the last undo command
                         <input id="sy" type="text" size="4" />
                         <input type="submit" value="Scale" />
                     </form>
+                    <form class="operation" id="rotate">
+                        <label>Angle:</label>
+                        <input id="angle" type="text" size="4" />
+                        <input type="submit" value="Rotate" />
+                    </form>
                     <form class="operation" id="translate">
                         <input type="submit" value="Translate" />
                     </form>
-                    <form class="operation" id="grid">
-                        <input type="submit" value="Grid" />
-                    </form>
                 </div>
-                <form id="saveForm">
+            </div>
+            <div class="C2" style="background-color:#36393F">
+                <form class="operation" id="saveForm">
                     <select id="saveDropdown" name="cars">
                         <option value="txt">txt File</option>
                         <option value="xml">xml File</option>
                     </select>
-                    <input type="submit" value="Download" />
+                    <input type="submit" value="Save" />
                 </form>
             </div>
-            <div class="C2" style="background-color:#36393F"></div>
             <div class="C1" style="background-color:#36393F">
                 <input id="undo" type="image" src="assets/undo.png" />
                 <input id="redo" type="image" src="assets/redo.png" />

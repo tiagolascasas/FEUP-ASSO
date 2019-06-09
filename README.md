@@ -41,3 +41,7 @@ Since inputs can come from different sources (GUI or REPL), and since the API pr
 ### Rendering
 
 An arbitrary number of renderers are supported and the rendering of the model is triggered using the [**Observer Pattern**](https://en.wikipedia.org/wiki/Observer_pattern). Upon a change in the model (eg. new object inserted), the model notifies all renderers that its state has changed, and then the rendering is performed.
+
+The rendering algorithms were implemented using the [**Template Method Pattern**](https://en.wikipedia.org/wiki/Template_method_pattern). The general algorithm for rendering is always the same - run any initialization procedures, 
+set the zoom level, draw the background grid, draw all objects and then finalize. However, each of these stages depend on the rendering engine being used, and as such have to
+be implemented on a renderer-by-renderer basis.
