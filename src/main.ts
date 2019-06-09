@@ -50,5 +50,3 @@ simpleDraw.addRenderer(new CanvasRenderer('canvas1'))
 simpleDraw.addRenderer(new CanvasRenderer('canvas2'))
 simpleDraw.addRenderer(new SVGRenderer('svg1'))
 simpleDraw.addRenderer(new SVGRenderer('svg2'))
-
-simpleDraw.api.document.createRectangle(100,100,100,100,"#000")
