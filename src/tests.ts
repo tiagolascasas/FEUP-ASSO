@@ -2,9 +2,14 @@ import 'mocha'
 import { expect } from 'chai'
 import { SimpleDrawDocument } from './model/document'
 import { Interpreter } from './controller/interpreter'
-import { SimpleDrawAPI } from './controller/simpledraw_api';
-import { ClickController, IdleState, ActionPressedState, FirstPointClickedState } from './controller/click_controller';
-import { UserEventAction, Action, UserEventPoint, Point } from './view/simpledraw_view';
+import { SimpleDrawAPI, CreateSquareExecuter } from './controller/simpledraw_api'
+import {
+    ClickController,
+    IdleState,
+    ActionPressedState,
+    FirstPointClickedState,
+} from './controller/click_controller'
+import { UserEventAction, Action, UserEventPoint, Point } from './view/simpledraw_view'
 
 describe('Layers', () => {
     it('Layers are added', () => {
@@ -89,9 +94,9 @@ describe('REPL', () => {
 })
 
 describe('GUI input state machine', () => {
-    it ('Goes through the right states on button -> point actions', () => {
+    it('Goes through the right states on button -> point actions', () => {
         const cc = new ClickController(new SimpleDrawAPI(new SimpleDrawDocument()))
-        const event1 = new UserEventAction(Action.CREATE_CIRCLE)
+        const event1 = new UserEventAction(Action.ROTATE)
         const event2 = new UserEventPoint(new Point(100, 100))
 
         expect(cc.currState.constructor.name).to.equal(IdleState.name)
@@ -101,7 +106,7 @@ describe('GUI input state machine', () => {
         expect(cc.currState.constructor.name).to.equal(IdleState.name)
     })
 
-    it ('Goes through the right states on button -> point -> point actions', () => {
+    it('Goes through the right states on button -> point -> point actions', () => {
         const cc = new ClickController(new SimpleDrawAPI(new SimpleDrawDocument()))
         const event1 = new UserEventAction(Action.TRANSLATE)
         const event2 = new UserEventPoint(new Point(100, 100))
@@ -116,7 +121,7 @@ describe('GUI input state machine', () => {
         expect(cc.currState.constructor.name).to.equal(IdleState.name)
     })
 
-    it ('Resets to the Idle state when an invalid input sequence is done', () => {
+    it('Resets to the Idle state when an invalid input sequence is done', () => {
         const cc = new ClickController(new SimpleDrawAPI(new SimpleDrawDocument()))
         const event1 = new UserEventAction(Action.TRANSLATE)
         const event2 = new UserEventAction(Action.TRANSLATE)
@@ -126,5 +131,35 @@ describe('GUI input state machine', () => {
         expect(cc.currState.constructor.name).to.equal(ActionPressedState.name)
         cc.processEvent(event2)
         expect(cc.currState.constructor.name).to.equal(IdleState.name)
+    })
+})
+
+describe('Dimensions calculus', () => {
+    it('Rectangle dimensions are calculated correctly given any two points', () => {
+        const exe = new CreateSquareExecuter()
+
+        let d = exe.calculateDimensions(new Point(100, 100), new Point(200, 200))
+        expect(d[0].x).to.equal(100)
+        expect(d[0].y).to.equal(100)
+        expect(d[1]).to.equal(100)
+        expect(d[2]).to.equal(100)
+
+        d = exe.calculateDimensions(new Point(20, 30), new Point(10, 10))
+        expect(d[0].x).to.equal(10)
+        expect(d[0].y).to.equal(10)
+        expect(d[1]).to.equal(10)
+        expect(d[2]).to.equal(20)
+
+        d = exe.calculateDimensions(new Point(40, 200), new Point(50, 70))
+        expect(d[0].x).to.equal(40)
+        expect(d[0].y).to.equal(70)
+        expect(d[1]).to.equal(10)
+        expect(d[2]).to.equal(130)
+
+        d = exe.calculateDimensions(new Point(50, 70), new Point(40, 200))
+        expect(d[0].x).to.equal(40)
+        expect(d[0].y).to.equal(70)
+        expect(d[1]).to.equal(10)
+        expect(d[2]).to.equal(130)
     })
 })

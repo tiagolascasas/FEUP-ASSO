@@ -3,10 +3,16 @@ import { Point, NullPoint } from './simpledraw_view'
 
 export abstract class Renderer {
     element: HTMLElement
+    readonly GRID_STEP = 50 
 
     constructor(private elementID: string) {}
 
-    abstract draw(objs: Map<String, Array<Shape>>, layers: Array<String>, event?: MouseEvent): void
+    render(objs: Map<String, Array<Shape>>, layers: Array<String>): void {
+        this.drawGrid()
+        this.drawObjects(objs, layers)
+    }
+
+    abstract drawObjects(objs: Map<String, Array<Shape>>, layers: Array<String>, event?: MouseEvent): void
 
     mapToRenderer(point: Point): Point {
         const dimensions = this.element.getBoundingClientRect()
@@ -19,6 +25,25 @@ export abstract class Renderer {
             return new NullPoint()
         return new Point(point.x - x, point.y - y)
     }
+
+    getDimensions(): number[] {
+        const width = this.element.getBoundingClientRect().width
+        const height = this.element.getBoundingClientRect().height
+        return [width, height]
+    }
+
+    drawGrid(): void {
+        const width = this.getDimensions()[0]
+        const height = this.getDimensions()[1]
+
+        for (let i = 0; i < width; i += this.GRID_STEP)
+            this.drawLine(i, 0, i, height)
+
+        for (let i = 0; i < height; i += this.GRID_STEP)
+            this.drawLine(0, i, width, i)
+    }
+
+    abstract drawLine(x1: number, y1: number, x2: number, y2: number): void
 }
 
 export class SVGRenderer extends Renderer {
@@ -29,7 +54,7 @@ export class SVGRenderer extends Renderer {
         this.element = <HTMLElement>document.getElementById(elementID)
     }
 
-    draw(objs: Map<String, Array<Shape>>, layers: Array<String>): void {
+    drawObjects(objs: Map<String, Array<Shape>>, layers: Array<String>): void {
         for (const layer of layers) {
             for (const shape of objs.get(layer)) {
                 if (shape instanceof Rectangle) {
@@ -64,6 +89,16 @@ export class SVGRenderer extends Renderer {
             }
         }
     }
+
+    drawLine(x1: number, y1: number, x2: number, y2: number) {
+        let newLine = document.createElementNS('http://www.w3.org/2000/svg','line');
+        newLine.setAttribute('x1', x1.toString());
+        newLine.setAttribute('y1', y1.toString());
+        newLine.setAttribute('x2', x2.toString());
+        newLine.setAttribute('y2', y2.toString());
+        newLine.setAttribute("stroke", "#DDDDDD")
+        this.element.appendChild(newLine)
+    }
 }
 
 export class CanvasRenderer extends Renderer {
@@ -76,9 +111,6 @@ export class CanvasRenderer extends Renderer {
         this.element = <HTMLCanvasElement>document.getElementById(elementID)
         let canvas = <HTMLCanvasElement>this.element
         this.ctx = canvas.getContext('2d')
-        this.element.onclick = (ev: MouseEvent) => {
-            this.draw(this.objs, this.layers, ev)
-        }
     }
 
     IsInPath(event: MouseEvent) {
@@ -90,9 +122,11 @@ export class CanvasRenderer extends Renderer {
         return this.ctx.isPointInPath(x, y)
     }
 
-    draw(objs: Map<String, Array<Shape>>, layers: Array<String>, event?: MouseEvent): void {
+    drawObjects(objs: Map<String, Array<Shape>>, layers: Array<String>, event?: MouseEvent): void {
         this.objs = objs
         this.layers = layers
+
+        this.drawGrid()
 
         for (const layer of layers) {
             for (const shape of objs.get(layer)) {
@@ -140,5 +174,21 @@ export class CanvasRenderer extends Renderer {
                 }
             }
         }
+    }
+
+    drawLine(x1: number, y1: number, x2: number, y2: number): void {
+        const defaultWidth = this.ctx.lineWidth
+        const defaultColor = this.ctx.strokeStyle
+
+        this.ctx.lineWidth = 1
+        this.ctx.strokeStyle = "#DDDDDD"
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(x1, y1);
+        this.ctx.lineTo(x2, y2);
+        this.ctx.stroke();    
+
+        this.ctx.lineWidth = defaultWidth
+        this.ctx.strokeStyle = defaultColor
     }
 }

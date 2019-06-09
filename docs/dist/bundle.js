@@ -31,6 +31,7 @@ class ActionPressedState {
         if (event instanceof simpledraw_view_1.UserEventPoint) {
             if ([simpledraw_view_1.Action.ROTATE, simpledraw_view_1.Action.SCALE, simpledraw_view_1.Action.GRID].includes(this.event.action)) {
                 context.api.execute(this.event.action, this.event.args, [event.point]);
+                context.currState = new IdleState();
             }
             else
                 context.currState = new FirstPointClickedState(this.event, event.point);
@@ -447,11 +448,13 @@ class SimpleDrawAPI {
         this.executers.set(simpledraw_view_1.Action.ROTATE, new RotateExecuter());
         this.executers.set(simpledraw_view_1.Action.SCALE, new ScaleExecuter());
         this.executers.set(simpledraw_view_1.Action.GRID, new GridExecuter());
+        this.executers.set(simpledraw_view_1.Action.UNDO, new UndoExecuter());
+        this.executers.set(simpledraw_view_1.Action.REDO, new RedoExecuter());
     }
     execute(action, args, points) {
-        console.log(simpledraw_view_1.Action[action] + ' with args ' + args + ' and ' + points.length + ' points');
         if (args == undefined)
             args = {};
+        console.log(simpledraw_view_1.Action[action] + ' with args ' + args + ' and ' + points.length + ' points');
         if (this.executers.has(action)) {
             this.executers.get(action).executeAction(this.document, args, points);
             return true;
@@ -461,7 +464,8 @@ class SimpleDrawAPI {
     }
 }
 exports.SimpleDrawAPI = SimpleDrawAPI;
-//args = {radius}, points = [center, point]
+//args = {radius}, points = [center]
+//args = {}, points = [center, point]
 class CreateCircleExecuter {
     executeAction(document, args, points) {
         const centre = points[0];
@@ -510,6 +514,7 @@ class CreateSquareExecuter {
         return [topLeftCorner, width, height];
     }
 }
+exports.CreateSquareExecuter = CreateSquareExecuter;
 //args = {}, points = [vertex1, vertex2, vertex3]
 class CreateTriangleExecuter {
     executeAction(document, args, points) {
@@ -538,6 +543,16 @@ class ScaleExecuter {
 class GridExecuter {
     executeAction(document, args, points) {
         console.log('grid');
+    }
+}
+class UndoExecuter {
+    executeAction(document, args, points) {
+        document.undo();
+    }
+}
+class RedoExecuter {
+    executeAction(document, args, points) {
+        document.redo();
     }
 }
 
@@ -572,7 +587,7 @@ canvas1.width = divCanvas1.clientWidth;
 canvas1.height = divCanvas1.clientHeight;
 canvas1.style.zIndex = '8';
 canvas1.style.position = 'absolute';
-canvas1.style.border = '1px solid red';
+canvas1.style.border = '1px solid black';
 divCanvas1.appendChild(canvas1);
 const canvas2 = document.createElement('canvas');
 canvas2.id = 'canvas2';
@@ -580,7 +595,7 @@ canvas2.width = divCanvas2.clientWidth;
 canvas2.height = divCanvas2.clientHeight;
 canvas2.style.zIndex = '8';
 canvas2.style.position = 'absolute';
-canvas2.style.border = '1px solid green';
+canvas2.style.border = '1px solid black';
 divCanvas2.appendChild(canvas2);
 const svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 svg1.id = 'svg1';
@@ -588,7 +603,7 @@ svg1.setAttribute('width', divSVG1.clientWidth.toString());
 svg1.setAttribute('height', divSVG1.clientHeight.toString());
 svg1.style.zIndex = '8';
 svg1.style.position = 'absolute';
-svg1.style.border = '1px solid blue';
+svg1.style.border = '1px solid black';
 divSVG1.appendChild(svg1);
 const svg2 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 svg2.id = 'svg2';
@@ -596,7 +611,7 @@ svg2.setAttribute('width', divSVG2.clientWidth.toString());
 svg2.setAttribute('height', divSVG2.clientHeight.toString());
 svg2.style.zIndex = '8';
 svg2.style.position = 'absolute';
-svg2.style.border = '1px solid yellow';
+svg2.style.border = '1px solid black';
 divSVG2.appendChild(svg2);
 //Create view and add renderers
 const simpleDraw = new simpledraw_view_1.SimpleDrawView();
@@ -696,11 +711,11 @@ class SimpleDrawDocument {
     redo() {
         this.undoManager.redo();
     }
-    draw(render) {
+    draw(renderer) {
         // this.objects.forEach(o => o.draw(ctx))
         const objects = this.layersManager.mapObjectsToLayers(this.objects);
         const layers = this.layersManager.getOrderedLayers();
-        render.draw(objects, layers);
+        renderer.render(objects, layers);
     }
     add(r) {
         this.objects.push(r);
@@ -864,6 +879,11 @@ const simpledraw_view_1 = require("./simpledraw_view");
 class Renderer {
     constructor(elementID) {
         this.elementID = elementID;
+        this.GRID_STEP = 50;
+    }
+    render(objs, layers) {
+        this.drawGrid();
+        this.drawObjects(objs, layers);
     }
     mapToRenderer(point) {
         const dimensions = this.element.getBoundingClientRect();
@@ -875,6 +895,19 @@ class Renderer {
             return new simpledraw_view_1.NullPoint();
         return new simpledraw_view_1.Point(point.x - x, point.y - y);
     }
+    getDimensions() {
+        const width = this.element.getBoundingClientRect().width;
+        const height = this.element.getBoundingClientRect().height;
+        return [width, height];
+    }
+    drawGrid() {
+        const width = this.getDimensions()[0];
+        const height = this.getDimensions()[1];
+        for (let i = 0; i < width; i += this.GRID_STEP)
+            this.drawLine(i, 0, i, height);
+        for (let i = 0; i < height; i += this.GRID_STEP)
+            this.drawLine(0, i, width, i);
+    }
 }
 exports.Renderer = Renderer;
 class SVGRenderer extends Renderer {
@@ -883,7 +916,7 @@ class SVGRenderer extends Renderer {
         this.objs = new Array();
         this.element = document.getElementById(elementID);
     }
-    draw(objs, layers) {
+    drawObjects(objs, layers) {
         for (const layer of layers) {
             for (const shape of objs.get(layer)) {
                 if (shape instanceof shape_1.Rectangle) {
@@ -915,6 +948,15 @@ class SVGRenderer extends Renderer {
             }
         }
     }
+    drawLine(x1, y1, x2, y2) {
+        let newLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        newLine.setAttribute('x1', x1.toString());
+        newLine.setAttribute('y1', y1.toString());
+        newLine.setAttribute('x2', x2.toString());
+        newLine.setAttribute('y2', y2.toString());
+        newLine.setAttribute("stroke", "#DDDDDD");
+        this.element.appendChild(newLine);
+    }
 }
 exports.SVGRenderer = SVGRenderer;
 class CanvasRenderer extends Renderer {
@@ -923,9 +965,6 @@ class CanvasRenderer extends Renderer {
         this.element = document.getElementById(elementID);
         let canvas = this.element;
         this.ctx = canvas.getContext('2d');
-        this.element.onclick = (ev) => {
-            this.draw(this.objs, this.layers, ev);
-        };
     }
     IsInPath(event) {
         let canvas = this.element;
@@ -935,9 +974,10 @@ class CanvasRenderer extends Renderer {
         y = (event.clientY - bb.top) * (canvas.height / bb.height);
         return this.ctx.isPointInPath(x, y);
     }
-    draw(objs, layers, event) {
+    drawObjects(objs, layers, event) {
         this.objs = objs;
         this.layers = layers;
+        this.drawGrid();
         for (const layer of layers) {
             for (const shape of objs.get(layer)) {
                 if (shape instanceof shape_1.Circle) {
@@ -975,6 +1015,18 @@ class CanvasRenderer extends Renderer {
                 }
             }
         }
+    }
+    drawLine(x1, y1, x2, y2) {
+        const defaultWidth = this.ctx.lineWidth;
+        const defaultColor = this.ctx.strokeStyle;
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeStyle = "#DDDDDD";
+        this.ctx.beginPath();
+        this.ctx.moveTo(x1, y1);
+        this.ctx.lineTo(x2, y2);
+        this.ctx.stroke();
+        this.ctx.lineWidth = defaultWidth;
+        this.ctx.strokeStyle = defaultColor;
     }
 }
 exports.CanvasRenderer = CanvasRenderer;
@@ -1043,6 +1095,14 @@ class SimpleDrawView {
             const sy = Number(document.getElementById("sy").nodeValue);
             if (!isNaN(sx) && !isNaN(sy))
                 this.click_controller.processEvent(new UserEventAction(Action.SCALE, { "sx": sx, "sy": sy }));
+        });
+        document.getElementById("undo").addEventListener("click", (e) => {
+            e.preventDefault();
+            this.click_controller.processEvent(new UserEventAction(Action.UNDO));
+        });
+        document.getElementById("redo").addEventListener("click", (e) => {
+            e.preventDefault();
+            this.click_controller.processEvent(new UserEventAction(Action.REDO));
         });
         document.getElementById("saveForm").addEventListener("submit", (e) => {
             e.preventDefault();

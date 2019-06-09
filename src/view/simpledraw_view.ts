@@ -79,6 +79,16 @@ export class SimpleDrawView {
                 this.click_controller.processEvent(new UserEventAction(Action.SCALE, {"sx": sx, "sy": sy}))
         })
 
+        document.getElementById("undo").addEventListener("click", (e: Event) => {
+            e.preventDefault()
+            this.click_controller.processEvent(new UserEventAction(Action.UNDO))
+        })
+
+        document.getElementById("redo").addEventListener("click", (e: Event) => {
+            e.preventDefault()
+            this.click_controller.processEvent(new UserEventAction(Action.REDO))
+        })
+
         document.getElementById("saveForm").addEventListener("submit", (e: Event)=>{
             e.preventDefault();
             console.log("Save");

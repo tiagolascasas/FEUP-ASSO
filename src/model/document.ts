@@ -24,11 +24,11 @@ export class SimpleDrawDocument {
         this.undoManager.redo()
     }
 
-    draw(render: Renderer): void {
+    draw(renderer: Renderer): void {
         // this.objects.forEach(o => o.draw(ctx))
         const objects = this.layersManager.mapObjectsToLayers(this.objects)
         const layers = this.layersManager.getOrderedLayers();
-        render.draw(objects, layers)
+        renderer.render(objects, layers)
     }
 
     add(r: Shape): void {
