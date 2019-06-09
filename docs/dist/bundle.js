@@ -14,8 +14,12 @@ class ClickController {
 exports.ClickController = ClickController;
 class IdleState {
     processEvent(context, event) {
-        if (event instanceof simpledraw_view_1.UserEventAction)
-            context.currState = new ActionPressedState(event);
+        if (event instanceof simpledraw_view_1.UserEventAction) {
+            if ([simpledraw_view_1.Action.UNDO, simpledraw_view_1.Action.REDO].includes(event.action)) {
+            }
+            else
+                context.currState = new ActionPressedState(event);
+        }
     }
 }
 exports.IdleState = IdleState;
@@ -25,9 +29,8 @@ class ActionPressedState {
     }
     processEvent(context, event) {
         if (event instanceof simpledraw_view_1.UserEventPoint) {
-            if (this.event.action != simpledraw_view_1.Action.TRANSLATE) {
+            if ([simpledraw_view_1.Action.ROTATE, simpledraw_view_1.Action.SCALE, simpledraw_view_1.Action.GRID].includes(this.event.action)) {
                 context.api.execute(this.event.action, this.event.args, [event.point]);
-                context.currState = new IdleState();
             }
             else
                 context.currState = new FirstPointClickedState(this.event, event.point);
@@ -44,11 +47,13 @@ class FirstPointClickedState {
     }
     processEvent(context, event) {
         if (event instanceof simpledraw_view_1.UserEventPoint) {
-            console.log("first point clicked");
-            console.log(event);
-            context.api.execute(this.event.action, this.event.args, [this.point1, event.point]);
+            if ([simpledraw_view_1.Action.CREATE_SQUARE, simpledraw_view_1.Action.CREATE_CIRCLE, simpledraw_view_1.Action.TRANSLATE].includes(this.event.action)) {
+                context.api.execute(this.event.action, this.event.args, [this.point1, event.point]);
+                context.currState = new IdleState();
+            } //else second point clicked state
+            else
+                context.currState = new IdleState();
         }
-        context.currState = new IdleState();
     }
 }
 exports.FirstPointClickedState = FirstPointClickedState;
@@ -455,12 +460,18 @@ class SimpleDrawAPI {
     }
 }
 exports.SimpleDrawAPI = SimpleDrawAPI;
-//args = {radius}, points = [center]
+//args = {radius}, points = [center, point]
 class CreateCircleExecuter {
     executeAction(document, args, points) {
-        const point = points[0];
-        const radius = args.radius;
-        document.createCircle(point.x, point.y, radius);
+        const centre = points[0];
+        let radius;
+        if (points.length > 1) {
+            const point = points[1];
+            radius = Math.sqrt(Math.pow(point.x - centre.x, 2) + Math.pow(point.y - centre.y, 2));
+        }
+        else
+            radius = args.radius;
+        document.createCircle(centre.x, centre.y, radius);
         console.log('create circle');
     }
 }
@@ -859,8 +870,6 @@ class Renderer {
         const y = dimensions.top;
         const width = x + dimensions.width;
         const height = y + dimensions.height;
-        console.log("Renderer: " + this.elementID + " " + x + " " + y + " " + width + " " + height);
-        console.log("Point: " + point.x + " " + point.y);
         if (point.x < x || point.x > width || point.y < y || point.y > height)
             return new simpledraw_view_1.NullPoint();
         return new simpledraw_view_1.Point(point.x - x, point.y - y);
@@ -1058,13 +1067,11 @@ class SimpleDrawView {
     }
     mapScreenspaceToRenderspace(point) {
         let res = new NullPoint();
-        console.log("--------------");
         for (const renderer of this.renderers) {
             res = renderer.mapToRenderer(point);
             if (!res.isNil())
                 break;
         }
-        console.log("--------------");
         return res;
     }
 }

@@ -24,5 +24,4 @@ on the implementation file. We tokenized the input string and put it on a data s
 ## User input through the GUI
 
 The user input depends on a series of different events: clicking on buttons and on the canvas. Some tools require pressing a button first and then one click on the canvas,
-while others may require two clicks, for example. To implement this, we used the [**State Pattern**](https://en.wikipedia.org/wiki/State_pattern), which handles all sequences
-of events until a valid action can be performed, and resets the state machine when an invalid sequence is done.
+while others may require three clicks on the canvas, for example. To implement this, we used the [**State Pattern**](https://en.wikipedia.org/wiki/State_pattern), which handles all sequences of events until a valid action can be performed, and resets the state machine when an invalid sequence is done.

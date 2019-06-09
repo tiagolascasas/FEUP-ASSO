@@ -19,18 +19,25 @@ export interface State {
 
 export class IdleState implements State {
     processEvent(context: ClickController, event: UserEvent): void {
-        if (event instanceof UserEventAction) context.currState = new ActionPressedState(event)
+        if (event instanceof UserEventAction) {
+            if ([Action.UNDO, Action.REDO].includes(event.action)) {
+
+            }
+            else
+                context.currState = new ActionPressedState(event)
+        }
     }
 }
 
 export class ActionPressedState implements State {
+
     constructor(public event: UserEventAction) {}
 
     processEvent(context: ClickController, event: UserEvent): void {
         if (event instanceof UserEventPoint) {
-            if (this.event.action != Action.TRANSLATE) {
+            if ([Action.ROTATE, Action.SCALE, Action.GRID].includes(this.event.action)) {
                 context.api.execute(this.event.action, this.event.args, [event.point])
-                context.currState = new IdleState()
+                
             } else context.currState = new FirstPointClickedState(this.event, event.point)
         } else context.currState = new IdleState()
     }
@@ -42,11 +49,11 @@ export class FirstPointClickedState implements State {
     processEvent(context: ClickController, event: Event): void {
                
         if (event instanceof UserEventPoint) {
-            console.log("first point clicked");
-            console.log(event);
-            
-            context.api.execute(this.event.action, this.event.args, [this.point1, event.point])
+            if ([Action.CREATE_SQUARE, Action.CREATE_CIRCLE, Action.TRANSLATE].includes(this.event.action)) {
+                context.api.execute(this.event.action, this.event.args, [this.point1, event.point])
+                context.currState = new IdleState()
+            } //else second point clicked state
+            else context.currState = new IdleState()
         }
-        context.currState = new IdleState()
     }
 }

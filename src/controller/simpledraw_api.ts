@@ -31,12 +31,18 @@ interface ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Array<Point>): void
 }
 
-//args = {radius}, points = [center]
+//args = {radius}, points = [center, point]
 class CreateCircleExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        const point = points[0]
-        const radius = args.radius
-        document.createCircle(point.x, point.y, radius)
+        const centre = points[0]
+        let radius;
+        if (points.length > 1) {
+            const point = points[1]
+            radius = Math.sqrt(Math.pow(point.x - centre.x, 2) + Math.pow(point.y - centre.y, 2))
+        }
+        else
+            radius = args.radius
+        document.createCircle(centre.x, centre.y, radius)
         console.log('create circle')
     }
 }
