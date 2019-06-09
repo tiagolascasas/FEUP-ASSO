@@ -35,23 +35,23 @@ describe('Layers', () => {
 
     it('New objects belong to the active layer', () => {
         const sdd = new SimpleDrawDocument()
-        const c1 = sdd.createCircle(50, 50, 30)
+        const c1 = sdd.createCircle(50, 50, 30, '#F6D55C')
         expect(c1.layer).to.equal('default')
         sdd.layersManager.activeLayer = 'new layer'
-        const c2 = sdd.createCircle(50, 50, 30)
+        const c2 = sdd.createCircle(50, 50, 30, '#F6D55C')
         expect(c2.layer).to.equal('new layer')
     })
 
     it('Objects are mapped to their respective layers', () => {
         const sdd = new SimpleDrawDocument()
         sdd.layersManager.createLayer('1')
-        const s1 = sdd.createCircle(50, 50, 30)
-        const s2 = sdd.createCircle(50, 50, 30)
+        const s1 = sdd.createCircle(50, 50, 30, '#F6D55C')
+        const s2 = sdd.createCircle(50, 50, 30, '#F6D55C')
         sdd.layersManager.createLayer('2')
-        const s3 = sdd.createCircle(50, 50, 30)
+        const s3 = sdd.createCircle(50, 50, 30, '#F6D55C')
         sdd.layersManager.createLayer('3')
         sdd.layersManager.createLayer('4')
-        const s4 = sdd.createCircle(50, 50, 30)
+        const s4 = sdd.createCircle(50, 50, 30, '#F6D55C')
 
         const map = sdd.layersManager.mapObjectsToLayers(sdd.objects)
 

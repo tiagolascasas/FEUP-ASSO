@@ -1,7 +1,8 @@
 import { Shape, Circle, Rectangle } from '../model/shape'
 import { Point, NullPoint } from './simpledraw_view'
+import { RendererObserver, SimpleDrawDocument } from '../model/document';
 
-export abstract class Renderer {
+export abstract class Renderer implements RendererObserver {
     element: HTMLElement
     readonly GRID_STEP = 50 
 
@@ -41,6 +42,10 @@ export abstract class Renderer {
 
         for (let i = 0; i < height; i += this.GRID_STEP)
             this.drawLine(0, i, width, i)
+    }
+
+    notify(document: SimpleDrawDocument): void {
+        this.render(document.getObjectsForRendering(), document.getLayersForRendering())
     }
 
     abstract drawLine(x1: number, y1: number, x2: number, y2: number): void
@@ -132,6 +137,7 @@ export class CanvasRenderer extends Renderer {
             for (const shape of objs.get(layer)) {
                 if (shape instanceof Circle) {
                     this.ctx.beginPath()
+                    this.ctx.fillStyle = shape.color
                     this.ctx.ellipse(
                         shape.x,
                         shape.y,

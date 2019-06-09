@@ -20,8 +20,8 @@ abstract class CreateShapeAction<S extends Shape> implements Action<S> {
 }
 
 export class CreateCircleAction extends CreateShapeAction<Circle> {
-    constructor(doc: SimpleDrawDocument, private x: number, private y: number, private radius: number) {
-        super(doc, new Circle(x, y, radius), doc.layersManager.activeLayer)
+    constructor(doc: SimpleDrawDocument, private x: number, private y: number, private radius: number, private color: string) {
+        super(doc, new Circle(x, y, radius, color), doc.layersManager.activeLayer)
     }
 }
 

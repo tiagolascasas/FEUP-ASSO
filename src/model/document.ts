@@ -13,6 +13,7 @@ import { XMLConverterVisitor, Visitor } from '../controller/converter';
 
 export class SimpleDrawDocument {
     objects = new Array<Shape>()
+    observers = new Array<RendererObserver>()
     undoManager = new UndoManager()
     layersManager = new LayersManager()
 
@@ -24,13 +25,6 @@ export class SimpleDrawDocument {
         this.undoManager.redo()
     }
 
-    draw(renderer: Renderer): void {
-        // this.objects.forEach(o => o.draw(ctx))
-        const objects = this.layersManager.mapObjectsToLayers(this.objects)
-        const layers = this.layersManager.getOrderedLayers();
-        renderer.render(objects, layers)
-    }
-
     add(r: Shape): void {
         this.objects.push(r)
         r.layer = this.layersManager.activeLayer
@@ -39,6 +33,11 @@ export class SimpleDrawDocument {
     do<T>(a: Action<T>): T {
         this.undoManager.onActionDone(a)
         return a.do()
+    }
+
+    notifyObservers(): void {
+        for (const obs of this.observers)
+            obs.notify(this)
     }
 
     save(saveMode: Visitor){
@@ -68,8 +67,8 @@ export class SimpleDrawDocument {
         return this.do(new CreateRectangleAction(this, x, y, width, height, color))
     }
 
-    createCircle(x: number, y: number, radius: number): Shape {
-        return this.do(new CreateCircleAction(this, x, y, radius))
+    createCircle(x: number, y: number, radius: number, color: string): Shape {
+        return this.do(new CreateCircleAction(this, x, y, radius, color))
     }
 
     translate(s: Shape, xd: number, yd: number): void {
@@ -79,4 +78,20 @@ export class SimpleDrawDocument {
     rotate(s: Shape, angled: number): void {
         return this.do(new RotateAction(this, s, angled))
     }
+
+    getObjectsForRendering(): Map<String, Shape[]> {
+        return this.layersManager.mapObjectsToLayers(this.objects)
+    }
+
+    getLayersForRendering(): String[] {
+        return this.layersManager.getOrderedLayers()
+    }
+
+    registerObserver(observer: RendererObserver) {
+        this.observers.push(observer)
+    }
+}
+
+export interface RendererObserver {
+    notify(document: SimpleDrawDocument): void
 }

@@ -23,6 +23,7 @@ export class SimpleDrawAPI {
         console.log(Action[action] + ' with args ' + args + ' and ' + points.length + ' points')
         if (this.executers.has(action)) {
             this.executers.get(action).executeAction(this.document, args, points)
+            this.document.notifyObservers()
             return true
         } else return false
     }
@@ -42,7 +43,7 @@ class CreateCircleExecuter implements ActionExecuter {
             const point = points[1]
             radius = Math.sqrt(Math.pow(point.x - centre.x, 2) + Math.pow(point.y - centre.y, 2))
         } else radius = args.radius
-        document.createCircle(centre.x, centre.y, radius)
+        document.createCircle(centre.x, centre.y, radius, '#F6D55C')
         console.log('create circle')
     }
 }
@@ -56,7 +57,7 @@ export class CreateSquareExecuter implements ActionExecuter {
             dimensions[0].y,
             dimensions[1],
             dimensions[2],
-            '#123123'
+            '#20639B'
         )
         console.log('create square')
     }

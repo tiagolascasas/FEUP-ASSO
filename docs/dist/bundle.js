@@ -457,6 +457,7 @@ class SimpleDrawAPI {
         console.log(simpledraw_view_1.Action[action] + ' with args ' + args + ' and ' + points.length + ' points');
         if (this.executers.has(action)) {
             this.executers.get(action).executeAction(this.document, args, points);
+            this.document.notifyObservers();
             return true;
         }
         else
@@ -476,7 +477,7 @@ class CreateCircleExecuter {
         }
         else
             radius = args.radius;
-        document.createCircle(centre.x, centre.y, radius);
+        document.createCircle(centre.x, centre.y, radius, '#F6D55C');
         console.log('create circle');
     }
 }
@@ -484,7 +485,7 @@ class CreateCircleExecuter {
 class CreateSquareExecuter {
     executeAction(document, args, points) {
         const dimensions = this.calculateDimensions(points[0], points[1]);
-        document.createRectangle(dimensions[0].x, dimensions[0].y, dimensions[1], dimensions[2], '#123123');
+        document.createRectangle(dimensions[0].x, dimensions[0].y, dimensions[1], dimensions[2], '#20639B');
         console.log('create square');
     }
     calculateDimensions(p1, p2) {
@@ -640,11 +641,12 @@ class CreateShapeAction {
     }
 }
 class CreateCircleAction extends CreateShapeAction {
-    constructor(doc, x, y, radius) {
-        super(doc, new shape_1.Circle(x, y, radius), doc.layersManager.activeLayer);
+    constructor(doc, x, y, radius, color) {
+        super(doc, new shape_1.Circle(x, y, radius, color), doc.layersManager.activeLayer);
         this.x = x;
         this.y = y;
         this.radius = radius;
+        this.color = color;
     }
 }
 exports.CreateCircleAction = CreateCircleAction;
@@ -702,6 +704,7 @@ const layers_1 = require("./layers");
 class SimpleDrawDocument {
     constructor() {
         this.objects = new Array();
+        this.observers = new Array();
         this.undoManager = new undo_1.UndoManager();
         this.layersManager = new layers_1.LayersManager();
     }
@@ -711,12 +714,6 @@ class SimpleDrawDocument {
     redo() {
         this.undoManager.redo();
     }
-    draw(renderer) {
-        // this.objects.forEach(o => o.draw(ctx))
-        const objects = this.layersManager.mapObjectsToLayers(this.objects);
-        const layers = this.layersManager.getOrderedLayers();
-        renderer.render(objects, layers);
-    }
     add(r) {
         this.objects.push(r);
         r.layer = this.layersManager.activeLayer;
@@ -724,6 +721,10 @@ class SimpleDrawDocument {
     do(a) {
         this.undoManager.onActionDone(a);
         return a.do();
+    }
+    notifyObservers() {
+        for (const obs of this.observers)
+            obs.notify(this);
     }
     save(saveMode) {
         // let doc: XMLDocument = document.implementation.createDocument("", "", null);
@@ -741,14 +742,23 @@ class SimpleDrawDocument {
     createRectangle(x, y, width, height, color) {
         return this.do(new actions_1.CreateRectangleAction(this, x, y, width, height, color));
     }
-    createCircle(x, y, radius) {
-        return this.do(new actions_1.CreateCircleAction(this, x, y, radius));
+    createCircle(x, y, radius, color) {
+        return this.do(new actions_1.CreateCircleAction(this, x, y, radius, color));
     }
     translate(s, xd, yd) {
         return this.do(new actions_1.TranslateAction(this, s, xd, yd));
     }
     rotate(s, angled) {
         return this.do(new actions_1.RotateAction(this, s, angled));
+    }
+    getObjectsForRendering() {
+        return this.layersManager.mapObjectsToLayers(this.objects);
+    }
+    getLayersForRendering() {
+        return this.layersManager.getOrderedLayers();
+    }
+    registerObserver(observer) {
+        this.observers.push(observer);
     }
 }
 exports.SimpleDrawDocument = SimpleDrawDocument;
@@ -829,11 +839,12 @@ class Rectangle extends Shape {
 }
 exports.Rectangle = Rectangle;
 class Circle extends Shape {
-    constructor(x, y, radius) {
+    constructor(x, y, radius, color) {
         super(x, y);
         this.x = x;
         this.y = y;
         this.radius = radius;
+        this.color = color;
     }
     accept(visitor) {
         return visitor.visitCircle(this);
@@ -907,6 +918,9 @@ class Renderer {
             this.drawLine(i, 0, i, height);
         for (let i = 0; i < height; i += this.GRID_STEP)
             this.drawLine(0, i, width, i);
+    }
+    notify(document) {
+        this.render(document.getObjectsForRendering(), document.getLayersForRendering());
     }
 }
 exports.Renderer = Renderer;
@@ -982,6 +996,7 @@ class CanvasRenderer extends Renderer {
             for (const shape of objs.get(layer)) {
                 if (shape instanceof shape_1.Circle) {
                     this.ctx.beginPath();
+                    this.ctx.fillStyle = shape.color;
                     this.ctx.ellipse(shape.x, shape.y, shape.radius, shape.radius, 0, 0, 2 * Math.PI);
                     if (event) {
                         if (this.IsInPath(event)) {
@@ -1041,15 +1056,11 @@ const click_controller_1 = require("../controller/click_controller");
 const converter_1 = require("../controller/converter");
 class SimpleDrawView {
     constructor() {
-        this.FRAMERATE_MS = 100;
         this.renderers = new Array();
         this.document = new document_1.SimpleDrawDocument();
         this.api = new simpledraw_api_1.SimpleDrawAPI(this.document);
         this.interpreter = new interpreter_1.Interpreter(this.api);
         this.click_controller = new click_controller_1.ClickController(this.api);
-        window.setInterval(() => {
-            this.render();
-        }, this.FRAMERATE_MS);
         document.getElementById('repl').addEventListener('submit', (e) => {
             e.preventDefault();
             const replPrompt = document.querySelector('#prompt');
@@ -1096,11 +1107,11 @@ class SimpleDrawView {
             if (!isNaN(sx) && !isNaN(sy))
                 this.click_controller.processEvent(new UserEventAction(Action.SCALE, { sx: sx, sy: sy }));
         });
-        document.getElementById("undo").addEventListener("click", (e) => {
+        document.getElementById('undo').addEventListener('click', (e) => {
             e.preventDefault();
             this.click_controller.processEvent(new UserEventAction(Action.UNDO));
         });
-        document.getElementById("redo").addEventListener("click", (e) => {
+        document.getElementById('redo').addEventListener('click', (e) => {
             e.preventDefault();
             this.click_controller.processEvent(new UserEventAction(Action.REDO));
         });
@@ -1128,13 +1139,10 @@ class SimpleDrawView {
                 this.click_controller.processEvent(new UserEventPoint(renderCoord));
         }, true);
     }
-    addRenderer(render) {
-        this.renderers.push(render);
-    }
-    render() {
-        for (const renderer of this.renderers) {
-            this.document.draw(renderer);
-        }
+    addRenderer(renderer) {
+        this.renderers.push(renderer);
+        this.document.registerObserver(renderer);
+        renderer.drawGrid();
     }
     mapScreenspaceToRenderspace(point) {
         let res = new NullPoint();
