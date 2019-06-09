@@ -63,8 +63,8 @@ export class CreateSquareExecuter implements ActionExecuter {
 
     public calculateDimensions(p1: Point, p2: Point): any[] {
         let topLeftCorner: Point
-        let width: Number
-        let height: Number
+        let width: number
+        let height: number
 
         if (p2.x >= p1.x && p2.y >= p1.y) {
             topLeftCorner = p1
@@ -86,7 +86,9 @@ export class CreateSquareExecuter implements ActionExecuter {
             width = p1.x - p2.x
             height = p2.y - p1.y
         }
-        return [topLeftCorner, width, height]
+        let centre = new Point(topLeftCorner.x + width / 2, topLeftCorner.y + height / 2)
+
+        return [centre, width, height]
     }
 }
 

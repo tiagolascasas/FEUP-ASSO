@@ -511,7 +511,8 @@ class CreateSquareExecuter {
             width = p1.x - p2.x;
             height = p2.y - p1.y;
         }
-        return [topLeftCorner, width, height];
+        let centre = new simpledraw_view_1.Point(topLeftCorner.x + width / 2, topLeftCorner.y + height / 2);
+        return [centre, width, height];
     }
 }
 exports.CreateSquareExecuter = CreateSquareExecuter;
@@ -619,7 +620,6 @@ simpleDraw.addRenderer(new renderer_1.CanvasRenderer('canvas1'));
 simpleDraw.addRenderer(new renderer_1.CanvasRenderer('canvas2'));
 simpleDraw.addRenderer(new renderer_1.SVGRenderer('svg1'));
 simpleDraw.addRenderer(new renderer_1.SVGRenderer('svg2'));
-simpleDraw.api.document.createRectangle(100, 100, 100, 100, "#000");
 
 },{"./view/renderer":12,"./view/simpledraw_view":13}],7:[function(require,module,exports){
 "use strict";
@@ -1050,7 +1050,7 @@ class SimpleDrawView {
         window.setInterval(() => {
             this.render();
         }, this.FRAMERATE_MS);
-        document.getElementById("repl").addEventListener("submit", (e) => {
+        document.getElementById('repl').addEventListener('submit', (e) => {
             e.preventDefault();
             const replPrompt = document.querySelector('#prompt');
             const replRes = document.querySelector('#res');
@@ -1059,42 +1059,42 @@ class SimpleDrawView {
                 return;
             const success = this.interpreter.eval(command);
             console.log(success);
-            replRes.innerHTML = success ? "&nbsp;✔️" : "&nbsp;❌";
+            replRes.innerHTML = success ? '&nbsp;✔️' : '&nbsp;❌';
         });
-        document.getElementById("circle").addEventListener("click", (e) => {
+        document.getElementById('circle').addEventListener('click', (e) => {
             e.preventDefault();
             this.click_controller.processEvent(new UserEventAction(Action.CREATE_CIRCLE));
         });
-        document.getElementById("square").addEventListener("click", (e) => {
-            console.log("create square action");
+        document.getElementById('square').addEventListener('click', (e) => {
+            console.log('create square action');
             console.log(e);
             e.preventDefault();
             this.click_controller.processEvent(new UserEventAction(Action.CREATE_SQUARE));
         });
-        document.getElementById("triangle").addEventListener("click", (e) => {
+        document.getElementById('triangle').addEventListener('click', (e) => {
             e.preventDefault();
             this.click_controller.processEvent(new UserEventAction(Action.CREATE_TRIANGLE));
         });
-        document.getElementById("translate").addEventListener("submit", (e) => {
+        document.getElementById('translate').addEventListener('submit', (e) => {
             e.preventDefault();
             this.click_controller.processEvent(new UserEventAction(Action.TRANSLATE));
         });
-        document.getElementById("rotate").addEventListener("submit", (e) => {
+        document.getElementById('rotate').addEventListener('submit', (e) => {
             e.preventDefault();
-            const angle = Number(document.getElementById("angle").value);
+            const angle = Number(document.getElementById('angle').value);
             if (!isNaN(angle))
-                this.click_controller.processEvent(new UserEventAction(Action.ROTATE, { "angle": angle }));
+                this.click_controller.processEvent(new UserEventAction(Action.ROTATE, { angle: angle }));
         });
-        document.getElementById("grid").addEventListener("submit", (e) => {
+        document.getElementById('grid').addEventListener('submit', (e) => {
             e.preventDefault();
             this.click_controller.processEvent(new UserEventAction(Action.GRID));
         });
-        document.getElementById("scale").addEventListener("submit", (e) => {
+        document.getElementById('scale').addEventListener('submit', (e) => {
             e.preventDefault();
-            const sx = Number(document.getElementById("sx").nodeValue);
-            const sy = Number(document.getElementById("sy").nodeValue);
+            const sx = Number(document.getElementById('sx').nodeValue);
+            const sy = Number(document.getElementById('sy').nodeValue);
             if (!isNaN(sx) && !isNaN(sy))
-                this.click_controller.processEvent(new UserEventAction(Action.SCALE, { "sx": sx, "sy": sy }));
+                this.click_controller.processEvent(new UserEventAction(Action.SCALE, { sx: sx, sy: sy }));
         });
         document.getElementById("undo").addEventListener("click", (e) => {
             e.preventDefault();
@@ -1104,11 +1104,21 @@ class SimpleDrawView {
             e.preventDefault();
             this.click_controller.processEvent(new UserEventAction(Action.REDO));
         });
-        document.getElementById("saveForm").addEventListener("submit", (e) => {
+        document.getElementById('saveForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            console.log("Save");
+            let type = document.getElementById('saveDropdown').value;
             //para ja so temos XML ou TXT (escolher um)
-            this.document.save(new converter_1.XMLConverterVisitor);
+            switch (type) {
+                case 'xml':
+                    this.document.save(new converter_1.XMLConverterVisitor());
+                    break;
+                case 'txt':
+                    this.document.save(new converter_1.TXTConverterVisitor());
+                    break;
+                default:
+                    break;
+            }
+            console.log('Save');
         });
         document.body.addEventListener('mousedown', (e) => {
             let screenClick = new Point(e.pageX, e.pageY);
