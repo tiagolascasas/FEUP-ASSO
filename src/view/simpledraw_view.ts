@@ -6,7 +6,7 @@ import { ClickController } from '../controller/click_controller';
 import { XMLConverterVisitor, TXTConverterVisitor } from '../controller/converter';
 
 export class SimpleDrawView {
-    readonly FRAMERATE_MS = 16
+    readonly FRAMERATE_MS = 100
     renderers = new Array<Renderer>()
     document = new SimpleDrawDocument()
     api: SimpleDrawAPI

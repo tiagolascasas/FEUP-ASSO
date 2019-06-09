@@ -450,7 +450,8 @@ class SimpleDrawAPI {
     }
     execute(action, args, points) {
         console.log(simpledraw_view_1.Action[action] + ' with args ' + args + ' and ' + points.length + ' points');
-        console.log(args);
+        if (args == undefined)
+            args = {};
         if (this.executers.has(action)) {
             this.executers.get(action).executeAction(this.document, args, points);
             return true;
@@ -988,7 +989,7 @@ const click_controller_1 = require("../controller/click_controller");
 const converter_1 = require("../controller/converter");
 class SimpleDrawView {
     constructor() {
-        this.FRAMERATE_MS = 16;
+        this.FRAMERATE_MS = 100;
         this.renderers = new Array();
         this.document = new document_1.SimpleDrawDocument();
         this.api = new simpledraw_api_1.SimpleDrawAPI(this.document);

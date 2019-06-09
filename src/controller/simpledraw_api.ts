@@ -18,7 +18,8 @@ export class SimpleDrawAPI {
 
     execute(action: Action, args: any, points: Array<Point>): boolean {
         console.log(Action[action] + ' with args ' + args + ' and ' + points.length + ' points')
-        console.log(args)
+        if (args == undefined)
+            args = {}
 
         if (this.executers.has(action)) {
             this.executers.get(action).executeAction(this.document, args, points)
