@@ -53,84 +53,80 @@ class FirstPointClickedState {
 }
 exports.FirstPointClickedState = FirstPointClickedState;
 
-},{"../view/simpledraw_view":12}],2:[function(require,module,exports){
+},{"../view/simpledraw_view":13}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const utils_1 = require("./utils");
 class XMLConverterVisitor {
-    constructor(doc) {
-        this.doc = doc;
+    constructor() {
+        this.doc = document.implementation.createDocument('', '', null);
     }
     visitAll(objects) {
-        let doc = document.implementation.createDocument("", "", null);
-        let savedObjets = doc.createElement("objects");
+        let savedObjets = this.doc.createElement('objects');
         for (const object of objects) {
             savedObjets.appendChild(object.accept(this));
         }
-        doc.appendChild(savedObjets);
-        console.log(doc);
+        this.doc.appendChild(savedObjets);
+        utils_1.Utils.download('save.xml', new XMLSerializer().serializeToString(this.doc.documentElement));
     }
     visitRectangle(rect) {
-        console.log("I am XML Converter for the Rectangle element");
-        var rectElem = this.doc.createElement("rect");
-        rectElem.setAttribute("angle", rect.angle.toString());
-        rectElem.setAttribute("color", rect.color);
-        rectElem.setAttribute("height", rect.height.toString());
-        rectElem.setAttribute("layer", rect.layer.toString());
-        rectElem.setAttribute("width", rect.width.toString());
-        rectElem.setAttribute("x", rect.x.toString());
-        rectElem.setAttribute("y", rect.y.toString());
+        console.log('I am XML Converter for the Rectangle element');
+        var rectElem = this.doc.createElement('rect');
+        rectElem.setAttribute('angle', rect.angle.toString());
+        rectElem.setAttribute('color', rect.color);
+        rectElem.setAttribute('height', rect.height.toString());
+        rectElem.setAttribute('layer', rect.layer.toString());
+        rectElem.setAttribute('width', rect.width.toString());
+        rectElem.setAttribute('x', rect.x.toString());
+        rectElem.setAttribute('y', rect.y.toString());
         return rectElem;
     }
     visitCircle(circle) {
-        console.log("I am XML Converter for the Circle element");
-        var circleElem = this.doc.createElement("circ");
-        circleElem.setAttribute("angle", circle.angle.toString());
-        circleElem.setAttribute("color", circle.color);
-        circleElem.setAttribute("layer", circle.layer.toString());
-        circleElem.setAttribute("radius", circle.radius.toString());
-        circleElem.setAttribute("x", circle.x.toString());
-        circleElem.setAttribute("y", circle.y.toString());
+        console.log('I am XML Converter for the Circle element');
+        var circleElem = this.doc.createElement('circ');
+        circleElem.setAttribute('angle', circle.angle.toString());
+        circleElem.setAttribute('color', circle.color);
+        circleElem.setAttribute('layer', circle.layer.toString());
+        circleElem.setAttribute('radius', circle.radius.toString());
+        circleElem.setAttribute('x', circle.x.toString());
+        circleElem.setAttribute('y', circle.y.toString());
         return circleElem;
     }
 }
 exports.XMLConverterVisitor = XMLConverterVisitor;
 class TXTConverterVisitor {
     visitAll(objects) {
-        let saved = "";
+        let saved = '';
         for (const object of objects) {
             saved = saved.concat(object.accept(this));
         }
-        console.log(saved);
+        utils_1.Utils.download("save.txt", saved);
     }
     visitRectangle(rect) {
-        console.log("I am TXT Converter for the Rectangle element");
-        let saved = "Rectangle \n";
-        saved = saved.concat("angle= ", rect.angle.toString(), "\n");
-        saved = saved.concat("color= ", rect.color, "\n");
-        saved = saved.concat("height= ", rect.height.toString(), "\n");
-        saved = saved.concat("layer= ", rect.layer.toString(), "\n");
-        saved = saved.concat("width= ", rect.width.toString(), "\n");
-        saved = saved.concat("x= ", rect.x.toString(), "\n");
-        saved = saved.concat("y= ", rect.y.toString(), "\n");
-        console.log(saved);
+        let saved = 'Rectangle \r\n';
+        saved = saved.concat('angle= ', rect.angle.toString(), '\r\n');
+        saved = saved.concat('color= ', rect.color, '\r\n');
+        saved = saved.concat('height= ', rect.height.toString(), '\r\n');
+        saved = saved.concat('layer= ', rect.layer.toString(), '\r\n');
+        saved = saved.concat('width= ', rect.width.toString(), '\r\n');
+        saved = saved.concat('x= ', rect.x.toString(), '\r\n');
+        saved = saved.concat('y= ', rect.y.toString(), '\r\n');
         return saved;
     }
     visitCircle(circle) {
-        console.log("I am TXT Converter for the Circle element");
-        let saved = "Circle \n";
-        saved = saved.concat("angle= ", circle.angle.toString(), "\n");
-        saved = saved.concat("color= ", circle.color, "\n");
-        saved = saved.concat("layer= ", circle.layer.toString(), "\n");
-        saved = saved.concat("radius= ", circle.radius.toString(), "\n");
-        saved = saved.concat("x= ", circle.x.toString(), "\n");
-        saved = saved.concat("y= ", circle.y.toString(), "\n");
-        console.log(saved);
+        let saved = 'Circle \r\n';
+        saved = saved.concat('angle= ', circle.angle.toString(), '\r\n');
+        saved = saved.concat('color= ', circle.color, '\r\n');
+        saved = saved.concat('layer= ', circle.layer.toString(), '\r\n');
+        saved = saved.concat('radius= ', circle.radius.toString(), '\r\n');
+        saved = saved.concat('x= ', circle.x.toString(), '\r\n');
+        saved = saved.concat('y= ', circle.y.toString(), '\r\n');
         return saved;
     }
 }
 exports.TXTConverterVisitor = TXTConverterVisitor;
 
-},{}],3:[function(require,module,exports){
+},{"./utils":5}],3:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("../view/simpledraw_view");
@@ -431,7 +427,7 @@ class Interpreter {
 }
 exports.Interpreter = Interpreter;
 
-},{"../view/simpledraw_view":12}],4:[function(require,module,exports){
+},{"../view/simpledraw_view":13}],4:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("../view/simpledraw_view");
@@ -533,7 +529,23 @@ class GridExecuter {
     }
 }
 
-},{"../view/simpledraw_view":12}],5:[function(require,module,exports){
+},{"../view/simpledraw_view":13}],5:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+class Utils {
+    static download(filename, text) {
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    }
+}
+exports.Utils = Utils;
+
+},{}],6:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("./view/simpledraw_view");
@@ -580,8 +592,9 @@ simpleDraw.addRenderer(new renderer_1.CanvasRenderer('canvas1'));
 simpleDraw.addRenderer(new renderer_1.CanvasRenderer('canvas2'));
 simpleDraw.addRenderer(new renderer_1.SVGRenderer('svg1'));
 simpleDraw.addRenderer(new renderer_1.SVGRenderer('svg2'));
+simpleDraw.api.document.createRectangle(100, 100, 100, 100, "#000");
 
-},{"./view/renderer":11,"./view/simpledraw_view":12}],6:[function(require,module,exports){
+},{"./view/renderer":12,"./view/simpledraw_view":13}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const shape_1 = require("./shape");
@@ -653,7 +666,7 @@ class RotateAction {
 }
 exports.RotateAction = RotateAction;
 
-},{"./shape":9}],7:[function(require,module,exports){
+},{"./shape":10}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("./actions");
@@ -685,17 +698,6 @@ class SimpleDrawDocument {
         this.undoManager.onActionDone(a);
         return a.do();
     }
-<<<<<<< HEAD
-    save() {
-        let doc = document.implementation.createDocument("", "", null);
-        let savedObjets = doc.createElement("objects");
-        let visitor = new converter_1.XMLConverterVisitor(doc);
-        for (const object of this.objects) {
-            savedObjets.appendChild(object.accept(visitor));
-        }
-        doc.appendChild(savedObjets);
-        //console.log(doc);
-=======
     save(saveMode) {
         // let doc: XMLDocument = document.implementation.createDocument("", "", null);
         // let savedObjets = doc.createElement("objects");
@@ -708,7 +710,6 @@ class SimpleDrawDocument {
         //let newFile = new File(, { type: "text/xml", endings: 'native' });
         // console.log(doc);
         saveMode.visitAll(this.objects);
->>>>>>> e3281fc9f16fdaac82b61c48cc6998da207d147d
     }
     createRectangle(x, y, width, height, color) {
         return this.do(new actions_1.CreateRectangleAction(this, x, y, width, height, color));
@@ -725,7 +726,7 @@ class SimpleDrawDocument {
 }
 exports.SimpleDrawDocument = SimpleDrawDocument;
 
-},{"./actions":6,"./layers":8,"./undo":10}],8:[function(require,module,exports){
+},{"./actions":7,"./layers":9,"./undo":11}],9:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class LayersManager {
@@ -767,7 +768,7 @@ class LayersManager {
 }
 exports.LayersManager = LayersManager;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Shape {
@@ -813,7 +814,7 @@ class Circle extends Shape {
 }
 exports.Circle = Circle;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class UndoManager {
@@ -843,19 +844,34 @@ class UndoManager {
 }
 exports.UndoManager = UndoManager;
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const shape_1 = require("../model/shape");
+const simpledraw_view_1 = require("./simpledraw_view");
 class Renderer {
-    constructor(elementID) { }
+    constructor(elementID) {
+        this.elementID = elementID;
+    }
+    mapToRenderer(point) {
+        const dimensions = this.element.getBoundingClientRect();
+        const x = dimensions.left;
+        const y = dimensions.top;
+        const width = x + dimensions.width;
+        const height = y + dimensions.height;
+        console.log("Renderer: " + this.elementID + " " + x + " " + y + " " + width + " " + height);
+        console.log("Point: " + point.x + " " + point.y);
+        if (point.x < x || point.x > width || point.y < y || point.y > height)
+            return new simpledraw_view_1.NullPoint();
+        return new simpledraw_view_1.Point(point.x - x, point.y - y);
+    }
 }
 exports.Renderer = Renderer;
 class SVGRenderer extends Renderer {
     constructor(elementID) {
         super(elementID);
         this.objs = new Array();
-        this.svg = document.getElementById(elementID);
+        this.element = document.getElementById(elementID);
     }
     draw(objs, layers) {
         for (const layer of layers) {
@@ -873,7 +889,7 @@ class SVGRenderer extends Renderer {
                         //selectedShape(shape, this.page)
                     };
                     g.appendChild(e);
-                    this.svg.appendChild(g);
+                    this.element.appendChild(g);
                 }
                 else if (shape instanceof shape_1.Circle) {
                     const e = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -884,7 +900,7 @@ class SVGRenderer extends Renderer {
                     e.onclick = (event) => {
                         //selectedShape(shape, this.page)
                     };
-                    this.svg.appendChild(e);
+                    this.element.appendChild(e);
                 }
             }
         }
@@ -894,17 +910,19 @@ exports.SVGRenderer = SVGRenderer;
 class CanvasRenderer extends Renderer {
     constructor(elementID) {
         super(elementID);
-        this.canvas = document.getElementById(elementID);
-        this.ctx = this.canvas.getContext('2d');
-        this.canvas.onclick = (ev) => {
+        this.element = document.getElementById(elementID);
+        let canvas = this.element;
+        this.ctx = canvas.getContext('2d');
+        this.element.onclick = (ev) => {
             this.draw(this.objs, this.layers, ev);
         };
     }
     IsInPath(event) {
-        var bb, x, y;
-        bb = this.canvas.getBoundingClientRect();
-        x = (event.clientX - bb.left) * (this.canvas.width / bb.width);
-        y = (event.clientY - bb.top) * (this.canvas.height / bb.height);
+        let canvas = this.element;
+        let bb, x, y;
+        bb = this.element.getBoundingClientRect();
+        x = (event.clientX - bb.left) * (canvas.width / bb.width);
+        y = (event.clientY - bb.top) * (canvas.height / bb.height);
         return this.ctx.isPointInPath(x, y);
     }
     draw(objs, layers, event) {
@@ -951,7 +969,7 @@ class CanvasRenderer extends Renderer {
 }
 exports.CanvasRenderer = CanvasRenderer;
 
-},{"../model/shape":9}],12:[function(require,module,exports){
+},{"../model/shape":10,"./simpledraw_view":13}],13:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const document_1 = require("../model/document");
@@ -1016,14 +1034,18 @@ class SimpleDrawView {
             if (!isNaN(sx) && !isNaN(sy))
                 this.click_controller.processEvent(new UserEventAction(Action.SCALE, { "sx": sx, "sy": sy }));
         });
-        document.getElementById("save").addEventListener("click", (e) => {
+        document.getElementById("saveForm").addEventListener("submit", (e) => {
             e.preventDefault();
             console.log("Save");
             //para ja so temos XML ou TXT (escolher um)
-            this.document.save(new converter_1.TXTConverterVisitor);
+            this.document.save(new converter_1.XMLConverterVisitor);
         });
-        document.body.addEventListener('click', (e) => {
-            this.click_controller.processEvent(new UserEventPoint(new Point(100, 100)));
+        document.body.addEventListener('mousedown', (e) => {
+            let screenClick = new Point(e.pageX, e.pageY);
+            let renderCoord = this.mapScreenspaceToRenderspace(screenClick);
+            console.log(renderCoord);
+            if (!renderCoord.isNil())
+                this.click_controller.processEvent(new UserEventPoint(renderCoord));
         }, true);
     }
     addRenderer(render) {
@@ -1034,6 +1056,17 @@ class SimpleDrawView {
             this.document.draw(renderer);
         }
     }
+    mapScreenspaceToRenderspace(point) {
+        let res = new NullPoint();
+        console.log("--------------");
+        for (const renderer of this.renderers) {
+            res = renderer.mapToRenderer(point);
+            if (!res.isNil())
+                break;
+        }
+        console.log("--------------");
+        return res;
+    }
 }
 exports.SimpleDrawView = SimpleDrawView;
 class Point {
@@ -1041,8 +1074,20 @@ class Point {
         this.x = x;
         this.y = y;
     }
+    isNil() {
+        return false;
+    }
 }
 exports.Point = Point;
+class NullPoint extends Point {
+    constructor() {
+        super(-1, -1);
+    }
+    isNil() {
+        return true;
+    }
+}
+exports.NullPoint = NullPoint;
 var Action;
 (function (Action) {
     Action[Action["CREATE_SQUARE"] = 0] = "CREATE_SQUARE";
@@ -1075,4 +1120,4 @@ class UserEventPoint extends UserEvent {
 }
 exports.UserEventPoint = UserEventPoint;
 
-},{"../controller/click_controller":1,"../controller/converter":2,"../controller/interpreter":3,"../controller/simpledraw_api":4,"../model/document":7}]},{},[5]);
+},{"../controller/click_controller":1,"../controller/converter":2,"../controller/interpreter":3,"../controller/simpledraw_api":4,"../model/document":8}]},{},[6]);

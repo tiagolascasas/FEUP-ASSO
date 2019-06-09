@@ -1,18 +1,32 @@
 import { Shape, Circle, Rectangle } from '../model/shape'
+import { Point, NullPoint } from './simpledraw_view'
 
 export abstract class Renderer {
-    constructor(elementID: string){}
+    element: HTMLElement
+
+    constructor(private elementID: string) {}
 
     abstract draw(objs: Map<String, Array<Shape>>, layers: Array<String>, event?: MouseEvent): void
+
+    mapToRenderer(point: Point): Point {
+        const dimensions = this.element.getBoundingClientRect()
+        const x = dimensions.left
+        const y = dimensions.top
+        const width = x + dimensions.width
+        const height = y + dimensions.height
+
+        if (point.x < x || point.x > width || point.y < y || point.y > height)
+            return new NullPoint()
+        return new Point(point.x - x, point.y - y)
+    }
 }
 
 export class SVGRenderer extends Renderer {
-    svg: HTMLElement
     objs = new Array<Shape>()
 
     constructor(elementID: string) {
-        super(elementID);
-        this.svg = <HTMLElement>document.getElementById(elementID)
+        super(elementID)
+        this.element = <HTMLElement>document.getElementById(elementID)
     }
 
     draw(objs: Map<String, Array<Shape>>, layers: Array<String>): void {
@@ -35,7 +49,7 @@ export class SVGRenderer extends Renderer {
                         //selectedShape(shape, this.page)
                     }
                     g.appendChild(e)
-                    this.svg.appendChild(g)
+                    this.element.appendChild(g)
                 } else if (shape instanceof Circle) {
                     const e = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
                     e.setAttribute('style', `stroke: black; fill: ${shape.color}`)
@@ -45,7 +59,7 @@ export class SVGRenderer extends Renderer {
                     e.onclick = (event: MouseEvent) => {
                         //selectedShape(shape, this.page)
                     }
-                    this.svg.appendChild(e)
+                    this.element.appendChild(e)
                 }
             }
         }
@@ -56,22 +70,23 @@ export class CanvasRenderer extends Renderer {
     objs: Map<String, Array<Shape>>
     layers: Array<String>
     ctx: CanvasRenderingContext2D
-    canvas: HTMLCanvasElement
 
     constructor(elementID: string) {
         super(elementID)
-        this.canvas = <HTMLCanvasElement>document.getElementById(elementID)
-        this.ctx = this.canvas.getContext('2d')
-        this.canvas.onclick = (ev: MouseEvent) => {
+        this.element = <HTMLCanvasElement>document.getElementById(elementID)
+        let canvas = <HTMLCanvasElement>this.element
+        this.ctx = canvas.getContext('2d')
+        this.element.onclick = (ev: MouseEvent) => {
             this.draw(this.objs, this.layers, ev)
         }
     }
 
     IsInPath(event: MouseEvent) {
-        var bb, x, y
-        bb = this.canvas.getBoundingClientRect()
-        x = (event.clientX - bb.left) * (this.canvas.width / bb.width)
-        y = (event.clientY - bb.top) * (this.canvas.height / bb.height)
+        let canvas = <HTMLCanvasElement>this.element
+        let bb, x, y
+        bb = this.element.getBoundingClientRect()
+        x = (event.clientX - bb.left) * (canvas.width / bb.width)
+        y = (event.clientY - bb.top) * (canvas.height / bb.height)
         return this.ctx.isPointInPath(x, y)
     }
 

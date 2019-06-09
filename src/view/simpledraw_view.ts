@@ -86,8 +86,12 @@ export class SimpleDrawView {
             this.document.save(new XMLConverterVisitor);
         })
 
-        document.body.addEventListener('click', (e: Event) => {
-            this.click_controller.processEvent(new UserEventPoint(new Point(100, 100)))
+        document.body.addEventListener('mousedown', (e: MouseEvent) => {
+            let screenClick = new Point(e.pageX, e.pageY)
+            let renderCoord = this.mapScreenspaceToRenderspace(screenClick)
+            console.log(renderCoord)
+            if (!renderCoord.isNil())
+                this.click_controller.processEvent(new UserEventPoint(renderCoord))
         }, true); 
     }
 
@@ -100,10 +104,34 @@ export class SimpleDrawView {
             this.document.draw(renderer)
         }
     }
+
+    mapScreenspaceToRenderspace(point: Point): Point {
+        let res = new NullPoint()
+        for (const renderer of this.renderers) {
+            res = renderer.mapToRenderer(point)
+            if (!res.isNil())
+                break
+        }
+        return res
+    }
 }
 
 export class Point {
     constructor(public x: number, public y: number){}
+
+    isNil(): boolean {
+        return false
+    }
+}
+
+export class NullPoint extends Point {
+    constructor(){
+        super(-1, -1)
+    }
+
+    isNil(): boolean {
+        return true
+    }
 }
 
 export enum Action {
