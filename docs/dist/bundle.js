@@ -891,10 +891,24 @@ class Renderer {
     constructor(elementID) {
         this.elementID = elementID;
         this.GRID_STEP = 50;
+        this.mode = "Color";
+        this.oldObjects = new Map();
+        this.oldLayers = new Array();
+        const elem = document.getElementById(elementID + "_mode");
+        elem.addEventListener("change", () => {
+            this.mode = elem.value;
+            this.renderAgain();
+        });
     }
     render(objs, layers) {
+        this.oldObjects = objs;
+        this.oldLayers = layers;
+        this.clearCanvas();
         this.drawGrid();
         this.drawObjects(objs, layers);
+    }
+    renderAgain() {
+        this.render(this.oldObjects, this.oldLayers);
     }
     mapToRenderer(point) {
         const dimensions = this.element.getBoundingClientRect();
@@ -937,7 +951,12 @@ class SVGRenderer extends Renderer {
                     const e = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                     g.setAttribute('transform', `translate(${shape.x}, ${shape.y}) rotate(${shape.angle})`);
-                    e.setAttribute('style', `stroke: black; fill: ${shape.color}`);
+                    if (this.mode == "Color")
+                        e.setAttribute('style', `stroke: black; fill: ${shape.color}`);
+                    else if (this.mode == "Wireframe") {
+                        e.setAttribute('style', `stroke: black; fill: #FFFFFF`);
+                        e.setAttribute('fill-opacity', "0.0");
+                    }
                     e.setAttribute('width', shape.width.toString());
                     e.setAttribute('height', shape.height.toString());
                     e.setAttribute('x', (-shape.width / 2).toString());
@@ -950,7 +969,12 @@ class SVGRenderer extends Renderer {
                 }
                 else if (shape instanceof shape_1.Circle) {
                     const e = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    e.setAttribute('style', `stroke: black; fill: ${shape.color}`);
+                    if (this.mode == "Color")
+                        e.setAttribute('style', `stroke: black; fill: ${shape.color}`);
+                    else if (this.mode == "Wireframe") {
+                        e.setAttribute('style', `stroke: black; fill: #FFFFFF`);
+                        e.setAttribute('fill-opacity', "0.0");
+                    }
                     e.setAttribute('cx', shape.x.toString());
                     e.setAttribute('cy', shape.y.toString());
                     e.setAttribute('r', shape.radius.toString());
@@ -970,6 +994,9 @@ class SVGRenderer extends Renderer {
         newLine.setAttribute('y2', y2.toString());
         newLine.setAttribute("stroke", "#DDDDDD");
         this.element.appendChild(newLine);
+    }
+    clearCanvas() {
+        this.element.innerHTML = "";
     }
 }
 exports.SVGRenderer = SVGRenderer;
@@ -1006,7 +1033,8 @@ class CanvasRenderer extends Renderer {
                     this.ctx.closePath();
                     this.ctx.fillStyle = shape.color;
                     this.ctx.stroke();
-                    this.ctx.fill();
+                    if (this.mode == "Color")
+                        this.ctx.fill();
                     //meter rotate num circulo?
                 }
                 else if (shape instanceof shape_1.Rectangle) {
@@ -1019,7 +1047,8 @@ class CanvasRenderer extends Renderer {
                     this.ctx.rect(-shape.width / 2, -shape.height / 2, shape.width, shape.height);
                     this.ctx.closePath();
                     this.ctx.stroke();
-                    this.ctx.fill();
+                    if (this.mode == "Color")
+                        this.ctx.fill();
                     //restore the state before drawing next shape
                     this.ctx.restore();
                     if (event) {
@@ -1042,6 +1071,10 @@ class CanvasRenderer extends Renderer {
         this.ctx.stroke();
         this.ctx.lineWidth = defaultWidth;
         this.ctx.strokeStyle = defaultColor;
+    }
+    clearCanvas() {
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        this.ctx.beginPath();
     }
 }
 exports.CanvasRenderer = CanvasRenderer;

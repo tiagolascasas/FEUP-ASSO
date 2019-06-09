@@ -26,7 +26,7 @@ We have refactored the original project into a clear [**Model-View-Controller**]
 
 ### REPL
 
-We implemented the REPL using the [**Interpeter Pattern**](https://en.wikipedia.org/wiki/Interpreter_pattern), and whose grammar can be found
+We implemented the REPL using the [**Interpreter Pattern**](https://en.wikipedia.org/wiki/Interpreter_pattern), and whose grammar can be found
 on the implementation file. We tokenized the input string and put it on a data structure with an implementation of the [**Iterator Pattern**](https://en.wikipedia.org/wiki/Iterator_pattern).
 
 ### User input through the GUI

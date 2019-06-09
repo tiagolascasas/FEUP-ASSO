@@ -3,14 +3,30 @@ import { Point, NullPoint } from './simpledraw_view'
 import { RendererObserver, SimpleDrawDocument } from '../model/document';
 
 export abstract class Renderer implements RendererObserver {
+    readonly GRID_STEP = 50
     element: HTMLElement
-    readonly GRID_STEP = 50 
+    mode: string = "Color"
+    oldObjects: Map<String, Array<Shape>> = new Map<String, Array<Shape>>()
+    oldLayers: Array<String> = new Array<String>()
 
-    constructor(private elementID: string) {}
+    constructor(private elementID: string) {
+        const elem: HTMLSelectElement = <HTMLSelectElement>document.getElementById(elementID + "_mode")
+        elem.addEventListener("change", () => {
+            this.mode = elem.value
+            this.renderAgain()
+        })
+    }
 
     render(objs: Map<String, Array<Shape>>, layers: Array<String>): void {
+        this.oldObjects = objs
+        this.oldLayers = layers
+        this.clearCanvas()
         this.drawGrid()
         this.drawObjects(objs, layers)
+    }
+
+    renderAgain(): void {
+        this.render(this.oldObjects, this.oldLayers)
     }
 
     abstract drawObjects(objs: Map<String, Array<Shape>>, layers: Array<String>, event?: MouseEvent): void
@@ -48,6 +64,8 @@ export abstract class Renderer implements RendererObserver {
         this.render(document.getObjectsForRendering(), document.getLayersForRendering())
     }
 
+    abstract clearCanvas(): void
+
     abstract drawLine(x1: number, y1: number, x2: number, y2: number): void
 }
 
@@ -70,7 +88,12 @@ export class SVGRenderer extends Renderer {
                         'transform',
                         `translate(${shape.x}, ${shape.y}) rotate(${shape.angle})`
                     )
-                    e.setAttribute('style', `stroke: black; fill: ${shape.color}`)
+                    if (this.mode == "Color")
+                        e.setAttribute('style', `stroke: black; fill: ${shape.color}`)
+                    else if (this.mode == "Wireframe"){
+                        e.setAttribute('style', `stroke: black; fill: #FFFFFF`)
+                        e.setAttribute('fill-opacity', "0.0")
+                    }
                     e.setAttribute('width', shape.width.toString())
                     e.setAttribute('height', shape.height.toString())
                     e.setAttribute('x', (-shape.width / 2).toString())
@@ -82,7 +105,12 @@ export class SVGRenderer extends Renderer {
                     this.element.appendChild(g)
                 } else if (shape instanceof Circle) {
                     const e = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-                    e.setAttribute('style', `stroke: black; fill: ${shape.color}`)
+                    if (this.mode == "Color")
+                        e.setAttribute('style', `stroke: black; fill: ${shape.color}`)
+                    else if (this.mode == "Wireframe"){
+                        e.setAttribute('style', `stroke: black; fill: #FFFFFF`)
+                        e.setAttribute('fill-opacity', "0.0")
+                    }
                     e.setAttribute('cx', shape.x.toString())
                     e.setAttribute('cy', shape.y.toString())
                     e.setAttribute('r', shape.radius.toString())
@@ -103,6 +131,10 @@ export class SVGRenderer extends Renderer {
         newLine.setAttribute('y2', y2.toString());
         newLine.setAttribute("stroke", "#DDDDDD")
         this.element.appendChild(newLine)
+    }
+
+    clearCanvas(): void {
+        this.element.innerHTML = ""
     }
 }
 
@@ -155,7 +187,8 @@ export class CanvasRenderer extends Renderer {
                     this.ctx.closePath()
                     this.ctx.fillStyle = shape.color
                     this.ctx.stroke()
-                    this.ctx.fill()
+                    if (this.mode == "Color")
+                        this.ctx.fill()
                     //meter rotate num circulo?
                 } else if (shape instanceof Rectangle) {
                     //save the state to prevent all the objects from rotating
@@ -168,7 +201,8 @@ export class CanvasRenderer extends Renderer {
 
                     this.ctx.closePath()
                     this.ctx.stroke()
-                    this.ctx.fill()
+                    if (this.mode == "Color")
+                        this.ctx.fill()
                     //restore the state before drawing next shape
                     this.ctx.restore()
 
@@ -196,5 +230,10 @@ export class CanvasRenderer extends Renderer {
 
         this.ctx.lineWidth = defaultWidth
         this.ctx.strokeStyle = defaultColor
+    }
+
+    clearCanvas(): void {
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        this.ctx.beginPath()
     }
 }
