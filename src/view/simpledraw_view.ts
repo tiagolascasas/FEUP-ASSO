@@ -74,8 +74,8 @@ export class SimpleDrawView {
 
         document.getElementById('scale').addEventListener('submit', (e: Event) => {
             e.preventDefault()
-            const sx = Number(document.getElementById('sx').nodeValue)
-            const sy = Number(document.getElementById('sy').nodeValue)
+            const sx = Number((<HTMLInputElement>document.getElementById('sx')).value)
+            const sy = Number((<HTMLInputElement>document.getElementById('sy')).value)
 
             if (!isNaN(sx) && !isNaN(sy))
                 this.click_controller.processEvent(

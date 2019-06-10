@@ -118,10 +118,8 @@ class RotateExecuter implements ActionExecuter {
 class ScaleExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
         for (const shape of document.objects) {
-            if (shape.isHit(points[0])) console.log("hit");
-            else console.log("not hit");
-            
-            
+            if (shape.isHit(points[0])) 
+                shape.scale(args.sx,args.sy)
         }
         console.log('scale')
     }

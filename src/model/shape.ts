@@ -22,10 +22,18 @@ export abstract class Shape {
     abstract accept(visitor: Visitor): any;
 
     abstract isHit(point: Point): boolean;
+
+    abstract scale(sx: number, sy:number):void;
 }
 
 export class Rectangle extends Shape {
-    constructor(public x: number, public y: number, public width: number, public height: number, public color: string) {
+    constructor(
+        public x: number,
+        public y: number,
+        public width: number,
+        public height: number,
+        public color: string
+    ) {
         super(x, y)
     }
 
@@ -33,20 +41,41 @@ export class Rectangle extends Shape {
         return visitor.visitRectangle(this)
     }
 
-    isHit(point: Point): boolean{
+    isHit(point: Point): boolean {
         let rectangleArea = this.width * this.height
-        let centerPoint = new Point(this.x, this.y);
-        let pointA = Utils.getRotatedPoint(centerPoint, this.angle, new Point(this.x - this.width / 2, this.y - this.height / 2))
-        let pointB = Utils.getRotatedPoint(centerPoint, this.angle, new Point(this.x - this.width / 2, this.y + this.height / 2))
-        let pointC = Utils.getRotatedPoint(centerPoint, this.angle, new Point(this.x + this.width / 2, this.y + this.height / 2))
-        let pointD = Utils.getRotatedPoint(centerPoint, this.angle, new Point(this.x + this.width / 2, this.y - this.height / 2))
+        let centerPoint = new Point(this.x, this.y)
+        let pointA = Utils.getRotatedPoint(
+            centerPoint,
+            this.angle,
+            new Point(this.x - this.width / 2, this.y - this.height / 2)
+        )
+        let pointB = Utils.getRotatedPoint(
+            centerPoint,
+            this.angle,
+            new Point(this.x - this.width / 2, this.y + this.height / 2)
+        )
+        let pointC = Utils.getRotatedPoint(
+            centerPoint,
+            this.angle,
+            new Point(this.x + this.width / 2, this.y + this.height / 2)
+        )
+        let pointD = Utils.getRotatedPoint(
+            centerPoint,
+            this.angle,
+            new Point(this.x + this.width / 2, this.y - this.height / 2)
+        )
 
         let trianglesArea = Utils.getTriangleArea(pointA, pointB, point)
-        trianglesArea += Utils.getTriangleArea(pointB, pointC, point) 
+        trianglesArea += Utils.getTriangleArea(pointB, pointC, point)
         trianglesArea += Utils.getTriangleArea(pointC, pointD, point)
         trianglesArea += Utils.getTriangleArea(pointD, pointA, point)
-        
+
         return Math.abs(rectangleArea - trianglesArea) < 1
+    }
+
+    scale(sx: number, sy: number): void {
+        this.width *= sx;
+        this.height *= sy;
     }
 }
 
@@ -61,5 +90,9 @@ export class Circle extends Shape {
 
     isHit(point: Point): boolean{
        return Math.hypot(point.x - this.x, point.y - this.y) < this.radius
+    }
+
+    scale(sx: number, sy: number): void {
+        throw new Error("Method not implemented.");
     }
 }
