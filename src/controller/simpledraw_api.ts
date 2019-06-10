@@ -4,7 +4,7 @@ import { SimpleDrawDocument } from '../model/document'
 import { Action, Point } from '../view/simpledraw_view'
 
 export class SimpleDrawAPI {
-    executers = new Map<Action, ActionExecuter>()
+    readonly executers = new Map<Action, ActionExecuter>()
 
     constructor(public document: SimpleDrawDocument) {
         this.executers.set(Action.CREATE_CIRCLE, new CreateCircleExecuter())
@@ -14,14 +14,16 @@ export class SimpleDrawAPI {
         this.executers.set(Action.ROTATE, new RotateExecuter())
         this.executers.set(Action.SCALE, new ScaleExecuter())
         this.executers.set(Action.GRID, new GridExecuter())
+        this.executers.set(Action.UNDO, new UndoExecuter())
+        this.executers.set(Action.REDO, new RedoExecuter())
     }
 
     execute(action: Action, args: any, points: Array<Point>): boolean {
-        console.log(Action[action] + ' with args ' + args + ' and ' + points.length + ' points')
         if (args == undefined) args = {}
-
+        console.log(Action[action] + ' with args ' + args + ' and ' + points.length + ' points')
         if (this.executers.has(action)) {
             this.executers.get(action).executeAction(this.document, args, points)
+            this.document.notifyObservers()
             return true
         } else return false
     }
@@ -31,7 +33,8 @@ interface ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Array<Point>): void
 }
 
-//args = {radius}, points = [center, point]
+//args = {radius}, points = [center]
+//args = {}, points = [center, point]
 class CreateCircleExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
         const centre = points[0]
@@ -40,13 +43,13 @@ class CreateCircleExecuter implements ActionExecuter {
             const point = points[1]
             radius = Math.sqrt(Math.pow(point.x - centre.x, 2) + Math.pow(point.y - centre.y, 2))
         } else radius = args.radius
-        document.createCircle(centre.x, centre.y, radius)
+        document.createCircle(centre.x, centre.y, radius, '#F6D55C')
         console.log('create circle')
     }
 }
 
 //args = {}, points = [corner1, corner2]
-class CreateSquareExecuter implements ActionExecuter {
+export class CreateSquareExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
         const dimensions = this.calculateDimensions(points[0], points[1])
         document.createRectangle(
@@ -54,15 +57,15 @@ class CreateSquareExecuter implements ActionExecuter {
             dimensions[0].y,
             dimensions[1],
             dimensions[2],
-            '#123123'
+            '#20639B'
         )
         console.log('create square')
     }
 
-    calculateDimensions(p1: Point, p2: Point): any[] {
+    public calculateDimensions(p1: Point, p2: Point): any[] {
         let topLeftCorner: Point
-        let width: Number
-        let height: Number
+        let width: number
+        let height: number
 
         if (p2.x >= p1.x && p2.y >= p1.y) {
             topLeftCorner = p1
@@ -84,7 +87,9 @@ class CreateSquareExecuter implements ActionExecuter {
             width = p1.x - p2.x
             height = p2.y - p1.y
         }
-        return [topLeftCorner, width, height]
+        let centre = new Point(topLeftCorner.x + width / 2, topLeftCorner.y + height / 2)
+
+        return [centre, width, height]
     }
 }
 
@@ -126,5 +131,17 @@ class ScaleExecuter implements ActionExecuter {
 class GridExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
         console.log('grid')
+    }
+}
+
+class UndoExecuter implements ActionExecuter {
+    executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
+        document.undo()
+    }
+}
+
+class RedoExecuter implements ActionExecuter {
+    executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
+        document.redo()
     }
 }

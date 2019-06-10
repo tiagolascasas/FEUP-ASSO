@@ -37,7 +37,7 @@ export class ActionPressedState implements State {
         if (event instanceof UserEventPoint) {
             if ([Action.ROTATE, Action.SCALE, Action.GRID].includes(this.event.action)) {
                 context.api.execute(this.event.action, this.event.args, [event.point])
-                
+                context.currState = new IdleState()
             } else context.currState = new FirstPointClickedState(this.event, event.point)
         } else context.currState = new IdleState()
     }

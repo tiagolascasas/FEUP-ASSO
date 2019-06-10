@@ -51,7 +51,7 @@ export class Rectangle extends Shape {
 }
 
 export class Circle extends Shape {
-    constructor(public x: number, public y: number, public radius: number) {
+    constructor(public x: number, public y: number, public radius: number, public color: string) {
         super(x, y)
     }
 

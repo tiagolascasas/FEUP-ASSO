@@ -6,7 +6,6 @@ import { ClickController } from '../controller/click_controller'
 import { XMLConverterVisitor, TXTConverterVisitor } from '../controller/converter'
 
 export class SimpleDrawView {
-    readonly FRAMERATE_MS = 100
     renderers = new Array<Renderer>()
     document = new SimpleDrawDocument()
     api: SimpleDrawAPI
@@ -17,10 +16,6 @@ export class SimpleDrawView {
         this.api = new SimpleDrawAPI(this.document)
         this.interpreter = new Interpreter(this.api)
         this.click_controller = new ClickController(this.api)
-
-        window.setInterval(() => {
-            this.render()
-        }, this.FRAMERATE_MS)
 
         document.getElementById('repl').addEventListener('submit', (e: Event) => {
             e.preventDefault()
@@ -68,7 +63,13 @@ export class SimpleDrawView {
 
         document.getElementById('grid').addEventListener('submit', (e: Event) => {
             e.preventDefault()
-            this.click_controller.processEvent(new UserEventAction(Action.GRID))
+            const units_x = Number(document.getElementById('x_units').nodeValue)
+            const units_y = Number(document.getElementById('y_units').nodeValue)
+
+            if (!isNaN(units_x) && isNaN(units_y))
+                this.click_controller.processEvent(
+                    new UserEventAction(Action.GRID, { units_x: units_x, units_y: units_y })
+                )
         })
 
         document.getElementById('scale').addEventListener('submit', (e: Event) => {
@@ -80,6 +81,16 @@ export class SimpleDrawView {
                 this.click_controller.processEvent(
                     new UserEventAction(Action.SCALE, { sx: sx, sy: sy })
                 )
+        })
+
+        document.getElementById('undo').addEventListener('click', (e: Event) => {
+            e.preventDefault()
+            this.click_controller.processEvent(new UserEventAction(Action.UNDO))
+        })
+
+        document.getElementById('redo').addEventListener('click', (e: Event) => {
+            e.preventDefault()
+            this.click_controller.processEvent(new UserEventAction(Action.REDO))
         })
 
         document.getElementById('saveForm').addEventListener('submit', (e: Event) => {
@@ -115,14 +126,10 @@ export class SimpleDrawView {
         )
     }
 
-    addRenderer(render: Renderer) {
-        this.renderers.push(render)
-    }
-
-    render() {
-        for (const renderer of this.renderers) {
-            this.document.draw(renderer)
-        }
+    addRenderer(renderer: Renderer) {
+        this.renderers.push(renderer)
+        this.document.registerObserver(renderer)
+        renderer.drawGrid()
     }
 
     mapScreenspaceToRenderspace(point: Point): Point {

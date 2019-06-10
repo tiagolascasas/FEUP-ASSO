@@ -31,6 +31,7 @@ class ActionPressedState {
         if (event instanceof simpledraw_view_1.UserEventPoint) {
             if ([simpledraw_view_1.Action.ROTATE, simpledraw_view_1.Action.SCALE, simpledraw_view_1.Action.GRID].includes(this.event.action)) {
                 context.api.execute(this.event.action, this.event.args, [event.point]);
+                context.currState = new IdleState();
             }
             else
                 context.currState = new FirstPointClickedState(this.event, event.point);
@@ -447,13 +448,16 @@ class SimpleDrawAPI {
         this.executers.set(simpledraw_view_1.Action.ROTATE, new RotateExecuter());
         this.executers.set(simpledraw_view_1.Action.SCALE, new ScaleExecuter());
         this.executers.set(simpledraw_view_1.Action.GRID, new GridExecuter());
+        this.executers.set(simpledraw_view_1.Action.UNDO, new UndoExecuter());
+        this.executers.set(simpledraw_view_1.Action.REDO, new RedoExecuter());
     }
     execute(action, args, points) {
-        console.log(simpledraw_view_1.Action[action] + ' with args ' + args + ' and ' + points.length + ' points');
         if (args == undefined)
             args = {};
+        console.log(simpledraw_view_1.Action[action] + ' with args ' + args + ' and ' + points.length + ' points');
         if (this.executers.has(action)) {
             this.executers.get(action).executeAction(this.document, args, points);
+            this.document.notifyObservers();
             return true;
         }
         else
@@ -461,7 +465,8 @@ class SimpleDrawAPI {
     }
 }
 exports.SimpleDrawAPI = SimpleDrawAPI;
-//args = {radius}, points = [center, point]
+//args = {radius}, points = [center]
+//args = {}, points = [center, point]
 class CreateCircleExecuter {
     executeAction(document, args, points) {
         const centre = points[0];
@@ -472,7 +477,7 @@ class CreateCircleExecuter {
         }
         else
             radius = args.radius;
-        document.createCircle(centre.x, centre.y, radius);
+        document.createCircle(centre.x, centre.y, radius, '#F6D55C');
         console.log('create circle');
     }
 }
@@ -480,7 +485,7 @@ class CreateCircleExecuter {
 class CreateSquareExecuter {
     executeAction(document, args, points) {
         const dimensions = this.calculateDimensions(points[0], points[1]);
-        document.createRectangle(dimensions[0].x, dimensions[0].y, dimensions[1], dimensions[2], '#123123');
+        document.createRectangle(dimensions[0].x, dimensions[0].y, dimensions[1], dimensions[2], '#20639B');
         console.log('create square');
     }
     calculateDimensions(p1, p2) {
@@ -507,9 +512,11 @@ class CreateSquareExecuter {
             width = p1.x - p2.x;
             height = p2.y - p1.y;
         }
-        return [topLeftCorner, width, height];
+        let centre = new simpledraw_view_1.Point(topLeftCorner.x + width / 2, topLeftCorner.y + height / 2);
+        return [centre, width, height];
     }
 }
+exports.CreateSquareExecuter = CreateSquareExecuter;
 //args = {}, points = [vertex1, vertex2, vertex3]
 class CreateTriangleExecuter {
     executeAction(document, args, points) {
@@ -538,6 +545,16 @@ class ScaleExecuter {
 class GridExecuter {
     executeAction(document, args, points) {
         console.log('grid');
+    }
+}
+class UndoExecuter {
+    executeAction(document, args, points) {
+        document.undo();
+    }
+}
+class RedoExecuter {
+    executeAction(document, args, points) {
+        document.redo();
     }
 }
 
@@ -572,7 +589,7 @@ canvas1.width = divCanvas1.clientWidth;
 canvas1.height = divCanvas1.clientHeight;
 canvas1.style.zIndex = '8';
 canvas1.style.position = 'absolute';
-canvas1.style.border = '1px solid red';
+canvas1.style.border = '1px solid black';
 divCanvas1.appendChild(canvas1);
 const canvas2 = document.createElement('canvas');
 canvas2.id = 'canvas2';
@@ -580,7 +597,7 @@ canvas2.width = divCanvas2.clientWidth;
 canvas2.height = divCanvas2.clientHeight;
 canvas2.style.zIndex = '8';
 canvas2.style.position = 'absolute';
-canvas2.style.border = '1px solid green';
+canvas2.style.border = '1px solid black';
 divCanvas2.appendChild(canvas2);
 const svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 svg1.id = 'svg1';
@@ -588,7 +605,7 @@ svg1.setAttribute('width', divSVG1.clientWidth.toString());
 svg1.setAttribute('height', divSVG1.clientHeight.toString());
 svg1.style.zIndex = '8';
 svg1.style.position = 'absolute';
-svg1.style.border = '1px solid blue';
+svg1.style.border = '1px solid black';
 divSVG1.appendChild(svg1);
 const svg2 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 svg2.id = 'svg2';
@@ -596,7 +613,7 @@ svg2.setAttribute('width', divSVG2.clientWidth.toString());
 svg2.setAttribute('height', divSVG2.clientHeight.toString());
 svg2.style.zIndex = '8';
 svg2.style.position = 'absolute';
-svg2.style.border = '1px solid yellow';
+svg2.style.border = '1px solid black';
 divSVG2.appendChild(svg2);
 //Create view and add renderers
 const simpleDraw = new simpledraw_view_1.SimpleDrawView();
@@ -604,7 +621,6 @@ simpleDraw.addRenderer(new renderer_1.CanvasRenderer('canvas1'));
 simpleDraw.addRenderer(new renderer_1.CanvasRenderer('canvas2'));
 simpleDraw.addRenderer(new renderer_1.SVGRenderer('svg1'));
 simpleDraw.addRenderer(new renderer_1.SVGRenderer('svg2'));
-simpleDraw.api.document.createRectangle(100, 100, 100, 100, "#000");
 
 },{"./view/renderer":12,"./view/simpledraw_view":13}],7:[function(require,module,exports){
 "use strict";
@@ -625,11 +641,12 @@ class CreateShapeAction {
     }
 }
 class CreateCircleAction extends CreateShapeAction {
-    constructor(doc, x, y, radius) {
-        super(doc, new shape_1.Circle(x, y, radius), doc.layersManager.activeLayer);
+    constructor(doc, x, y, radius, color) {
+        super(doc, new shape_1.Circle(x, y, radius, color), doc.layersManager.activeLayer);
         this.x = x;
         this.y = y;
         this.radius = radius;
+        this.color = color;
     }
 }
 exports.CreateCircleAction = CreateCircleAction;
@@ -687,6 +704,7 @@ const layers_1 = require("./layers");
 class SimpleDrawDocument {
     constructor() {
         this.objects = new Array();
+        this.observers = new Array();
         this.undoManager = new undo_1.UndoManager();
         this.layersManager = new layers_1.LayersManager();
     }
@@ -696,12 +714,6 @@ class SimpleDrawDocument {
     redo() {
         this.undoManager.redo();
     }
-    draw(render) {
-        // this.objects.forEach(o => o.draw(ctx))
-        const objects = this.layersManager.mapObjectsToLayers(this.objects);
-        const layers = this.layersManager.getOrderedLayers();
-        render.draw(objects, layers);
-    }
     add(r) {
         this.objects.push(r);
         r.layer = this.layersManager.activeLayer;
@@ -709,6 +721,10 @@ class SimpleDrawDocument {
     do(a) {
         this.undoManager.onActionDone(a);
         return a.do();
+    }
+    notifyObservers() {
+        for (const obs of this.observers)
+            obs.notify(this);
     }
     save(saveMode) {
         // let doc: XMLDocument = document.implementation.createDocument("", "", null);
@@ -726,14 +742,23 @@ class SimpleDrawDocument {
     createRectangle(x, y, width, height, color) {
         return this.do(new actions_1.CreateRectangleAction(this, x, y, width, height, color));
     }
-    createCircle(x, y, radius) {
-        return this.do(new actions_1.CreateCircleAction(this, x, y, radius));
+    createCircle(x, y, radius, color) {
+        return this.do(new actions_1.CreateCircleAction(this, x, y, radius, color));
     }
     translate(s, xd, yd) {
         return this.do(new actions_1.TranslateAction(this, s, xd, yd));
     }
     rotate(s, angled) {
         return this.do(new actions_1.RotateAction(this, s, angled));
+    }
+    getObjectsForRendering() {
+        return this.layersManager.mapObjectsToLayers(this.objects);
+    }
+    getLayersForRendering() {
+        return this.layersManager.getOrderedLayers();
+    }
+    registerObserver(observer) {
+        this.observers.push(observer);
     }
 }
 exports.SimpleDrawDocument = SimpleDrawDocument;
@@ -814,11 +839,12 @@ class Rectangle extends Shape {
 }
 exports.Rectangle = Rectangle;
 class Circle extends Shape {
-    constructor(x, y, radius) {
+    constructor(x, y, radius, color) {
         super(x, y);
         this.x = x;
         this.y = y;
         this.radius = radius;
+        this.color = color;
     }
     accept(visitor) {
         return visitor.visitCircle(this);
@@ -864,6 +890,35 @@ const simpledraw_view_1 = require("./simpledraw_view");
 class Renderer {
     constructor(elementID) {
         this.elementID = elementID;
+        this.GRID_STEP = 50;
+        this.mode = 'Color';
+        this.zoom = 0;
+        this.oldObjects = new Map();
+        this.oldLayers = new Array();
+        const modeElem = (document.getElementById(elementID + '_mode'));
+        modeElem.addEventListener('change', () => {
+            this.mode = modeElem.value;
+            this.renderAgain();
+        });
+        const zoomElem = (document.getElementById(elementID + '_zoom'));
+        zoomElem.addEventListener('change', () => {
+            this.zoom = Number(zoomElem.value);
+            this.renderAgain();
+            console.log(this.zoom);
+        });
+    }
+    render(objs, layers) {
+        this.oldObjects = objs;
+        this.oldLayers = layers;
+        this.init();
+        this.clearCanvas();
+        this.applyZoom();
+        this.drawGrid();
+        this.drawObjects(objs, layers);
+        this.finish();
+    }
+    renderAgain() {
+        this.render(this.oldObjects, this.oldLayers);
     }
     mapToRenderer(point) {
         const dimensions = this.element.getBoundingClientRect();
@@ -875,6 +930,22 @@ class Renderer {
             return new simpledraw_view_1.NullPoint();
         return new simpledraw_view_1.Point(point.x - x, point.y - y);
     }
+    getDimensions() {
+        const width = this.element.getBoundingClientRect().width;
+        const height = this.element.getBoundingClientRect().height;
+        return [width, height];
+    }
+    drawGrid() {
+        const width = this.getDimensions()[0];
+        const height = this.getDimensions()[1];
+        for (let i = 0; i < width; i += this.GRID_STEP)
+            this.drawLine(i, 0, i, height);
+        for (let i = 0; i < height; i += this.GRID_STEP)
+            this.drawLine(0, i, width, i);
+    }
+    notify(document) {
+        this.render(document.getObjectsForRendering(), document.getLayersForRendering());
+    }
 }
 exports.Renderer = Renderer;
 class SVGRenderer extends Renderer {
@@ -883,14 +954,19 @@ class SVGRenderer extends Renderer {
         this.objs = new Array();
         this.element = document.getElementById(elementID);
     }
-    draw(objs, layers) {
+    drawObjects(objs, layers) {
         for (const layer of layers) {
             for (const shape of objs.get(layer)) {
                 if (shape instanceof shape_1.Rectangle) {
                     const e = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                     g.setAttribute('transform', `translate(${shape.x}, ${shape.y}) rotate(${shape.angle})`);
-                    e.setAttribute('style', `stroke: black; fill: ${shape.color}`);
+                    if (this.mode == 'Color')
+                        e.setAttribute('style', `stroke: black; fill: ${shape.color}`);
+                    else if (this.mode == 'Wireframe') {
+                        e.setAttribute('style', `stroke: black; fill: #FFFFFF`);
+                        e.setAttribute('fill-opacity', '0.0');
+                    }
                     e.setAttribute('width', shape.width.toString());
                     e.setAttribute('height', shape.height.toString());
                     e.setAttribute('x', (-shape.width / 2).toString());
@@ -903,7 +979,12 @@ class SVGRenderer extends Renderer {
                 }
                 else if (shape instanceof shape_1.Circle) {
                     const e = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    e.setAttribute('style', `stroke: black; fill: ${shape.color}`);
+                    if (this.mode == 'Color')
+                        e.setAttribute('style', `stroke: black; fill: ${shape.color}`);
+                    else if (this.mode == 'Wireframe') {
+                        e.setAttribute('style', `stroke: black; fill: #FFFFFF`);
+                        e.setAttribute('fill-opacity', '0.0');
+                    }
                     e.setAttribute('cx', shape.x.toString());
                     e.setAttribute('cy', shape.y.toString());
                     e.setAttribute('r', shape.radius.toString());
@@ -915,6 +996,21 @@ class SVGRenderer extends Renderer {
             }
         }
     }
+    drawLine(x1, y1, x2, y2) {
+        let newLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        newLine.setAttribute('x1', x1.toString());
+        newLine.setAttribute('y1', y1.toString());
+        newLine.setAttribute('x2', x2.toString());
+        newLine.setAttribute('y2', y2.toString());
+        newLine.setAttribute('stroke', '#DDDDDD');
+        this.element.appendChild(newLine);
+    }
+    clearCanvas() {
+        this.element.innerHTML = '';
+    }
+    init() { }
+    applyZoom() { }
+    finish() { }
 }
 exports.SVGRenderer = SVGRenderer;
 class CanvasRenderer extends Renderer {
@@ -923,9 +1019,6 @@ class CanvasRenderer extends Renderer {
         this.element = document.getElementById(elementID);
         let canvas = this.element;
         this.ctx = canvas.getContext('2d');
-        this.element.onclick = (ev) => {
-            this.draw(this.objs, this.layers, ev);
-        };
     }
     IsInPath(event) {
         let canvas = this.element;
@@ -935,13 +1028,14 @@ class CanvasRenderer extends Renderer {
         y = (event.clientY - bb.top) * (canvas.height / bb.height);
         return this.ctx.isPointInPath(x, y);
     }
-    draw(objs, layers, event) {
+    drawObjects(objs, layers, event) {
         this.objs = objs;
         this.layers = layers;
         for (const layer of layers) {
             for (const shape of objs.get(layer)) {
                 if (shape instanceof shape_1.Circle) {
                     this.ctx.beginPath();
+                    this.ctx.fillStyle = shape.color;
                     this.ctx.ellipse(shape.x, shape.y, shape.radius, shape.radius, 0, 0, 2 * Math.PI);
                     if (event) {
                         if (this.IsInPath(event)) {
@@ -951,7 +1045,8 @@ class CanvasRenderer extends Renderer {
                     this.ctx.closePath();
                     this.ctx.fillStyle = shape.color;
                     this.ctx.stroke();
-                    this.ctx.fill();
+                    if (this.mode == 'Color')
+                        this.ctx.fill();
                     //meter rotate num circulo?
                 }
                 else if (shape instanceof shape_1.Rectangle) {
@@ -964,7 +1059,8 @@ class CanvasRenderer extends Renderer {
                     this.ctx.rect(-shape.width / 2, -shape.height / 2, shape.width, shape.height);
                     this.ctx.closePath();
                     this.ctx.stroke();
-                    this.ctx.fill();
+                    if (this.mode == 'Color')
+                        this.ctx.fill();
                     //restore the state before drawing next shape
                     this.ctx.restore();
                     if (event) {
@@ -975,6 +1071,31 @@ class CanvasRenderer extends Renderer {
                 }
             }
         }
+    }
+    drawLine(x1, y1, x2, y2) {
+        const defaultWidth = this.ctx.lineWidth;
+        const defaultColor = this.ctx.strokeStyle;
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeStyle = '#DDDDDD';
+        this.ctx.beginPath();
+        this.ctx.moveTo(x1, y1);
+        this.ctx.lineTo(x2, y2);
+        this.ctx.stroke();
+        this.ctx.lineWidth = defaultWidth;
+        this.ctx.strokeStyle = defaultColor;
+    }
+    clearCanvas() {
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        this.ctx.beginPath();
+    }
+    init() {
+        this.ctx.save();
+    }
+    applyZoom() {
+        this.ctx.scale(1 + this.zoom, 1 + this.zoom);
+    }
+    finish() {
+        this.ctx.restore();
     }
 }
 exports.CanvasRenderer = CanvasRenderer;
@@ -989,16 +1110,12 @@ const click_controller_1 = require("../controller/click_controller");
 const converter_1 = require("../controller/converter");
 class SimpleDrawView {
     constructor() {
-        this.FRAMERATE_MS = 100;
         this.renderers = new Array();
         this.document = new document_1.SimpleDrawDocument();
         this.api = new simpledraw_api_1.SimpleDrawAPI(this.document);
         this.interpreter = new interpreter_1.Interpreter(this.api);
         this.click_controller = new click_controller_1.ClickController(this.api);
-        window.setInterval(() => {
-            this.render();
-        }, this.FRAMERATE_MS);
-        document.getElementById("repl").addEventListener("submit", (e) => {
+        document.getElementById('repl').addEventListener('submit', (e) => {
             e.preventDefault();
             const replPrompt = document.querySelector('#prompt');
             const replRes = document.querySelector('#res');
@@ -1007,48 +1124,69 @@ class SimpleDrawView {
                 return;
             const success = this.interpreter.eval(command);
             console.log(success);
-            replRes.innerHTML = success ? "&nbsp;✔️" : "&nbsp;❌";
+            replRes.innerHTML = success ? '&nbsp;✔️' : '&nbsp;❌';
         });
-        document.getElementById("circle").addEventListener("click", (e) => {
+        document.getElementById('circle').addEventListener('click', (e) => {
             e.preventDefault();
             this.click_controller.processEvent(new UserEventAction(Action.CREATE_CIRCLE));
         });
-        document.getElementById("square").addEventListener("click", (e) => {
-            console.log("create square action");
+        document.getElementById('square').addEventListener('click', (e) => {
+            console.log('create square action');
             console.log(e);
             e.preventDefault();
             this.click_controller.processEvent(new UserEventAction(Action.CREATE_SQUARE));
         });
-        document.getElementById("triangle").addEventListener("click", (e) => {
+        document.getElementById('triangle').addEventListener('click', (e) => {
             e.preventDefault();
             this.click_controller.processEvent(new UserEventAction(Action.CREATE_TRIANGLE));
         });
-        document.getElementById("translate").addEventListener("submit", (e) => {
+        document.getElementById('translate').addEventListener('submit', (e) => {
             e.preventDefault();
             this.click_controller.processEvent(new UserEventAction(Action.TRANSLATE));
         });
-        document.getElementById("rotate").addEventListener("submit", (e) => {
+        document.getElementById('rotate').addEventListener('submit', (e) => {
             e.preventDefault();
-            const angle = Number(document.getElementById("angle").value);
+            const angle = Number(document.getElementById('angle').value);
             if (!isNaN(angle))
-                this.click_controller.processEvent(new UserEventAction(Action.ROTATE, { "angle": angle }));
+                this.click_controller.processEvent(new UserEventAction(Action.ROTATE, { angle: angle }));
         });
-        document.getElementById("grid").addEventListener("submit", (e) => {
+        document.getElementById('grid').addEventListener('submit', (e) => {
             e.preventDefault();
-            this.click_controller.processEvent(new UserEventAction(Action.GRID));
+            const units_x = Number(document.getElementById('x_units').nodeValue);
+            const units_y = Number(document.getElementById('y_units').nodeValue);
+            if (!isNaN(units_x) && isNaN(units_y))
+                this.click_controller.processEvent(new UserEventAction(Action.GRID, { units_x: units_x, units_y: units_y }));
         });
-        document.getElementById("scale").addEventListener("submit", (e) => {
+        document.getElementById('scale').addEventListener('submit', (e) => {
             e.preventDefault();
-            const sx = Number(document.getElementById("sx").nodeValue);
-            const sy = Number(document.getElementById("sy").nodeValue);
+            const sx = Number(document.getElementById('sx').nodeValue);
+            const sy = Number(document.getElementById('sy').nodeValue);
             if (!isNaN(sx) && !isNaN(sy))
-                this.click_controller.processEvent(new UserEventAction(Action.SCALE, { "sx": sx, "sy": sy }));
+                this.click_controller.processEvent(new UserEventAction(Action.SCALE, { sx: sx, sy: sy }));
         });
-        document.getElementById("saveForm").addEventListener("submit", (e) => {
+        document.getElementById('undo').addEventListener('click', (e) => {
             e.preventDefault();
-            console.log("Save");
+            this.click_controller.processEvent(new UserEventAction(Action.UNDO));
+        });
+        document.getElementById('redo').addEventListener('click', (e) => {
+            e.preventDefault();
+            this.click_controller.processEvent(new UserEventAction(Action.REDO));
+        });
+        document.getElementById('saveForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            let type = document.getElementById('saveDropdown').value;
             //para ja so temos XML ou TXT (escolher um)
-            this.document.save(new converter_1.XMLConverterVisitor);
+            switch (type) {
+                case 'xml':
+                    this.document.save(new converter_1.XMLConverterVisitor());
+                    break;
+                case 'txt':
+                    this.document.save(new converter_1.TXTConverterVisitor());
+                    break;
+                default:
+                    break;
+            }
+            console.log('Save');
         });
         document.body.addEventListener('mousedown', (e) => {
             let screenClick = new Point(e.pageX, e.pageY);
@@ -1058,13 +1196,10 @@ class SimpleDrawView {
                 this.click_controller.processEvent(new UserEventPoint(renderCoord));
         }, true);
     }
-    addRenderer(render) {
-        this.renderers.push(render);
-    }
-    render() {
-        for (const renderer of this.renderers) {
-            this.document.draw(renderer);
-        }
+    addRenderer(renderer) {
+        this.renderers.push(renderer);
+        this.document.registerObserver(renderer);
+        renderer.drawGrid();
     }
     mapScreenspaceToRenderspace(point) {
         let res = new NullPoint();
