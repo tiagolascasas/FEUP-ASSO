@@ -128,7 +128,8 @@ export class SVGRenderer extends Renderer {
                     g.appendChild(e)
                     this.element.appendChild(g)
                 } else if (shape instanceof Circle) {
-                    const e = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+                    const e = document.createElementNS('http://www.w3.org/2000/svg', "ellipse")
+                    
                     if (this.mode == 'Color')
                         e.setAttribute('style', `stroke: black; fill: ${shape.color}`)
                     else if (this.mode == 'Wireframe') {
@@ -137,10 +138,14 @@ export class SVGRenderer extends Renderer {
                     }
                     e.setAttribute('cx', shape.x.toString())
                     e.setAttribute('cy', shape.y.toString())
-                    e.setAttribute('r', shape.radius.toString())
+
+                    e.setAttribute("rx", shape.rx.toString());
+                    e.setAttribute("ry", shape.ry.toString());
+
                     e.onclick = (event: MouseEvent) => {
                         //selectedShape(shape, this.page)
                     }
+                    
                     this.element.appendChild(e)
                 }
             }

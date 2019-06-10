@@ -80,8 +80,13 @@ export class Rectangle extends Shape {
 }
 
 export class Circle extends Shape {
+    rx: number 
+    ry: number
+
     constructor(public x: number, public y: number, public radius: number, public color: string) {
         super(x, y)
+        this.rx = radius
+        this.ry = radius
     }
 
     accept(visitor: Visitor): Element {
