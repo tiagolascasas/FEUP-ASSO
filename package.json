@@ -21,7 +21,7 @@
     "scripts": {
         "build": "tsc",
         "browserify": "browserify build/main.js -o dist/bundle.js",
-        "browser": "npm run build && npm run browserify && opn index.html",
+        "browser": "npm run build && npm run browserify && gh-pages.cmd &&  opn index.html",
         "start": "npm run build && node build/main.js",
         "test": "mocha -r ts-node/register src/tests.ts",
         "gh-pages": "npm run build && npm run browserify && gh-pages.cmd"

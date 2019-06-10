@@ -20,8 +20,11 @@ export class Utils {
     let tempY = point.y - centerPoint.y
 
     // now apply rotation
-    let rotatedX = tempX * Math.cos(angle) - tempY * Math.sin(angle)
-    let rotatedY = tempX * Math.sin(angle) + tempY * Math.cos(angle)
+    let radAngle = (angle * Math.PI) / 180
+
+
+    let rotatedX = tempX * Math.cos(radAngle) - tempY * Math.sin(radAngle)
+    let rotatedY = tempX * Math.sin(radAngle) + tempY * Math.cos(radAngle)
 
     // translate back
     return new Point(rotatedX + centerPoint.x, rotatedY + centerPoint.y)
