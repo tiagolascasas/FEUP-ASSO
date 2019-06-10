@@ -18,8 +18,7 @@ export class SimpleDrawAPI {
 
     execute(action: Action, args: any, points: Array<Point>): boolean {
         console.log(Action[action] + ' with args ' + args + ' and ' + points.length + ' points')
-        if (args == undefined)
-            args = {}
+        if (args == undefined) args = {}
 
         if (this.executers.has(action)) {
             this.executers.get(action).executeAction(this.document, args, points)
@@ -36,13 +35,11 @@ interface ActionExecuter {
 class CreateCircleExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
         const centre = points[0]
-        let radius;
+        let radius
         if (points.length > 1) {
             const point = points[1]
             radius = Math.sqrt(Math.pow(point.x - centre.x, 2) + Math.pow(point.y - centre.y, 2))
-        }
-        else
-            radius = args.radius
+        } else radius = args.radius
         document.createCircle(centre.x, centre.y, radius)
         console.log('create circle')
     }
@@ -52,7 +49,13 @@ class CreateCircleExecuter implements ActionExecuter {
 class CreateSquareExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
         const dimensions = this.calculateDimensions(points[0], points[1])
-        document.createRectangle(dimensions[0].x, dimensions[0].y, dimensions[1], dimensions[2], '#123123')
+        document.createRectangle(
+            dimensions[0].x,
+            dimensions[0].y,
+            dimensions[1],
+            dimensions[2],
+            '#123123'
+        )
         console.log('create square')
     }
 
@@ -72,7 +75,7 @@ class CreateSquareExecuter implements ActionExecuter {
             height = p1.y - p2.y
         }
         if (p2.x <= p1.x && p2.y <= p1.y) {
-            topLeftCorner = p2;
+            topLeftCorner = p2
             width = p1.x - p2.x
             height = p1.y - p2.y
         }
@@ -109,6 +112,12 @@ class RotateExecuter implements ActionExecuter {
 //args = {sx, sy}, points = [point]
 class ScaleExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
+        for (const shape of document.objects) {
+            if (shape.isHit(points[0])) console.log("hit");
+            else console.log("not hit");
+            
+            
+        }
         console.log('scale')
     }
 }
