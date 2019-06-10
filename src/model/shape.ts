@@ -98,6 +98,8 @@ export class Circle extends Shape {
     }
 
     scale(sx: number, sy: number): void {
-        throw new Error("Method not implemented.");
+        this.rx *= sx;
+        this.ry *= sy;
+
     }
 }

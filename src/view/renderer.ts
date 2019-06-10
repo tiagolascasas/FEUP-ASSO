@@ -206,8 +206,8 @@ export class CanvasRenderer extends Renderer {
                     this.ctx.ellipse(
                         shape.x,
                         shape.y,
-                        shape.radius,
-                        shape.radius,
+                        shape.rx,
+                        shape.ry,
                         0,
                         0,
                         2 * Math.PI
