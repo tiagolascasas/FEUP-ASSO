@@ -3,11 +3,10 @@ import { Point } from '../view/simpledraw_view'
 import { Utils } from '../controller/utils'
 export abstract class Shape {
 
-    angle: number = 0
-    color: string = "#FFFFFF"
-    layer: String
+    public angle: number = 0
+    public layer: String
 
-    constructor(public x: number, public y: number) { }
+    constructor(public x: number, public y: number, public color: string) { }
 
     translate(xd: number, yd: number): void {
         this.x += xd
@@ -28,13 +27,13 @@ export abstract class Shape {
 
 export class Rectangle extends Shape {
     constructor(
-        public x: number,
-        public y: number,
+        x: number,
+        y: number,
         public width: number,
         public height: number,
-        public color: string
+        color: string
     ) {
-        super(x, y)
+        super(x, y, color)
     }
 
     accept(visitor: Visitor): Element {
@@ -83,8 +82,8 @@ export class Circle extends Shape {
     rx: number 
     ry: number
 
-    constructor(public x: number, public y: number, public radius: number, public color: string) {
-        super(x, y)
+    constructor(x: number, y: number, public radius: number, color: string) {
+        super(x, y, color)
         this.rx = radius
         this.ry = radius
     }

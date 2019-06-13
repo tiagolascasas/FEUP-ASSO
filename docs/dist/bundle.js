@@ -59,7 +59,7 @@ class FirstPointClickedState {
 }
 exports.FirstPointClickedState = FirstPointClickedState;
 
-},{"../view/simpledraw_view":13}],2:[function(require,module,exports){
+},{"../view/simpledraw_view":15}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("./utils");
@@ -433,7 +433,7 @@ class Interpreter {
 }
 exports.Interpreter = Interpreter;
 
-},{"../view/simpledraw_view":13}],4:[function(require,module,exports){
+},{"../view/simpledraw_view":15}],4:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("../view/simpledraw_view");
@@ -538,6 +538,10 @@ class RotateExecuter {
 //args = {sx, sy}, points = [point]
 class ScaleExecuter {
     executeAction(document, args, points) {
+        for (const shape of document.objects) {
+            if (shape.isHit(points[0]))
+                shape.scale(args.sx, args.sy);
+        }
         console.log('scale');
     }
 }
@@ -558,9 +562,10 @@ class RedoExecuter {
     }
 }
 
-},{"../view/simpledraw_view":13}],5:[function(require,module,exports){
+},{"../view/simpledraw_view":15}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const simpledraw_view_1 = require("../view/simpledraw_view");
 class Utils {
     static download(filename, text) {
         var element = document.createElement('a');
@@ -571,14 +576,29 @@ class Utils {
         element.click();
         document.body.removeChild(element);
     }
+    static getRotatedPoint(centerPoint, angle, point) {
+        // translate point to origin
+        let tempX = point.x - centerPoint.x;
+        let tempY = point.y - centerPoint.y;
+        // now apply rotation
+        let radAngle = (angle * Math.PI) / 180;
+        let rotatedX = tempX * Math.cos(radAngle) - tempY * Math.sin(radAngle);
+        let rotatedY = tempX * Math.sin(radAngle) + tempY * Math.cos(radAngle);
+        // translate back
+        return new simpledraw_view_1.Point(rotatedX + centerPoint.x, rotatedY + centerPoint.y);
+    }
+    static getTriangleArea(pointA, pointB, pointC) {
+        return (Math.abs(pointA.x * (pointB.y - pointC.y) + pointB.x * (pointC.y - pointA.y) + pointC.x * (pointA.y - pointB.y)) / 2);
+    }
 }
 exports.Utils = Utils;
 
-},{}],6:[function(require,module,exports){
+},{"../view/simpledraw_view":15}],6:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("./view/simpledraw_view");
-const renderer_1 = require("./view/renderer");
+const renderer_canvas_1 = require("./view/renderer_canvas");
+const renderer_svg_1 = require("./view/renderer_svg");
 const divCanvas1 = document.querySelector('#divCanvas1');
 const divCanvas2 = document.querySelector('#divCanvas2');
 const divSVG1 = document.querySelector('#divSVG1');
@@ -617,12 +637,12 @@ svg2.style.border = '1px solid black';
 divSVG2.appendChild(svg2);
 //Create view and add renderers
 const simpleDraw = new simpledraw_view_1.SimpleDrawView();
-simpleDraw.addRenderer(new renderer_1.CanvasRenderer('canvas1'));
-simpleDraw.addRenderer(new renderer_1.CanvasRenderer('canvas2'));
-simpleDraw.addRenderer(new renderer_1.SVGRenderer('svg1'));
-simpleDraw.addRenderer(new renderer_1.SVGRenderer('svg2'));
+simpleDraw.addRenderer(new renderer_canvas_1.CanvasRenderer('canvas1'));
+simpleDraw.addRenderer(new renderer_canvas_1.CanvasRenderer('canvas2'));
+simpleDraw.addRenderer(new renderer_svg_1.SVGRenderer('svg1'));
+simpleDraw.addRenderer(new renderer_svg_1.SVGRenderer('svg2'));
 
-},{"./view/renderer":12,"./view/simpledraw_view":13}],7:[function(require,module,exports){
+},{"./view/renderer_canvas":13,"./view/renderer_svg":14,"./view/simpledraw_view":15}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const shape_1 = require("./shape");
@@ -808,12 +828,14 @@ exports.LayersManager = LayersManager;
 },{}],10:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const simpledraw_view_1 = require("../view/simpledraw_view");
+const utils_1 = require("../controller/utils");
 class Shape {
-    constructor(x, y) {
+    constructor(x, y, color) {
         this.x = x;
         this.y = y;
+        this.color = color;
         this.angle = 0;
-        this.color = "#FFFFFF";
     }
     translate(xd, yd) {
         this.x += xd;
@@ -826,33 +848,53 @@ class Shape {
 exports.Shape = Shape;
 class Rectangle extends Shape {
     constructor(x, y, width, height, color) {
-        super(x, y);
-        this.x = x;
-        this.y = y;
+        super(x, y, color);
         this.width = width;
         this.height = height;
-        this.color = color;
     }
     accept(visitor) {
         return visitor.visitRectangle(this);
+    }
+    isHit(point) {
+        let rectangleArea = this.width * this.height;
+        let centerPoint = new simpledraw_view_1.Point(this.x, this.y);
+        let pointA = utils_1.Utils.getRotatedPoint(centerPoint, this.angle, new simpledraw_view_1.Point(this.x - this.width / 2, this.y - this.height / 2));
+        let pointB = utils_1.Utils.getRotatedPoint(centerPoint, this.angle, new simpledraw_view_1.Point(this.x - this.width / 2, this.y + this.height / 2));
+        let pointC = utils_1.Utils.getRotatedPoint(centerPoint, this.angle, new simpledraw_view_1.Point(this.x + this.width / 2, this.y + this.height / 2));
+        let pointD = utils_1.Utils.getRotatedPoint(centerPoint, this.angle, new simpledraw_view_1.Point(this.x + this.width / 2, this.y - this.height / 2));
+        let trianglesArea = utils_1.Utils.getTriangleArea(pointA, pointB, point);
+        trianglesArea += utils_1.Utils.getTriangleArea(pointB, pointC, point);
+        trianglesArea += utils_1.Utils.getTriangleArea(pointC, pointD, point);
+        trianglesArea += utils_1.Utils.getTriangleArea(pointD, pointA, point);
+        return Math.abs(rectangleArea - trianglesArea) < 1;
+    }
+    scale(sx, sy) {
+        this.width *= sx;
+        this.height *= sy;
     }
 }
 exports.Rectangle = Rectangle;
 class Circle extends Shape {
     constructor(x, y, radius, color) {
-        super(x, y);
-        this.x = x;
-        this.y = y;
+        super(x, y, color);
         this.radius = radius;
-        this.color = color;
+        this.rx = radius;
+        this.ry = radius;
     }
     accept(visitor) {
         return visitor.visitCircle(this);
     }
+    isHit(point) {
+        return Math.hypot(point.x - this.x, point.y - this.y) < this.radius;
+    }
+    scale(sx, sy) {
+        this.rx *= sx;
+        this.ry *= sy;
+    }
 }
 exports.Circle = Circle;
 
-},{}],11:[function(require,module,exports){
+},{"../controller/utils":5,"../view/simpledraw_view":15}],11:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class UndoManager {
@@ -885,26 +927,24 @@ exports.UndoManager = UndoManager;
 },{}],12:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const shape_1 = require("../model/shape");
 const simpledraw_view_1 = require("./simpledraw_view");
 class Renderer {
     constructor(elementID) {
         this.elementID = elementID;
         this.GRID_STEP = 50;
-        this.mode = 'Color';
+        this.colorMode = false;
         this.zoom = 0;
         this.oldObjects = new Map();
         this.oldLayers = new Array();
         const modeElem = (document.getElementById(elementID + '_mode'));
         modeElem.addEventListener('change', () => {
-            this.mode = modeElem.value;
+            this.colorMode = modeElem.value == "Color";
             this.renderAgain();
         });
         const zoomElem = (document.getElementById(elementID + '_zoom'));
         zoomElem.addEventListener('change', () => {
             this.zoom = Number(zoomElem.value);
             this.renderAgain();
-            console.log(this.zoom);
         });
     }
     render(objs, layers) {
@@ -948,72 +988,13 @@ class Renderer {
     }
 }
 exports.Renderer = Renderer;
-class SVGRenderer extends Renderer {
-    constructor(elementID) {
-        super(elementID);
-        this.objs = new Array();
-        this.element = document.getElementById(elementID);
-    }
-    drawObjects(objs, layers) {
-        for (const layer of layers) {
-            for (const shape of objs.get(layer)) {
-                if (shape instanceof shape_1.Rectangle) {
-                    const e = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                    g.setAttribute('transform', `translate(${shape.x}, ${shape.y}) rotate(${shape.angle})`);
-                    if (this.mode == 'Color')
-                        e.setAttribute('style', `stroke: black; fill: ${shape.color}`);
-                    else if (this.mode == 'Wireframe') {
-                        e.setAttribute('style', `stroke: black; fill: #FFFFFF`);
-                        e.setAttribute('fill-opacity', '0.0');
-                    }
-                    e.setAttribute('width', shape.width.toString());
-                    e.setAttribute('height', shape.height.toString());
-                    e.setAttribute('x', (-shape.width / 2).toString());
-                    e.setAttribute('y', (-shape.height / 2).toString());
-                    e.onclick = (event) => {
-                        //selectedShape(shape, this.page)
-                    };
-                    g.appendChild(e);
-                    this.element.appendChild(g);
-                }
-                else if (shape instanceof shape_1.Circle) {
-                    const e = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    if (this.mode == 'Color')
-                        e.setAttribute('style', `stroke: black; fill: ${shape.color}`);
-                    else if (this.mode == 'Wireframe') {
-                        e.setAttribute('style', `stroke: black; fill: #FFFFFF`);
-                        e.setAttribute('fill-opacity', '0.0');
-                    }
-                    e.setAttribute('cx', shape.x.toString());
-                    e.setAttribute('cy', shape.y.toString());
-                    e.setAttribute('r', shape.radius.toString());
-                    e.onclick = (event) => {
-                        //selectedShape(shape, this.page)
-                    };
-                    this.element.appendChild(e);
-                }
-            }
-        }
-    }
-    drawLine(x1, y1, x2, y2) {
-        let newLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        newLine.setAttribute('x1', x1.toString());
-        newLine.setAttribute('y1', y1.toString());
-        newLine.setAttribute('x2', x2.toString());
-        newLine.setAttribute('y2', y2.toString());
-        newLine.setAttribute('stroke', '#DDDDDD');
-        this.element.appendChild(newLine);
-    }
-    clearCanvas() {
-        this.element.innerHTML = '';
-    }
-    init() { }
-    applyZoom() { }
-    finish() { }
-}
-exports.SVGRenderer = SVGRenderer;
-class CanvasRenderer extends Renderer {
+
+},{"./simpledraw_view":15}],13:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const renderer_1 = require("./renderer");
+const shape_1 = require("../model/shape");
+class CanvasRenderer extends renderer_1.Renderer {
     constructor(elementID) {
         super(elementID);
         this.element = document.getElementById(elementID);
@@ -1036,7 +1017,7 @@ class CanvasRenderer extends Renderer {
                 if (shape instanceof shape_1.Circle) {
                     this.ctx.beginPath();
                     this.ctx.fillStyle = shape.color;
-                    this.ctx.ellipse(shape.x, shape.y, shape.radius, shape.radius, 0, 0, 2 * Math.PI);
+                    this.ctx.ellipse(shape.x, shape.y, shape.rx, shape.ry, 0, 0, 2 * Math.PI);
                     if (event) {
                         if (this.IsInPath(event)) {
                             //selectedShape(shape, this.page)
@@ -1045,7 +1026,7 @@ class CanvasRenderer extends Renderer {
                     this.ctx.closePath();
                     this.ctx.fillStyle = shape.color;
                     this.ctx.stroke();
-                    if (this.mode == 'Color')
+                    if (this.colorMode)
                         this.ctx.fill();
                     //meter rotate num circulo?
                 }
@@ -1059,7 +1040,7 @@ class CanvasRenderer extends Renderer {
                     this.ctx.rect(-shape.width / 2, -shape.height / 2, shape.width, shape.height);
                     this.ctx.closePath();
                     this.ctx.stroke();
-                    if (this.mode == 'Color')
+                    if (this.colorMode)
                         this.ctx.fill();
                     //restore the state before drawing next shape
                     this.ctx.restore();
@@ -1100,7 +1081,151 @@ class CanvasRenderer extends Renderer {
 }
 exports.CanvasRenderer = CanvasRenderer;
 
-},{"../model/shape":10,"./simpledraw_view":13}],13:[function(require,module,exports){
+},{"../model/shape":10,"./renderer":12}],14:[function(require,module,exports){
+'use strict';
+Object.defineProperty(exports, "__esModule", { value: true });
+const renderer_1 = require("./renderer");
+const shape_1 = require("../model/shape");
+class SVGRenderer extends renderer_1.Renderer {
+    constructor(elementID) {
+        super(elementID);
+        this.objs = new Array();
+        this.factory = new SVGShapeRendererFactory();
+        this.element = document.getElementById(elementID);
+    }
+    drawObjects(objs, layers) {
+        for (const layer of layers) {
+            for (const shape of objs.get(layer)) {
+                let renderableObject = this.factory.make(shape);
+                renderableObject = this.colorMode
+                    ? new SVGColorDecorator(renderableObject)
+                    : new SVGWireframeDecorator(renderableObject);
+                const e = renderableObject.render();
+                console.log(e);
+                this.element.appendChild(e);
+            }
+        }
+    }
+    drawLine(x1, y1, x2, y2) {
+        let newLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        newLine.setAttribute('x1', x1.toString());
+        newLine.setAttribute('y1', y1.toString());
+        newLine.setAttribute('x2', x2.toString());
+        newLine.setAttribute('y2', y2.toString());
+        newLine.setAttribute('stroke', '#DDDDDD');
+        this.element.appendChild(newLine);
+    }
+    clearCanvas() {
+        this.element.innerHTML = '';
+    }
+    init() { }
+    applyZoom() { }
+    finish() { }
+}
+exports.SVGRenderer = SVGRenderer;
+class SVGShapeRenderer {
+    constructor(shape) {
+        this.shape = shape;
+    }
+}
+class SVGShapeRendererFactory {
+    make(shape) {
+        if (shape instanceof shape_1.Rectangle)
+            return new SVGRectangleRenderer(shape);
+        if (shape instanceof shape_1.Circle)
+            return new SVGCircleRenderer(shape);
+        if (shape instanceof shape_1.Rectangle)
+            return new SVGRectangleRenderer(shape);
+        else
+            return new SVGNullRenderer(shape);
+    }
+}
+class SVGNullRenderer extends SVGShapeRenderer {
+    constructor(shape) {
+        super(shape);
+    }
+    render() {
+        return document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    }
+}
+class SVGColorDecorator extends SVGShapeRenderer {
+    constructor(obj) {
+        super(obj.shape);
+        this.obj = obj;
+    }
+    render() {
+        console.log('Decorator');
+        let e = this.obj.render();
+        if (e.tagName == 'g') {
+            let realElement = e.firstElementChild;
+            realElement.setAttribute('style', `stroke: black; fill: ${this.shape.color}`);
+            realElement.setAttribute('fill-opacity', '1.0');
+        }
+        else {
+            e.setAttribute('style', `stroke: black; fill: ${this.shape.color}`);
+            e.setAttribute('fill-opacity', '1.0');
+        }
+        return e;
+    }
+}
+class SVGWireframeDecorator extends SVGShapeRenderer {
+    constructor(obj) {
+        super(obj.shape);
+        this.obj = obj;
+    }
+    render() {
+        console.log('Decorator');
+        let e = this.obj.render();
+        if (e.tagName == 'g') {
+            let realElement = e.firstElementChild;
+            e.setAttribute('style', `stroke: black; fill: #FFFFFF`);
+            e.setAttribute('fill-opacity', '0.0');
+        }
+        else {
+            e.setAttribute('style', `stroke: black; fill: #FFFFFF`);
+            e.setAttribute('fill-opacity', '0.0');
+        }
+        return e;
+    }
+}
+class SVGRectangleRenderer extends SVGShapeRenderer {
+    constructor(shape) {
+        super(shape);
+    }
+    render() {
+        const e = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        const shape = this.shape;
+        g.setAttribute('transform', `translate(${shape.x}, ${shape.y}) rotate(${shape.angle})`);
+        e.setAttribute('width', shape.width.toString());
+        e.setAttribute('height', shape.height.toString());
+        e.setAttribute('x', (-shape.width / 2).toString());
+        e.setAttribute('y', (-shape.height / 2).toString());
+        g.appendChild(e);
+        return g;
+    }
+}
+class SVGCircleRenderer extends SVGShapeRenderer {
+    constructor(shape) {
+        super(shape);
+    }
+    render() {
+        const e = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+        const shape = this.shape;
+        e.setAttribute('cx', shape.x.toString());
+        e.setAttribute('cy', shape.y.toString());
+        e.setAttribute('rx', shape.rx.toString());
+        e.setAttribute('ry', shape.ry.toString());
+        return e;
+    }
+}
+class SVGTriangleRenderer extends SVGShapeRenderer {
+    render() {
+        return null;
+    }
+}
+
+},{"../model/shape":10,"./renderer":12}],15:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const document_1 = require("../model/document");
@@ -1159,8 +1284,8 @@ class SimpleDrawView {
         });
         document.getElementById('scale').addEventListener('submit', (e) => {
             e.preventDefault();
-            const sx = Number(document.getElementById('sx').nodeValue);
-            const sy = Number(document.getElementById('sy').nodeValue);
+            const sx = Number(document.getElementById('sx').value);
+            const sy = Number(document.getElementById('sy').value);
             if (!isNaN(sx) && !isNaN(sy))
                 this.click_controller.processEvent(new UserEventAction(Action.SCALE, { sx: sx, sy: sy }));
         });
