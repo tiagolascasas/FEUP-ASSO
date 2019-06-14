@@ -5,7 +5,7 @@ import { RendererObserver, SimpleDrawDocument } from '../model/document'
 export abstract class Renderer implements RendererObserver {
     readonly GRID_STEP = 50
     element: HTMLElement
-    colorMode: boolean = false
+    mode: string = "Wireframe"
     zoom: number = 0
     oldObjects: Map<String, Array<Shape>> = new Map<String, Array<Shape>>()
     oldLayers: Array<String> = new Array<String>()
@@ -15,7 +15,7 @@ export abstract class Renderer implements RendererObserver {
             document.getElementById(elementID + '_mode')
         )
         modeElem.addEventListener('change', () => {
-            this.colorMode = modeElem.value == "Color"
+            this.mode = modeElem.value
             this.renderAgain()
         })
 
@@ -32,8 +32,8 @@ export abstract class Renderer implements RendererObserver {
         this.oldObjects = objs
         this.oldLayers = layers
 
-        this.init()
         this.clearCanvas()
+        this.init()
         this.applyZoom()
         this.drawGrid()
         this.drawObjects(objs, layers)

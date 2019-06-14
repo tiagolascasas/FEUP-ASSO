@@ -17,9 +17,19 @@ export class SVGRenderer extends Renderer {
             for (const shape of objs.get(layer)) {
                 let renderableObject = this.factory.make(shape)
 
-                renderableObject = this.colorMode
-                    ? new SVGColorDecorator(renderableObject)
-                    : new SVGWireframeDecorator(renderableObject)
+                switch (this.mode) {
+                    case "Color":
+                        renderableObject = new SVGColorDecorator(renderableObject)
+                        break;
+                    case "Wireframe":
+                            renderableObject = new SVGWireframeDecorator(renderableObject)
+                            break;
+                    case "Gradient":
+                            renderableObject = new SVGGradientDecorator(renderableObject)
+                            break;
+                    case "None": default:
+                        break;
+                }
 
                 const e = renderableObject.render()
                 console.log(e)
@@ -42,7 +52,29 @@ export class SVGRenderer extends Renderer {
         this.element.innerHTML = ''
     }
 
-    init(): void {}
+    init(): void {
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+        const gradient = <SVGLinearGradientElement>document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient')
+        const stop1 = <SVGStopElement>document.createElementNS('http://www.w3.org/2000/svg', 'stop')
+        const stop2 = <SVGStopElement>document.createElementNS('http://www.w3.org/2000/svg', 'stop')
+        
+        stop1.setAttribute("offset", "0%")
+        stop1.setAttribute("stop-color", "#05a")
+
+        stop2.setAttribute("offset", "100%")
+        stop2.setAttribute("stop-color", "#0a5")
+
+        gradient.appendChild(stop1)
+        gradient.appendChild(stop2)
+        gradient.setAttribute("id", "linear")
+        gradient.setAttribute("x1", "0%")
+        gradient.setAttribute("y1", "0%")
+        gradient.setAttribute("x2", "100%")
+        gradient.setAttribute("y2", "0%")
+
+        defs.appendChild(gradient)
+        this.element.appendChild(defs)
+    }
 
     applyZoom(): void {}
 
@@ -80,7 +112,6 @@ class SVGColorDecorator extends SVGShapeRenderer {
     }
 
     render(): SVGElement {
-        console.log('Decorator')
         let e = this.obj.render()
         if (e.tagName == 'g') {
             let realElement = <SVGElement>e.firstElementChild
@@ -100,15 +131,33 @@ class SVGWireframeDecorator extends SVGShapeRenderer {
     }
 
     render(): SVGElement {
-        console.log('Decorator')
         let e = this.obj.render()
         if (e.tagName == 'g') {
             let realElement = <SVGElement>e.firstElementChild
             e.setAttribute('style', `stroke: black; fill: #FFFFFF`)
-            e.setAttribute('fill-opacity', '0.0')
+            realElement.setAttribute('fill-opacity', '0.0')
         } else {
             e.setAttribute('style', `stroke: black; fill: #FFFFFF`)
             e.setAttribute('fill-opacity', '0.0')
+        }
+        return e
+    }
+}
+
+class SVGGradientDecorator extends SVGShapeRenderer {
+    constructor(public obj: SVGShapeRenderer) {
+        super(obj.shape)
+    }
+
+    render(): SVGElement {
+        let e = this.obj.render()
+        if (e.tagName == 'g') {
+            let realElement = <SVGElement>e.firstElementChild
+            realElement.setAttribute('style', `stroke: black; fill: url(#linear)`)
+            e.setAttribute('fill-opacity', '1.0')
+        } else {
+            e.setAttribute('style', `stroke: black; fill: url(#linear)`)
+            e.setAttribute('fill-opacity', '1.0')
         }
         return e
     }

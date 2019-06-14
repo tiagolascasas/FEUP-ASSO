@@ -932,13 +932,13 @@ class Renderer {
     constructor(elementID) {
         this.elementID = elementID;
         this.GRID_STEP = 50;
-        this.colorMode = false;
+        this.mode = "Wireframe";
         this.zoom = 0;
         this.oldObjects = new Map();
         this.oldLayers = new Array();
         const modeElem = (document.getElementById(elementID + '_mode'));
         modeElem.addEventListener('change', () => {
-            this.colorMode = modeElem.value == "Color";
+            this.mode = modeElem.value;
             this.renderAgain();
         });
         const zoomElem = (document.getElementById(elementID + '_zoom'));
@@ -950,8 +950,8 @@ class Renderer {
     render(objs, layers) {
         this.oldObjects = objs;
         this.oldLayers = layers;
-        this.init();
         this.clearCanvas();
+        this.init();
         this.applyZoom();
         this.drawGrid();
         this.drawObjects(objs, layers);
@@ -1026,8 +1026,7 @@ class CanvasRenderer extends renderer_1.Renderer {
                     this.ctx.closePath();
                     this.ctx.fillStyle = shape.color;
                     this.ctx.stroke();
-                    if (this.colorMode)
-                        this.ctx.fill();
+                    //if (this.colorMode) this.ctx.fill()
                     //meter rotate num circulo?
                 }
                 else if (shape instanceof shape_1.Rectangle) {
@@ -1040,8 +1039,7 @@ class CanvasRenderer extends renderer_1.Renderer {
                     this.ctx.rect(-shape.width / 2, -shape.height / 2, shape.width, shape.height);
                     this.ctx.closePath();
                     this.ctx.stroke();
-                    if (this.colorMode)
-                        this.ctx.fill();
+                    //if (this.colorMode) this.ctx.fill()
                     //restore the state before drawing next shape
                     this.ctx.restore();
                     if (event) {
@@ -1097,9 +1095,20 @@ class SVGRenderer extends renderer_1.Renderer {
         for (const layer of layers) {
             for (const shape of objs.get(layer)) {
                 let renderableObject = this.factory.make(shape);
-                renderableObject = this.colorMode
-                    ? new SVGColorDecorator(renderableObject)
-                    : new SVGWireframeDecorator(renderableObject);
+                switch (this.mode) {
+                    case "Color":
+                        renderableObject = new SVGColorDecorator(renderableObject);
+                        break;
+                    case "Wireframe":
+                        renderableObject = new SVGWireframeDecorator(renderableObject);
+                        break;
+                    case "Gradient":
+                        renderableObject = new SVGGradientDecorator(renderableObject);
+                        break;
+                    case "None":
+                    default:
+                        break;
+                }
                 const e = renderableObject.render();
                 console.log(e);
                 this.element.appendChild(e);
@@ -1118,7 +1127,25 @@ class SVGRenderer extends renderer_1.Renderer {
     clearCanvas() {
         this.element.innerHTML = '';
     }
-    init() { }
+    init() {
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+        const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        stop1.setAttribute("offset", "0%");
+        stop1.setAttribute("stop-color", "#05a");
+        stop2.setAttribute("offset", "100%");
+        stop2.setAttribute("stop-color", "#0a5");
+        gradient.appendChild(stop1);
+        gradient.appendChild(stop2);
+        gradient.setAttribute("id", "linear");
+        gradient.setAttribute("x1", "0%");
+        gradient.setAttribute("y1", "0%");
+        gradient.setAttribute("x2", "100%");
+        gradient.setAttribute("y2", "0%");
+        defs.appendChild(gradient);
+        this.element.appendChild(defs);
+    }
     applyZoom() { }
     finish() { }
 }
@@ -1154,7 +1181,6 @@ class SVGColorDecorator extends SVGShapeRenderer {
         this.obj = obj;
     }
     render() {
-        console.log('Decorator');
         let e = this.obj.render();
         if (e.tagName == 'g') {
             let realElement = e.firstElementChild;
@@ -1174,16 +1200,34 @@ class SVGWireframeDecorator extends SVGShapeRenderer {
         this.obj = obj;
     }
     render() {
-        console.log('Decorator');
         let e = this.obj.render();
         if (e.tagName == 'g') {
             let realElement = e.firstElementChild;
             e.setAttribute('style', `stroke: black; fill: #FFFFFF`);
-            e.setAttribute('fill-opacity', '0.0');
+            realElement.setAttribute('fill-opacity', '0.0');
         }
         else {
             e.setAttribute('style', `stroke: black; fill: #FFFFFF`);
             e.setAttribute('fill-opacity', '0.0');
+        }
+        return e;
+    }
+}
+class SVGGradientDecorator extends SVGShapeRenderer {
+    constructor(obj) {
+        super(obj.shape);
+        this.obj = obj;
+    }
+    render() {
+        let e = this.obj.render();
+        if (e.tagName == 'g') {
+            let realElement = e.firstElementChild;
+            realElement.setAttribute('style', `stroke: black; fill: url(#linear)`);
+            e.setAttribute('fill-opacity', '1.0');
+        }
+        else {
+            e.setAttribute('style', `stroke: black; fill: url(#linear)`);
+            e.setAttribute('fill-opacity', '1.0');
         }
         return e;
     }

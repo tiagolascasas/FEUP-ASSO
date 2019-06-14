@@ -50,7 +50,7 @@ export class CanvasRenderer extends Renderer {
                     this.ctx.closePath()
                     this.ctx.fillStyle = shape.color
                     this.ctx.stroke()
-                    if (this.colorMode) this.ctx.fill()
+                    //if (this.colorMode) this.ctx.fill()
                     //meter rotate num circulo?
                 } else if (shape instanceof Rectangle) {
                     //save the state to prevent all the objects from rotating
@@ -63,7 +63,7 @@ export class CanvasRenderer extends Renderer {
 
                     this.ctx.closePath()
                     this.ctx.stroke()
-                    if (this.colorMode) this.ctx.fill()
+                    //if (this.colorMode) this.ctx.fill()
                     //restore the state before drawing next shape
                     this.ctx.restore()
 
