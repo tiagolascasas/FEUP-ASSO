@@ -112,11 +112,29 @@ export class Triangle extends Shape {
         return
     }
 
-    isHit(point: Point): boolean {
-        return false
+    //Taken from here: https://stackoverflow.com/a/34093754
+    isHit(p: Point): boolean {
+        const p0 = new Point(this.x1, this.y1)
+        const p1 = new Point(this.x2, this.y2)
+        const p2 = new Point(this.x3, this.y3)
+
+        const dX = p.x - p2.x
+        const dY = p.y - p2.y
+        const dX21 = p2.x - p1.x
+        const dY12 = p1.y - p2.y
+        const D = dY12 * (p0.x - p2.x) + dX21 * (p0.y - p2.y)
+        const s = dY12 * dX + dX21 * dY
+        const t = (p2.y - p0.y) * dX + (p0.x - p2.x) * dY
+        if (D < 0) return s <= 0 && t <= 0 && s + t >= D
+        return s >= 0 && t >= 0 && s + t <= D
     }
 
     scale(sx: number, sy: number): void {
-        return
+        this.x1 = (sx * (this.x1 - this.x)) + this.x
+        this.x2 = (sx * (this.x2 - this.x)) + this.x
+        this.x3 = (sx * (this.x3 - this.x)) + this.x
+        this.y1 = (sy * (this.y1 - this.y)) + this.y
+        this.y2 = (sy * (this.y2 - this.y)) + this.y
+        this.y3 = (sy * (this.y3 - this.y)) + this.y
     }
 }
