@@ -68,7 +68,11 @@ class SecondPointClickedState {
     processEvent(context, event) {
         if (event instanceof simpledraw_view_1.UserEventPoint) {
             if ([simpledraw_view_1.Action.CREATE_TRIANGLE].includes(this.event.action)) {
-                context.api.execute(this.event.action, this.event.args, [this.point1, this.point2, event.point]);
+                context.api.execute(this.event.action, this.event.args, [
+                    this.point1,
+                    this.point2,
+                    event.point,
+                ]);
                 context.currState = new IdleState();
             }
             else
@@ -102,8 +106,8 @@ class XMLConverterVisitor {
         rectElem.setAttribute('height', rect.height.toString());
         rectElem.setAttribute('layer', rect.layer.toString());
         rectElem.setAttribute('width', rect.width.toString());
-        rectElem.setAttribute('x', rect.x.toString());
-        rectElem.setAttribute('y', rect.y.toString());
+        rectElem.setAttribute('x', rect.center.x.toString());
+        rectElem.setAttribute('y', rect.center.y.toString());
         return rectElem;
     }
     visitCircle(circle) {
@@ -113,8 +117,8 @@ class XMLConverterVisitor {
         circleElem.setAttribute('color', circle.color);
         circleElem.setAttribute('layer', circle.layer.toString());
         circleElem.setAttribute('radius', circle.radius.toString());
-        circleElem.setAttribute('x', circle.x.toString());
-        circleElem.setAttribute('y', circle.y.toString());
+        circleElem.setAttribute('x', circle.center.x.toString());
+        circleElem.setAttribute('y', circle.center.y.toString());
         return circleElem;
     }
 }
@@ -125,7 +129,7 @@ class TXTConverterVisitor {
         for (const object of objects) {
             saved = saved.concat(object.accept(this));
         }
-        utils_1.Utils.download("save.txt", saved);
+        utils_1.Utils.download('save.txt', saved);
     }
     visitRectangle(rect) {
         let saved = 'Rectangle \r\n';
@@ -134,8 +138,8 @@ class TXTConverterVisitor {
         saved = saved.concat('height= ', rect.height.toString(), '\r\n');
         saved = saved.concat('layer= ', rect.layer.toString(), '\r\n');
         saved = saved.concat('width= ', rect.width.toString(), '\r\n');
-        saved = saved.concat('x= ', rect.x.toString(), '\r\n');
-        saved = saved.concat('y= ', rect.y.toString(), '\r\n');
+        saved = saved.concat('x= ', rect.center.x.toString(), '\r\n');
+        saved = saved.concat('y= ', rect.center.y.toString(), '\r\n');
         return saved;
     }
     visitCircle(circle) {
@@ -144,8 +148,8 @@ class TXTConverterVisitor {
         saved = saved.concat('color= ', circle.color, '\r\n');
         saved = saved.concat('layer= ', circle.layer.toString(), '\r\n');
         saved = saved.concat('radius= ', circle.radius.toString(), '\r\n');
-        saved = saved.concat('x= ', circle.x.toString(), '\r\n');
-        saved = saved.concat('y= ', circle.y.toString(), '\r\n');
+        saved = saved.concat('x= ', circle.center.x.toString(), '\r\n');
+        saved = saved.concat('y= ', circle.center.y.toString(), '\r\n');
         return saved;
     }
 }
@@ -155,6 +159,7 @@ exports.TXTConverterVisitor = TXTConverterVisitor;
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("../view/simpledraw_view");
+const utils_1 = require("./utils");
 /*
 REPL Grammar:
 
@@ -257,7 +262,7 @@ class GridExpression {
             termExp.interpret(context) &&
             termExp.interpret(context) &&
             termExp.interpret(context)) {
-            let p1 = new simpledraw_view_1.Point(Number(context.get(3)), Number(context.get(4)));
+            let p1 = new utils_1.Point(Number(context.get(3)), Number(context.get(4)));
             let horizontal_units = context.get(1);
             let vertical_units = context.get(2);
             context.api.execute(simpledraw_view_1.Action.GRID, { horizontal_units: horizontal_units, vertical_units: vertical_units }, [p1]);
@@ -274,7 +279,7 @@ class ScaleExpression {
             termExp.interpret(context) &&
             termExp.interpret(context) &&
             termExp.interpret(context)) {
-            let p1 = new simpledraw_view_1.Point(Number(context.get(3)), Number(context.get(4)));
+            let p1 = new utils_1.Point(Number(context.get(3)), Number(context.get(4)));
             let sx = context.get(1);
             let sy = context.get(2);
             context.api.execute(simpledraw_view_1.Action.SCALE, { sx: sx, sy: sy }, [p1]);
@@ -290,7 +295,7 @@ class RotateExpression {
         if (termExp.interpret(context) &&
             termExp.interpret(context) &&
             termExp.interpret(context)) {
-            let p1 = new simpledraw_view_1.Point(Number(context.get(2)), Number(context.get(3)));
+            let p1 = new utils_1.Point(Number(context.get(2)), Number(context.get(3)));
             let angle = context.get(1);
             context.api.execute(simpledraw_view_1.Action.ROTATE, { angle: angle }, [p1]);
             return true;
@@ -306,8 +311,8 @@ class TranslateExpression {
             termExp.interpret(context) &&
             termExp.interpret(context) &&
             termExp.interpret(context)) {
-            let p1 = new simpledraw_view_1.Point(Number(context.get(1)), Number(context.get(2)));
-            let p2 = new simpledraw_view_1.Point(Number(context.get(4)), Number(context.get(3)));
+            let p1 = new utils_1.Point(Number(context.get(1)), Number(context.get(2)));
+            let p2 = new utils_1.Point(Number(context.get(4)), Number(context.get(3)));
             context.api.execute(simpledraw_view_1.Action.TRANSLATE, {}, [p1, p2]);
             return true;
         }
@@ -326,9 +331,9 @@ class TriangleExpression {
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
             termColorExp.interpret(context)) {
-            let p1 = new simpledraw_view_1.Point(Number(context.get(2)), Number(context.get(3)));
-            let p2 = new simpledraw_view_1.Point(Number(context.get(4)), Number(context.get(5)));
-            let p3 = new simpledraw_view_1.Point(Number(context.get(6)), Number(context.get(7)));
+            let p1 = new utils_1.Point(Number(context.get(2)), Number(context.get(3)));
+            let p2 = new utils_1.Point(Number(context.get(4)), Number(context.get(5)));
+            let p3 = new utils_1.Point(Number(context.get(6)), Number(context.get(7)));
             context.api.execute(simpledraw_view_1.Action.CREATE_TRIANGLE, {}, [p1, p2, p3]);
             return true;
         }
@@ -344,7 +349,7 @@ class CircleExpression {
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
             termColorExp.interpret(context)) {
-            let p1 = new simpledraw_view_1.Point(Number(context.get(2)), Number(context.get(3)));
+            let p1 = new utils_1.Point(Number(context.get(2)), Number(context.get(3)));
             let radius = context.get(4);
             context.api.execute(simpledraw_view_1.Action.CREATE_CIRCLE, { radius: radius }, [p1]);
             return true;
@@ -362,8 +367,8 @@ class SquareExpression {
             termNumberExp.interpret(context) &&
             termNumberExp.interpret(context) &&
             termColorExp.interpret(context)) {
-            let p1 = new simpledraw_view_1.Point(Number(context.get(2)), Number(context.get(3)));
-            let p2 = new simpledraw_view_1.Point(Number(context.get(4)), Number(context.get(5)));
+            let p1 = new utils_1.Point(Number(context.get(2)), Number(context.get(3)));
+            let p2 = new utils_1.Point(Number(context.get(4)), Number(context.get(5)));
             context.api.execute(simpledraw_view_1.Action.CREATE_SQUARE, {}, [p1, p2]);
             return true;
         }
@@ -452,10 +457,11 @@ class Interpreter {
 }
 exports.Interpreter = Interpreter;
 
-},{"../view/simpledraw_view":15}],4:[function(require,module,exports){
+},{"../view/simpledraw_view":15,"./utils":5}],4:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("../view/simpledraw_view");
+const utils_1 = require("./utils");
 class SimpleDrawAPI {
     constructor(document) {
         this.document = document;
@@ -475,7 +481,6 @@ class SimpleDrawAPI {
     execute(action, args, points) {
         if (args == undefined)
             args = {};
-        console.log(simpledraw_view_1.Action[action] + ' with args ' + args + ' and ' + points.length + ' points');
         if (this.executers.has(action)) {
             this.executers.get(action).executeAction(this.document, args, points);
             this.document.notifyRendererObservers();
@@ -498,16 +503,14 @@ class CreateCircleExecuter {
         }
         else
             radius = args.radius;
-        document.createCircle(centre.x, centre.y, radius, '#F6D55C');
-        console.log('create circle');
+        document.createCircle(centre, radius, '#F6D55C');
     }
 }
 //args = {}, points = [corner1, corner2]
 class CreateSquareExecuter {
     executeAction(document, args, points) {
         const dimensions = this.calculateDimensions(points[0], points[1]);
-        document.createRectangle(dimensions[0].x, dimensions[0].y, dimensions[1], dimensions[2], '#20639B');
-        console.log('create square');
+        document.createRectangle(dimensions[0], dimensions[1], dimensions[2], '#20639B');
     }
     calculateDimensions(p1, p2) {
         let topLeftCorner;
@@ -519,7 +522,7 @@ class CreateSquareExecuter {
             height = p2.y - p1.y;
         }
         if (p2.x >= p1.x && p2.y <= p1.y) {
-            topLeftCorner = new simpledraw_view_1.Point(p1.x, p2.y);
+            topLeftCorner = new utils_1.Point(p1.x, p2.y);
             width = p2.x - p1.x;
             height = p1.y - p2.y;
         }
@@ -529,11 +532,11 @@ class CreateSquareExecuter {
             height = p1.y - p2.y;
         }
         if (p2.x <= p1.x && p2.y >= p1.y) {
-            topLeftCorner = new simpledraw_view_1.Point(p2.x, p1.y);
+            topLeftCorner = new utils_1.Point(p2.x, p1.y);
             width = p1.x - p2.x;
             height = p2.y - p1.y;
         }
-        let centre = new simpledraw_view_1.Point(topLeftCorner.x + width / 2, topLeftCorner.y + height / 2);
+        let centre = new utils_1.Point(topLeftCorner.x + width / 2, topLeftCorner.y + height / 2);
         return [centre, width, height];
     }
 }
@@ -541,7 +544,7 @@ exports.CreateSquareExecuter = CreateSquareExecuter;
 //args = {}, points = [vertex1, vertex2, vertex3]
 class CreateTriangleExecuter {
     executeAction(document, args, points) {
-        document.createTriangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, "#3CAEA3");
+        document.createTriangle(points[0], points[1], points[2], '#3CAEA3');
     }
 }
 //args = {}, points = [origin, destiny]
@@ -563,7 +566,6 @@ class ScaleExecuter {
             if (shape.isHit(points[0]))
                 shape.scale(args.sx, args.sy);
         }
-        console.log('scale');
     }
 }
 //args = {horizontal_units, vertical_units}, points = [point]
@@ -584,7 +586,6 @@ class RedoExecuter {
 }
 class AddLayerExecuter {
     executeAction(document, args, points) {
-        console.log("CREATING LAYER " + args.layer);
         document.createLayer(args.layer);
     }
 }
@@ -594,10 +595,9 @@ class SetLayerExecuter {
     }
 }
 
-},{"../view/simpledraw_view":15}],5:[function(require,module,exports){
-"use strict";
+},{"../view/simpledraw_view":15,"./utils":5}],5:[function(require,module,exports){
+'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
-const simpledraw_view_1 = require("../view/simpledraw_view");
 class Utils {
     static download(filename, text) {
         var element = document.createElement('a');
@@ -617,15 +617,33 @@ class Utils {
         let rotatedX = tempX * Math.cos(radAngle) - tempY * Math.sin(radAngle);
         let rotatedY = tempX * Math.sin(radAngle) + tempY * Math.cos(radAngle);
         // translate back
-        return new simpledraw_view_1.Point(rotatedX + centerPoint.x, rotatedY + centerPoint.y);
+        return new Point(rotatedX + centerPoint.x, rotatedY + centerPoint.y);
     }
     static getTriangleArea(pointA, pointB, pointC) {
-        return (Math.abs(pointA.x * (pointB.y - pointC.y) + pointB.x * (pointC.y - pointA.y) + pointC.x * (pointA.y - pointB.y)) / 2);
+        return (Math.abs(pointA.x * (pointB.y - pointC.y) +
+            pointB.x * (pointC.y - pointA.y) +
+            pointC.x * (pointA.y - pointB.y)) / 2);
     }
 }
 exports.Utils = Utils;
+class Point {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    isNil() {
+        return this.x == -1 && this.y == -1;
+    }
+}
+exports.Point = Point;
+class NullPoint extends Point {
+    constructor() {
+        super(-1, -1);
+    }
+}
+exports.NullPoint = NullPoint;
 
-},{"../view/simpledraw_view":15}],6:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("./view/simpledraw_view");
@@ -681,9 +699,10 @@ simpleDraw.addRenderer(new renderer_svg_1.SVGRenderer('svg1'));
 simpleDraw.addRenderer(new renderer_svg_1.SVGRenderer('svg2'));
 
 },{"./view/renderer_canvas":13,"./view/renderer_svg":14,"./view/simpledraw_view":15}],7:[function(require,module,exports){
-"use strict";
+'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const shape_1 = require("./shape");
+const utils_1 = require("../controller/utils");
 class CreateShapeAction {
     constructor(doc, shape, layer) {
         this.doc = doc;
@@ -699,20 +718,18 @@ class CreateShapeAction {
     }
 }
 class CreateCircleAction extends CreateShapeAction {
-    constructor(doc, x, y, radius, color) {
-        super(doc, new shape_1.Circle(x, y, radius, color), doc.layersManager.activeLayer);
-        this.x = x;
-        this.y = y;
+    constructor(doc, center, radius, color) {
+        super(doc, new shape_1.Circle(center, radius, color), doc.layersManager.activeLayer);
+        this.center = center;
         this.radius = radius;
         this.color = color;
     }
 }
 exports.CreateCircleAction = CreateCircleAction;
 class CreateRectangleAction extends CreateShapeAction {
-    constructor(doc, x, y, width, height, color) {
-        super(doc, new shape_1.Rectangle(x, y, width, height, color), doc.layersManager.activeLayer);
-        this.x = x;
-        this.y = y;
+    constructor(doc, center, width, height, color) {
+        super(doc, new shape_1.Rectangle(center, width, height, color), doc.layersManager.activeLayer);
+        this.center = center;
         this.width = width;
         this.height = height;
         this.color = color;
@@ -720,39 +737,34 @@ class CreateRectangleAction extends CreateShapeAction {
 }
 exports.CreateRectangleAction = CreateRectangleAction;
 class CreateTriangleAction extends CreateShapeAction {
-    constructor(doc, x1, y1, x2, y2, x3, y3, color) {
-        super(doc, new shape_1.Triangle(x1, y1, x2, y2, x3, y3, color), doc.layersManager.activeLayer);
-        this.x1 = x1;
-        this.y1 = y1;
-        this.x2 = x2;
-        this.y2 = y2;
-        this.x3 = x3;
-        this.y3 = y3;
+    constructor(doc, p0, p1, p2, color) {
+        super(doc, new shape_1.Triangle(p0, p1, p2, color), doc.layersManager.activeLayer);
+        this.p0 = p0;
+        this.p1 = p1;
+        this.p2 = p2;
         this.color = color;
     }
 }
 exports.CreateTriangleAction = CreateTriangleAction;
 class TranslateAction {
-    constructor(doc, shape, xd, yd) {
-        this.doc = doc;
+    constructor(shape, xd, yd) {
         this.shape = shape;
         this.xd = xd;
         this.yd = yd;
     }
     do() {
-        this.oldX = this.shape.x;
-        this.oldY = this.shape.y;
-        this.shape.translate(this.xd, this.yd);
+        this.oldX = this.shape.center.x;
+        this.oldY = this.shape.center.y;
+        this.shape.translate(new utils_1.Point(this.xd, this.yd));
     }
     undo() {
-        this.shape.x = this.oldX;
-        this.shape.y = this.oldY;
+        this.shape.center.x = this.oldX;
+        this.shape.center.y = this.oldY;
     }
 }
 exports.TranslateAction = TranslateAction;
 class RotateAction {
-    constructor(doc, shape, angled) {
-        this.doc = doc;
+    constructor(shape, angled) {
         this.shape = shape;
         this.angled = angled;
     }
@@ -766,8 +778,8 @@ class RotateAction {
 }
 exports.RotateAction = RotateAction;
 
-},{"./shape":10}],8:[function(require,module,exports){
-"use strict";
+},{"../controller/utils":5,"./shape":10}],8:[function(require,module,exports){
+'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("./actions");
 const undo_1 = require("./undo");
@@ -815,20 +827,20 @@ class SimpleDrawDocument {
         // console.log(doc);
         saveMode.visitAll(this.objects);
     }
-    createRectangle(x, y, width, height, color) {
-        return this.do(new actions_1.CreateRectangleAction(this, x, y, width, height, color));
+    createRectangle(center, width, height, color) {
+        return this.do(new actions_1.CreateRectangleAction(this, center, width, height, color));
     }
-    createCircle(x, y, radius, color) {
-        return this.do(new actions_1.CreateCircleAction(this, x, y, radius, color));
+    createCircle(center, radius, color) {
+        return this.do(new actions_1.CreateCircleAction(this, center, radius, color));
     }
-    createTriangle(x1, y1, x2, y2, x3, y3, color) {
-        return this.do(new actions_1.CreateTriangleAction(this, x1, y1, x2, y2, x3, y3, color));
+    createTriangle(p0, p1, p2, color) {
+        return this.do(new actions_1.CreateTriangleAction(this, p0, p1, p2, color));
     }
     translate(s, xd, yd) {
-        return this.do(new actions_1.TranslateAction(this, s, xd, yd));
+        return this.do(new actions_1.TranslateAction(s, xd, yd));
     }
     rotate(s, angled) {
-        return this.do(new actions_1.RotateAction(this, s, angled));
+        return this.do(new actions_1.RotateAction(s, angled));
     }
     getObjectsForRendering() {
         return this.layersManager.mapObjectsToLayers(this.objects);
@@ -854,7 +866,7 @@ class SimpleDrawDocument {
 exports.SimpleDrawDocument = SimpleDrawDocument;
 
 },{"./actions":7,"./layers":9,"./undo":11}],9:[function(require,module,exports){
-"use strict";
+'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 class LayersManager {
     constructor() {
@@ -900,20 +912,18 @@ class LayersManager {
 exports.LayersManager = LayersManager;
 
 },{}],10:[function(require,module,exports){
-"use strict";
+'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
-const simpledraw_view_1 = require("../view/simpledraw_view");
 const utils_1 = require("../controller/utils");
 class Shape {
-    constructor(x, y, color) {
-        this.x = x;
-        this.y = y;
+    constructor(center, color) {
+        this.center = center;
         this.color = color;
         this.angle = 0;
     }
-    translate(xd, yd) {
-        this.x += xd;
-        this.y += yd;
+    translate(delta) {
+        this.center.x += delta.x;
+        this.center.y += delta.y;
     }
     rotate(angled) {
         this.angle = (this.angle + angled) % 360;
@@ -921,8 +931,8 @@ class Shape {
 }
 exports.Shape = Shape;
 class Rectangle extends Shape {
-    constructor(x, y, width, height, color) {
-        super(x, y, color);
+    constructor(center, width, height, color) {
+        super(center, color);
         this.width = width;
         this.height = height;
     }
@@ -930,12 +940,12 @@ class Rectangle extends Shape {
         return visitor.visitRectangle(this);
     }
     isHit(point) {
-        let rectangleArea = this.width * this.height;
-        let centerPoint = new simpledraw_view_1.Point(this.x, this.y);
-        let pointA = utils_1.Utils.getRotatedPoint(centerPoint, this.angle, new simpledraw_view_1.Point(this.x - this.width / 2, this.y - this.height / 2));
-        let pointB = utils_1.Utils.getRotatedPoint(centerPoint, this.angle, new simpledraw_view_1.Point(this.x - this.width / 2, this.y + this.height / 2));
-        let pointC = utils_1.Utils.getRotatedPoint(centerPoint, this.angle, new simpledraw_view_1.Point(this.x + this.width / 2, this.y + this.height / 2));
-        let pointD = utils_1.Utils.getRotatedPoint(centerPoint, this.angle, new simpledraw_view_1.Point(this.x + this.width / 2, this.y - this.height / 2));
+        const rectangleArea = this.width * this.height;
+        const centerPoint = this.center;
+        const pointA = utils_1.Utils.getRotatedPoint(centerPoint, this.angle, new utils_1.Point(centerPoint.x - this.width / 2, centerPoint.y - this.height / 2));
+        const pointB = utils_1.Utils.getRotatedPoint(centerPoint, this.angle, new utils_1.Point(centerPoint.x - this.width / 2, centerPoint.y + this.height / 2));
+        const pointC = utils_1.Utils.getRotatedPoint(centerPoint, this.angle, new utils_1.Point(centerPoint.x + this.width / 2, centerPoint.y + this.height / 2));
+        const pointD = utils_1.Utils.getRotatedPoint(centerPoint, this.angle, new utils_1.Point(centerPoint.x + this.width / 2, centerPoint.y - this.height / 2));
         let trianglesArea = utils_1.Utils.getTriangleArea(pointA, pointB, point);
         trianglesArea += utils_1.Utils.getTriangleArea(pointB, pointC, point);
         trianglesArea += utils_1.Utils.getTriangleArea(pointC, pointD, point);
@@ -949,8 +959,8 @@ class Rectangle extends Shape {
 }
 exports.Rectangle = Rectangle;
 class Circle extends Shape {
-    constructor(x, y, radius, color) {
-        super(x, y, color);
+    constructor(center, radius, color) {
+        super(center, color);
         this.radius = radius;
         this.rx = radius;
         this.ry = radius;
@@ -959,7 +969,7 @@ class Circle extends Shape {
         return visitor.visitCircle(this);
     }
     isHit(point) {
-        return Math.hypot(point.x - this.x, point.y - this.y) < this.radius;
+        return Math.hypot(point.x - this.center.x, point.y - this.center.y) < this.radius;
     }
     scale(sx, sy) {
         this.rx *= sx;
@@ -968,23 +978,20 @@ class Circle extends Shape {
 }
 exports.Circle = Circle;
 class Triangle extends Shape {
-    constructor(x1, y1, x2, y2, x3, y3, color) {
-        super((x1 + x2 + x3) / 3.0, (y1 + y2 + y3) / 3.0, color);
-        this.x1 = x1;
-        this.y1 = y1;
-        this.x2 = x2;
-        this.y2 = y2;
-        this.x3 = x3;
-        this.y3 = y3;
+    constructor(p0, p1, p2, color) {
+        super(new utils_1.Point((p0.x + p1.x + p2.x) / 3.0, (p0.y + p1.y + p2.y) / 3.0), color);
+        this.p0 = p0;
+        this.p1 = p1;
+        this.p2 = p2;
     }
     accept(visitor) {
         return;
     }
     //Taken from here: https://stackoverflow.com/a/34093754
     isHit(p) {
-        const p0 = new simpledraw_view_1.Point(this.x1, this.y1);
-        const p1 = new simpledraw_view_1.Point(this.x2, this.y2);
-        const p2 = new simpledraw_view_1.Point(this.x3, this.y3);
+        const p0 = this.p0;
+        const p1 = this.p1;
+        const p2 = this.p2;
         const dX = p.x - p2.x;
         const dY = p.y - p2.y;
         const dX21 = p2.x - p1.x;
@@ -997,18 +1004,18 @@ class Triangle extends Shape {
         return s >= 0 && t >= 0 && s + t <= D;
     }
     scale(sx, sy) {
-        this.x1 = (sx * (this.x1 - this.x)) + this.x;
-        this.x2 = (sx * (this.x2 - this.x)) + this.x;
-        this.x3 = (sx * (this.x3 - this.x)) + this.x;
-        this.y1 = (sy * (this.y1 - this.y)) + this.y;
-        this.y2 = (sy * (this.y2 - this.y)) + this.y;
-        this.y3 = (sy * (this.y3 - this.y)) + this.y;
+        this.p0.x = sx * (this.p0.x - this.center.x) + this.center.x;
+        this.p1.x = sx * (this.p1.x - this.center.x) + this.center.x;
+        this.p2.x = sx * (this.p2.x - this.center.x) + this.center.x;
+        this.p0.y = sy * (this.p0.y - this.center.y) + this.center.y;
+        this.p1.y = sy * (this.p1.y - this.center.y) + this.center.y;
+        this.p2.y = sy * (this.p2.y - this.center.y) + this.center.y;
     }
 }
 exports.Triangle = Triangle;
 
-},{"../controller/utils":5,"../view/simpledraw_view":15}],11:[function(require,module,exports){
-"use strict";
+},{"../controller/utils":5}],11:[function(require,module,exports){
+'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 class UndoManager {
     constructor() {
@@ -1038,15 +1045,15 @@ class UndoManager {
 exports.UndoManager = UndoManager;
 
 },{}],12:[function(require,module,exports){
-"use strict";
+'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
-const simpledraw_view_1 = require("./simpledraw_view");
+const utils_1 = require("../controller/utils");
 class Renderer {
     constructor(elementID) {
         this.elementID = elementID;
         this.GRID_STEP = 50;
-        this.GRID_COLOR = "#BBBBBB";
-        this.mode = "Wireframe";
+        this.GRID_COLOR = '#BBBBBB';
+        this.mode = 'Wireframe';
         this.zoom = 0;
         this.currObjects = new Map();
         this.currLayers = new Array();
@@ -1081,8 +1088,8 @@ class Renderer {
         const width = x + dimensions.width;
         const height = y + dimensions.height;
         if (point.x < x || point.x > width || point.y < y || point.y > height)
-            return new simpledraw_view_1.NullPoint();
-        return new simpledraw_view_1.Point(point.x - x, point.y - y);
+            return new utils_1.NullPoint();
+        return new utils_1.Point(point.x - x, point.y - y);
     }
     getDimensions() {
         const width = this.element.getBoundingClientRect().width;
@@ -1102,14 +1109,14 @@ class Renderer {
     }
     resize() {
         const parent = this.element.parentElement;
-        this.element.setAttribute("width", parent.clientWidth.toString());
-        this.element.setAttribute("height", parent.clientHeight.toString());
+        this.element.setAttribute('width', parent.clientWidth.toString());
+        this.element.setAttribute('height', parent.clientHeight.toString());
         this.renderAgain();
     }
 }
 exports.Renderer = Renderer;
 
-},{"./simpledraw_view":15}],13:[function(require,module,exports){
+},{"../controller/utils":5}],13:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const renderer_1 = require("./renderer");
@@ -1213,7 +1220,7 @@ class CanvasRectangleRenderer extends CanvasShapeRenderer {
     }
     render(ctx) {
         const shape = this.shape;
-        ctx.translate(shape.x, shape.y);
+        ctx.translate(shape.center.x, shape.center.y);
         ctx.rotate((shape.angle * Math.PI) / 180);
         ctx.rect(-shape.width / 2, -shape.height / 2, shape.width, shape.height);
     }
@@ -1224,7 +1231,7 @@ class CanvasCircleRenderer extends CanvasShapeRenderer {
     }
     render(ctx) {
         const shape = this.shape;
-        ctx.ellipse(shape.x, shape.y, shape.rx, shape.ry, 0, 0, 2 * Math.PI);
+        ctx.ellipse(shape.center.x, shape.center.y, shape.rx, shape.ry, 0, 0, 2 * Math.PI);
     }
 }
 class CanvasTriangleRenderer extends CanvasShapeRenderer {
@@ -1233,9 +1240,9 @@ class CanvasTriangleRenderer extends CanvasShapeRenderer {
     }
     render(ctx) {
         const shape = this.shape;
-        ctx.moveTo(shape.x1, shape.y1);
-        ctx.lineTo(shape.x2, shape.y2);
-        ctx.lineTo(shape.x3, shape.y3);
+        ctx.moveTo(shape.p0.x, shape.p0.y);
+        ctx.lineTo(shape.p1.x, shape.p1.y);
+        ctx.lineTo(shape.p2.x, shape.p2.y);
     }
 }
 class CanvasColorDecorator extends CanvasShapeRenderer {
@@ -1429,7 +1436,7 @@ class SVGRectangleRenderer extends SVGShapeRenderer {
         const e = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         const shape = this.shape;
-        g.setAttribute('transform', `translate(${shape.x}, ${shape.y}) rotate(${shape.angle})`);
+        g.setAttribute('transform', `translate(${shape.center.x}, ${shape.center.y}) rotate(${shape.angle})`);
         e.setAttribute('width', shape.width.toString());
         e.setAttribute('height', shape.height.toString());
         e.setAttribute('x', (-shape.width / 2).toString());
@@ -1445,8 +1452,8 @@ class SVGCircleRenderer extends SVGShapeRenderer {
     render() {
         const e = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
         const shape = this.shape;
-        e.setAttribute('cx', shape.x.toString());
-        e.setAttribute('cy', shape.y.toString());
+        e.setAttribute('cx', shape.center.x.toString());
+        e.setAttribute('cy', shape.center.y.toString());
         e.setAttribute('rx', shape.rx.toString());
         e.setAttribute('ry', shape.ry.toString());
         return e;
@@ -1456,29 +1463,30 @@ class SVGTriangleRenderer extends SVGShapeRenderer {
     render() {
         const e = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
         const shape = this.shape;
-        e.setAttribute('points', shape.x1 +
+        e.setAttribute('points', shape.p0.x +
             ',' +
-            shape.y1 +
+            shape.p0.y +
             ' ' +
-            shape.x2 +
+            shape.p1.x +
             ',' +
-            shape.y2 +
+            shape.p1.y +
             ' ' +
-            shape.x3 +
+            shape.p2.x +
             ',' +
-            shape.y3);
+            shape.p2.y);
         return e;
     }
 }
 
 },{"../model/shape":10,"./renderer":12}],15:[function(require,module,exports){
-"use strict";
+'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const document_1 = require("../model/document");
 const interpreter_1 = require("../controller/interpreter");
 const simpledraw_api_1 = require("../controller/simpledraw_api");
 const click_controller_1 = require("../controller/click_controller");
 const converter_1 = require("../controller/converter");
+const utils_1 = require("../controller/utils");
 class SimpleDrawView {
     constructor() {
         this.renderers = new Array();
@@ -1495,7 +1503,6 @@ class SimpleDrawView {
             if (command == null)
                 return;
             const success = this.interpreter.eval(command);
-            console.log(success);
             replRes.innerHTML = success ? '&nbsp;✔️' : '&nbsp;❌';
         });
         document.getElementById('circle').addEventListener('click', (e) => {
@@ -1503,8 +1510,6 @@ class SimpleDrawView {
             this.click_controller.processEvent(new UserEventAction(Action.CREATE_CIRCLE));
         });
         document.getElementById('square').addEventListener('click', (e) => {
-            console.log('create square action');
-            console.log(e);
             e.preventDefault();
             this.click_controller.processEvent(new UserEventAction(Action.CREATE_SQUARE));
         });
@@ -1558,7 +1563,6 @@ class SimpleDrawView {
                 default:
                     break;
             }
-            console.log('Save');
         });
         document.getElementById('addLayerButton').addEventListener('click', (e) => {
             e.preventDefault();
@@ -1569,14 +1573,13 @@ class SimpleDrawView {
                 return;
             this.click_controller.processEvent(new UserEventAction(Action.ADD_LAYER, { layer: layerName }));
         });
-        document.getElementById('layers').addEventListener("change", () => {
+        document.getElementById('layers').addEventListener('change', () => {
             const layer = document.getElementById('layers').value;
             this.click_controller.processEvent(new UserEventAction(Action.SET_LAYER, { layer: layer }));
         });
         document.body.addEventListener('mousedown', (e) => {
-            let screenClick = new Point(e.pageX, e.pageY);
+            let screenClick = new utils_1.Point(e.pageX, e.pageY);
             let renderCoord = this.mapScreenspaceToRenderspace(screenClick);
-            console.log(renderCoord);
             if (!renderCoord.isNil())
                 this.click_controller.processEvent(new UserEventPoint(renderCoord));
         }, true);
@@ -1591,7 +1594,7 @@ class SimpleDrawView {
         renderer.drawGrid();
     }
     mapScreenspaceToRenderspace(point) {
-        let res = new NullPoint();
+        let res = new utils_1.NullPoint();
         for (const renderer of this.renderers) {
             res = renderer.mapToRenderer(point);
             if (!res.isNil())
@@ -1600,8 +1603,6 @@ class SimpleDrawView {
         return res;
     }
     notify(layers) {
-        console.log('Here are the layers mate: ');
-        console.log(layers);
         layers = layers.reverse();
         const select = document.getElementById('layers');
         select.options.length = 0;
@@ -1615,25 +1616,6 @@ class SimpleDrawView {
     }
 }
 exports.SimpleDrawView = SimpleDrawView;
-class Point {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-    isNil() {
-        return false;
-    }
-}
-exports.Point = Point;
-class NullPoint extends Point {
-    constructor() {
-        super(-1, -1);
-    }
-    isNil() {
-        return true;
-    }
-}
-exports.NullPoint = NullPoint;
 var Action;
 (function (Action) {
     Action[Action["CREATE_SQUARE"] = 0] = "CREATE_SQUARE";
@@ -1668,4 +1650,4 @@ class UserEventPoint extends UserEvent {
 }
 exports.UserEventPoint = UserEventPoint;
 
-},{"../controller/click_controller":1,"../controller/converter":2,"../controller/interpreter":3,"../controller/simpledraw_api":4,"../model/document":8}]},{},[6]);
+},{"../controller/click_controller":1,"../controller/converter":2,"../controller/interpreter":3,"../controller/simpledraw_api":4,"../controller/utils":5,"../model/document":8}]},{},[6]);

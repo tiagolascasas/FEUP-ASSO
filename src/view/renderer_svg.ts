@@ -177,7 +177,10 @@ class SVGRectangleRenderer extends SVGShapeRenderer {
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
         const shape = <Rectangle>this.shape
 
-        g.setAttribute('transform', `translate(${shape.x}, ${shape.y}) rotate(${shape.angle})`)
+        g.setAttribute(
+            'transform',
+            `translate(${shape.center.x}, ${shape.center.y}) rotate(${shape.angle})`
+        )
         e.setAttribute('width', shape.width.toString())
         e.setAttribute('height', shape.height.toString())
         e.setAttribute('x', (-shape.width / 2).toString())
@@ -197,8 +200,8 @@ class SVGCircleRenderer extends SVGShapeRenderer {
         const e = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse')
         const shape = <Circle>this.shape
 
-        e.setAttribute('cx', shape.x.toString())
-        e.setAttribute('cy', shape.y.toString())
+        e.setAttribute('cx', shape.center.x.toString())
+        e.setAttribute('cy', shape.center.y.toString())
         e.setAttribute('rx', shape.rx.toString())
         e.setAttribute('ry', shape.ry.toString())
 
@@ -213,17 +216,17 @@ class SVGTriangleRenderer extends SVGShapeRenderer {
 
         e.setAttribute(
             'points',
-            shape.x1 +
+            shape.p0.x +
                 ',' +
-                shape.y1 +
+                shape.p0.y +
                 ' ' +
-                shape.x2 +
+                shape.p1.x +
                 ',' +
-                shape.y2 +
+                shape.p1.y +
                 ' ' +
-                shape.x3 +
+                shape.p2.x +
                 ',' +
-                shape.y3
+                shape.p2.y
         )
 
         return e

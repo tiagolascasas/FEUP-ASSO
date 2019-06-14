@@ -1,8 +1,8 @@
 'use strict'
 
 import { SimpleDrawDocument } from '../model/document'
-import { Action, Point } from '../view/simpledraw_view'
-import { LayersManager } from 'model/layers';
+import { Action } from '../view/simpledraw_view'
+import { Point } from './utils'
 
 export class SimpleDrawAPI {
     readonly executers = new Map<Action, ActionExecuter>()
@@ -23,7 +23,6 @@ export class SimpleDrawAPI {
 
     execute(action: Action, args: any, points: Array<Point>): boolean {
         if (args == undefined) args = {}
-        console.log(Action[action] + ' with args ' + args + ' and ' + points.length + ' points')
         if (this.executers.has(action)) {
             this.executers.get(action).executeAction(this.document, args, points)
             this.document.notifyRendererObservers()
@@ -46,8 +45,7 @@ class CreateCircleExecuter implements ActionExecuter {
             const point = points[1]
             radius = Math.sqrt(Math.pow(point.x - centre.x, 2) + Math.pow(point.y - centre.y, 2))
         } else radius = args.radius
-        document.createCircle(centre.x, centre.y, radius, '#F6D55C')
-        console.log('create circle')
+        document.createCircle(centre, radius, '#F6D55C')
     }
 }
 
@@ -55,14 +53,7 @@ class CreateCircleExecuter implements ActionExecuter {
 export class CreateSquareExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
         const dimensions = this.calculateDimensions(points[0], points[1])
-        document.createRectangle(
-            dimensions[0].x,
-            dimensions[0].y,
-            dimensions[1],
-            dimensions[2],
-            '#20639B'
-        )
-        console.log('create square')
+        document.createRectangle(dimensions[0], dimensions[1], dimensions[2], '#20639B')
     }
 
     public calculateDimensions(p1: Point, p2: Point): any[] {
@@ -99,7 +90,7 @@ export class CreateSquareExecuter implements ActionExecuter {
 //args = {}, points = [vertex1, vertex2, vertex3]
 class CreateTriangleExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        document.createTriangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, "#3CAEA3")
+        document.createTriangle(points[0], points[1], points[2], '#3CAEA3')
     }
 }
 
@@ -121,10 +112,8 @@ class RotateExecuter implements ActionExecuter {
 class ScaleExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
         for (const shape of document.objects) {
-            if (shape.isHit(points[0])) 
-                shape.scale(args.sx,args.sy)
+            if (shape.isHit(points[0])) shape.scale(args.sx, args.sy)
         }
-        console.log('scale')
     }
 }
 
@@ -149,7 +138,6 @@ class RedoExecuter implements ActionExecuter {
 
 class AddLayerExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        console.log("CREATING LAYER " + args.layer)
         document.createLayer(args.layer)
     }
 }

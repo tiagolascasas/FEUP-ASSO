@@ -1,15 +1,17 @@
+'use strict'
+
 import { Visitor } from '../controller/converter'
-import { Point } from '../view/simpledraw_view'
-import { Utils } from '../controller/utils'
+import { Utils, Point } from '../controller/utils'
+
 export abstract class Shape {
     public angle: number = 0
     public layer: String
 
-    constructor(public x: number, public y: number, public color: string) {}
+    constructor(public center: Point, public color: string) {}
 
-    translate(xd: number, yd: number): void {
-        this.x += xd
-        this.y += yd
+    translate(delta: Point): void {
+        this.center.x += delta.x
+        this.center.y += delta.y
     }
 
     rotate(angled: number) {
@@ -25,8 +27,8 @@ export abstract class Shape {
 }
 
 export class Rectangle extends Shape {
-    constructor(x: number, y: number, public width: number, public height: number, color: string) {
-        super(x, y, color)
+    constructor(center: Point, public width: number, public height: number, color: string) {
+        super(center, color)
     }
 
     accept(visitor: Visitor): Element {
@@ -34,27 +36,27 @@ export class Rectangle extends Shape {
     }
 
     isHit(point: Point): boolean {
-        let rectangleArea = this.width * this.height
-        let centerPoint = new Point(this.x, this.y)
-        let pointA = Utils.getRotatedPoint(
+        const rectangleArea = this.width * this.height
+        const centerPoint = this.center
+        const pointA = Utils.getRotatedPoint(
             centerPoint,
             this.angle,
-            new Point(this.x - this.width / 2, this.y - this.height / 2)
+            new Point(centerPoint.x - this.width / 2, centerPoint.y - this.height / 2)
         )
-        let pointB = Utils.getRotatedPoint(
+        const pointB = Utils.getRotatedPoint(
             centerPoint,
             this.angle,
-            new Point(this.x - this.width / 2, this.y + this.height / 2)
+            new Point(centerPoint.x - this.width / 2, centerPoint.y + this.height / 2)
         )
-        let pointC = Utils.getRotatedPoint(
+        const pointC = Utils.getRotatedPoint(
             centerPoint,
             this.angle,
-            new Point(this.x + this.width / 2, this.y + this.height / 2)
+            new Point(centerPoint.x + this.width / 2, centerPoint.y + this.height / 2)
         )
-        let pointD = Utils.getRotatedPoint(
+        const pointD = Utils.getRotatedPoint(
             centerPoint,
             this.angle,
-            new Point(this.x + this.width / 2, this.y - this.height / 2)
+            new Point(centerPoint.x + this.width / 2, centerPoint.y - this.height / 2)
         )
 
         let trianglesArea = Utils.getTriangleArea(pointA, pointB, point)
@@ -75,8 +77,8 @@ export class Circle extends Shape {
     rx: number
     ry: number
 
-    constructor(x: number, y: number, public radius: number, color: string) {
-        super(x, y, color)
+    constructor(center: Point, public radius: number, color: string) {
+        super(center, color)
         this.rx = radius
         this.ry = radius
     }
@@ -86,7 +88,7 @@ export class Circle extends Shape {
     }
 
     isHit(point: Point): boolean {
-        return Math.hypot(point.x - this.x, point.y - this.y) < this.radius
+        return Math.hypot(point.x - this.center.x, point.y - this.center.y) < this.radius
     }
 
     scale(sx: number, sy: number): void {
@@ -96,16 +98,8 @@ export class Circle extends Shape {
 }
 
 export class Triangle extends Shape {
-    constructor(
-        public x1: number,
-        public y1: number,
-        public x2: number,
-        public y2: number,
-        public x3: number,
-        public y3: number,
-        color: string
-    ) {
-        super((x1 + x2 + x3) / 3.0, (y1 + y2 + y3) / 3.0, color)
+    constructor(public p0: Point, public p1: Point, public p2: Point, color: string) {
+        super(new Point((p0.x + p1.x + p2.x) / 3.0, (p0.y + p1.y + p2.y) / 3.0), color)
     }
 
     accept(visitor: Visitor) {
@@ -114,9 +108,9 @@ export class Triangle extends Shape {
 
     //Taken from here: https://stackoverflow.com/a/34093754
     isHit(p: Point): boolean {
-        const p0 = new Point(this.x1, this.y1)
-        const p1 = new Point(this.x2, this.y2)
-        const p2 = new Point(this.x3, this.y3)
+        const p0 = this.p0
+        const p1 = this.p1
+        const p2 = this.p2
 
         const dX = p.x - p2.x
         const dY = p.y - p2.y
@@ -130,11 +124,11 @@ export class Triangle extends Shape {
     }
 
     scale(sx: number, sy: number): void {
-        this.x1 = (sx * (this.x1 - this.x)) + this.x
-        this.x2 = (sx * (this.x2 - this.x)) + this.x
-        this.x3 = (sx * (this.x3 - this.x)) + this.x
-        this.y1 = (sy * (this.y1 - this.y)) + this.y
-        this.y2 = (sy * (this.y2 - this.y)) + this.y
-        this.y3 = (sy * (this.y3 - this.y)) + this.y
+        this.p0.x = sx * (this.p0.x - this.center.x) + this.center.x
+        this.p1.x = sx * (this.p1.x - this.center.x) + this.center.x
+        this.p2.x = sx * (this.p2.x - this.center.x) + this.center.x
+        this.p0.y = sy * (this.p0.y - this.center.y) + this.center.y
+        this.p1.y = sy * (this.p1.y - this.center.y) + this.center.y
+        this.p2.y = sy * (this.p2.y - this.center.y) + this.center.y
     }
 }

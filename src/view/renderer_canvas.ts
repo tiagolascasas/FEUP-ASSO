@@ -120,7 +120,7 @@ class CanvasRectangleRenderer extends CanvasShapeRenderer {
 
     render(ctx: CanvasRenderingContext2D): void {
         const shape = <Rectangle>this.shape
-        ctx.translate(shape.x, shape.y)
+        ctx.translate(shape.center.x, shape.center.y)
         ctx.rotate((shape.angle * Math.PI) / 180)
         ctx.rect(-shape.width / 2, -shape.height / 2, shape.width, shape.height)
     }
@@ -133,7 +133,7 @@ class CanvasCircleRenderer extends CanvasShapeRenderer {
 
     render(ctx: CanvasRenderingContext2D): void {
         const shape = <Circle>this.shape
-        ctx.ellipse(shape.x, shape.y, shape.rx, shape.ry, 0, 0, 2 * Math.PI)
+        ctx.ellipse(shape.center.x, shape.center.y, shape.rx, shape.ry, 0, 0, 2 * Math.PI)
     }
 }
 
@@ -144,9 +144,9 @@ class CanvasTriangleRenderer extends CanvasShapeRenderer {
 
     render(ctx: CanvasRenderingContext2D): void {
         const shape = <Triangle>this.shape
-        ctx.moveTo(shape.x1, shape.y1)
-        ctx.lineTo(shape.x2, shape.y2)
-        ctx.lineTo(shape.x3, shape.y3)
+        ctx.moveTo(shape.p0.x, shape.p0.y)
+        ctx.lineTo(shape.p1.x, shape.p1.y)
+        ctx.lineTo(shape.p2.x, shape.p2.y)
     }
 }
 

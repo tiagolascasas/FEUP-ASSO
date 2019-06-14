@@ -1,3 +1,5 @@
+'use strict'
+
 import { Shape } from './shape'
 
 export class LayersManager {
@@ -17,8 +19,8 @@ export class LayersManager {
     setActiveLayer(layerName: String): boolean {
         if (this.layers.indexOf(layerName) != -1) {
             this.activeLayer = layerName
-            this.layers.splice(this.layers.indexOf(layerName), 1);
-            this.layers.unshift(layerName);
+            this.layers.splice(this.layers.indexOf(layerName), 1)
+            this.layers.unshift(layerName)
             return true
         } else return false
     }
@@ -40,8 +42,7 @@ export class LayersManager {
     getOrderedLayers(): Array<string> {
         const reversed = this.layers.reverse()
         const ret: Array<string> = []
-        for (const layer of reversed)
-            ret.push(layer.toString())
+        for (const layer of reversed) ret.push(layer.toString())
         return ret
     }
 }

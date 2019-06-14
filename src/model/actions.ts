@@ -1,5 +1,8 @@
+'use strict'
+
 import { Shape, Circle, Rectangle, Triangle } from './shape'
 import { SimpleDrawDocument } from './document'
+import { Point } from '../controller/utils';
 
 export interface Action<T> {
     do(): T
@@ -22,40 +25,35 @@ abstract class CreateShapeAction<S extends Shape> implements Action<S> {
 export class CreateCircleAction extends CreateShapeAction<Circle> {
     constructor(
         doc: SimpleDrawDocument,
-        private x: number,
-        private y: number,
+        private center: Point,
         private radius: number,
         private color: string
     ) {
-        super(doc, new Circle(x, y, radius, color), doc.layersManager.activeLayer)
+        super(doc, new Circle(center, radius, color), doc.layersManager.activeLayer)
     }
 }
 
 export class CreateRectangleAction extends CreateShapeAction<Rectangle> {
     constructor(
         doc: SimpleDrawDocument,
-        private x: number,
-        private y: number,
+        private center: Point,
         private width: number,
         private height: number,
         private color: string
     ) {
-        super(doc, new Rectangle(x, y, width, height, color), doc.layersManager.activeLayer)
+        super(doc, new Rectangle(center, width, height, color), doc.layersManager.activeLayer)
     }
 }
 
 export class CreateTriangleAction extends CreateShapeAction<Triangle> {
     constructor(
         doc: SimpleDrawDocument,
-        private x1: number,
-        private y1: number,
-        private x2: number,
-        private y2: number,
-        private x3: number,
-        private y3: number,
+        private p0: Point,
+        private p1: Point,
+        private p2: Point,
         private color: string
     ) {
-        super(doc, new Triangle(x1, y1, x2, y2, x3, y3, color), doc.layersManager.activeLayer)
+        super(doc, new Triangle(p0, p1, p2, color), doc.layersManager.activeLayer)
     }
 }
 
@@ -64,28 +62,27 @@ export class TranslateAction implements Action<void> {
     oldY: number
 
     constructor(
-        private doc: SimpleDrawDocument,
         public shape: Shape,
         private xd: number,
         private yd: number
     ) {}
 
     do(): void {
-        this.oldX = this.shape.x
-        this.oldY = this.shape.y
-        this.shape.translate(this.xd, this.yd)
+        this.oldX = this.shape.center.x
+        this.oldY = this.shape.center.y
+        this.shape.translate(new Point(this.xd, this.yd))
     }
 
     undo() {
-        this.shape.x = this.oldX
-        this.shape.y = this.oldY
+        this.shape.center.x = this.oldX
+        this.shape.center.y = this.oldY
     }
 }
 
 export class RotateAction implements Action<void> {
     oldAngle: number
 
-    constructor(private doc: SimpleDrawDocument, public shape: Shape, public angled: number) {}
+    constructor(public shape: Shape, public angled: number) {}
 
     do(): void {
         this.oldAngle = this.shape.angle

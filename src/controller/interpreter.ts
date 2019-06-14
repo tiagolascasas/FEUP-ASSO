@@ -1,7 +1,8 @@
 'use strict'
 
 import { SimpleDrawAPI } from './simpledraw_api'
-import { Action, Point } from '../view/simpledraw_view'
+import { Action } from '../view/simpledraw_view'
+import { Point } from './utils'
 
 /*
 REPL Grammar:
@@ -305,10 +306,10 @@ class StartExpression implements Expression {
         //Redo
         let termTokenRedo = new TerminalTokenExpression('redo')
         newContext = context.clone()
-        if (termTokenRedo.interpret(newContext)){
+        if (termTokenRedo.interpret(newContext)) {
             context.api.execute(Action.REDO, {}, [])
             return true
-        } 
+        }
 
         return false
     }

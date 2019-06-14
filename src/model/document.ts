@@ -1,3 +1,5 @@
+'use strict'
+
 import { Shape } from './shape'
 import {
     Action,
@@ -7,10 +9,10 @@ import {
     RotateAction,
     CreateTriangleAction,
 } from './actions'
-import { Renderer } from '../view/renderer'
 import { UndoManager } from './undo'
 import { LayersManager } from './layers'
-import { XMLConverterVisitor, Visitor } from '../controller/converter';
+import { Visitor } from '../controller/converter'
+import { Point } from '../controller/utils';
 
 export class SimpleDrawDocument {
     objects = new Array<Shape>()
@@ -38,17 +40,14 @@ export class SimpleDrawDocument {
     }
 
     notifyRendererObservers(): void {
-        for (const obs of this.rendererObservers)
-            obs.notify(this)
+        for (const obs of this.rendererObservers) obs.notify(this)
     }
 
     notifyLayersObservers(): void {
-        for (const obs of this.layerObservers)
-            obs.notify(this.getLayersForRendering())
+        for (const obs of this.layerObservers) obs.notify(this.getLayersForRendering())
     }
 
-    save(saveMode: Visitor){
-
+    save(saveMode: Visitor) {
         // let doc: XMLDocument = document.implementation.createDocument("", "", null);
         // let savedObjets = doc.createElement("objects");
         // let visitor = new XMLConverterVisitor(doc);
@@ -61,39 +60,31 @@ export class SimpleDrawDocument {
         // console.log(doc);
 
         saveMode.visitAll(this.objects)
-        
     }
 
-    createRectangle(
-        x: number,
-        y: number,
-        width: number,
-        height: number,
+    createRectangle(center: Point, width: number, height: number, color: string): Shape {
+        return this.do(new CreateRectangleAction(this, center, width, height, color))
+    }
+
+    createCircle(center: Point, radius: number, color: string): Shape {
+        return this.do(new CreateCircleAction(this, center, radius, color))
+    }
+
+    createTriangle(
+        p0: Point,
+        p1: Point,
+        p2: Point,
         color: string
     ): Shape {
-        return this.do(new CreateRectangleAction(this, x, y, width, height, color))
+        return this.do(new CreateTriangleAction(this, p0, p1, p2, color))
     }
-
-    createCircle(x: number, y: number, radius: number, color: string): Shape {
-        return this.do(new CreateCircleAction(this, x, y, radius, color))
-    }
-
-    createTriangle(x1: number,
-        y1: number,
-        x2: number,
-        y2: number,
-        x3: number,
-        y3: number,
-        color: string): Shape {
-            return this.do(new CreateTriangleAction(this, x1, y1, x2, y2, x3, y3, color))
-        }
 
     translate(s: Shape, xd: number, yd: number): void {
-        return this.do(new TranslateAction(this, s, xd, yd))
+        return this.do(new TranslateAction( s, xd, yd))
     }
 
     rotate(s: Shape, angled: number): void {
-        return this.do(new RotateAction(this, s, angled))
+        return this.do(new RotateAction(s, angled))
     }
 
     getObjectsForRendering(): Map<String, Shape[]> {

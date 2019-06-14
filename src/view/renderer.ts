@@ -1,12 +1,14 @@
+'use strict'
+
 import { Shape } from '../model/shape'
-import { Point, NullPoint } from './simpledraw_view'
+import { Point, NullPoint } from '../controller/utils'
 import { RendererObserver, SimpleDrawDocument } from '../model/document'
 
 export abstract class Renderer implements RendererObserver {
     readonly GRID_STEP = 50
-    readonly GRID_COLOR = "#BBBBBB"
+    readonly GRID_COLOR = '#BBBBBB'
     element: HTMLElement
-    mode: string = "Wireframe"
+    mode: string = 'Wireframe'
     zoom: number = 0
     currObjects: Map<String, Array<Shape>> = new Map<String, Array<Shape>>()
     currLayers: Array<String> = new Array<String>()
@@ -78,8 +80,8 @@ export abstract class Renderer implements RendererObserver {
 
     resize(): void {
         const parent = this.element.parentElement
-        this.element.setAttribute("width", parent.clientWidth.toString())
-        this.element.setAttribute("height", parent.clientHeight.toString())
+        this.element.setAttribute('width', parent.clientWidth.toString())
+        this.element.setAttribute('height', parent.clientHeight.toString())
         this.renderAgain()
     }
 

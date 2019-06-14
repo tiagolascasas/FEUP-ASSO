@@ -1,9 +1,12 @@
+'use strict'
+
 import { SimpleDrawDocument, LayersObserver } from '../model/document'
 import { Renderer } from './renderer'
 import { Interpreter } from '../controller/interpreter'
 import { SimpleDrawAPI } from '../controller/simpledraw_api'
 import { ClickController } from '../controller/click_controller'
 import { XMLConverterVisitor, TXTConverterVisitor } from '../controller/converter'
+import { Point, NullPoint } from '../controller/utils'
 
 export class SimpleDrawView implements LayersObserver {
     renderers = new Array<Renderer>()
@@ -25,7 +28,6 @@ export class SimpleDrawView implements LayersObserver {
             const command = replPrompt.value
             if (command == null) return
             const success = this.interpreter.eval(command)
-            console.log(success)
             replRes.innerHTML = success ? '&nbsp;✔️' : '&nbsp;❌'
         })
 
@@ -35,9 +37,6 @@ export class SimpleDrawView implements LayersObserver {
         })
 
         document.getElementById('square').addEventListener('click', (e: Event) => {
-            console.log('create square action')
-            console.log(e)
-
             e.preventDefault()
             this.click_controller.processEvent(new UserEventAction(Action.CREATE_SQUARE))
         })
@@ -111,7 +110,6 @@ export class SimpleDrawView implements LayersObserver {
                 default:
                     break
             }
-            console.log('Save')
         })
 
         document.getElementById('addLayerButton').addEventListener('click', (e: Event) => {
@@ -126,9 +124,11 @@ export class SimpleDrawView implements LayersObserver {
             )
         })
 
-        document.getElementById('layers').addEventListener("change", () => {
+        document.getElementById('layers').addEventListener('change', () => {
             const layer = (<HTMLSelectElement>document.getElementById('layers')).value
-            this.click_controller.processEvent(new UserEventAction(Action.SET_LAYER, {layer: layer}))
+            this.click_controller.processEvent(
+                new UserEventAction(Action.SET_LAYER, { layer: layer })
+            )
         })
 
         document.body.addEventListener(
@@ -136,7 +136,6 @@ export class SimpleDrawView implements LayersObserver {
             (e: MouseEvent) => {
                 let screenClick = new Point(e.pageX, e.pageY)
                 let renderCoord = this.mapScreenspaceToRenderspace(screenClick)
-                console.log(renderCoord)
                 if (!renderCoord.isNil())
                     this.click_controller.processEvent(new UserEventPoint(renderCoord))
             },
@@ -164,8 +163,6 @@ export class SimpleDrawView implements LayersObserver {
     }
 
     notify(layers: string[]): void {
-        console.log('Here are the layers mate: ')
-        console.log(layers)
         layers = layers.reverse()
         const select = <HTMLSelectElement>document.getElementById('layers')
 
@@ -177,24 +174,6 @@ export class SimpleDrawView implements LayersObserver {
             select.add(option)
             if (i == 0) select.value = option.text
         }
-    }
-}
-
-export class Point {
-    constructor(public x: number, public y: number) {}
-
-    isNil(): boolean {
-        return false
-    }
-}
-
-export class NullPoint extends Point {
-    constructor() {
-        super(-1, -1)
-    }
-
-    isNil(): boolean {
-        return true
     }
 }
 
