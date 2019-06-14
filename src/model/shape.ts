@@ -102,3 +102,14 @@ export class Circle extends Shape {
 
     }
 }
+
+export class Triangle extends Shape {
+    accept(visitor: Visitor) {
+        throw new Error("Method not implemented.");
+    }    isHit(point: Point): boolean {
+        throw new Error("Method not implemented.");
+    }
+    scale(sx: number, sy: number): void {
+        throw new Error("Method not implemented.");
+    }
+}

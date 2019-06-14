@@ -610,6 +610,9 @@ canvas1.height = divCanvas1.clientHeight;
 canvas1.style.zIndex = '8';
 canvas1.style.position = 'absolute';
 canvas1.style.border = '1px solid black';
+canvas1.addEventListener('click', function (event) {
+    event.preventDefault();
+});
 divCanvas1.appendChild(canvas1);
 const canvas2 = document.createElement('canvas');
 canvas2.id = 'canvas2';
@@ -618,6 +621,9 @@ canvas2.height = divCanvas2.clientHeight;
 canvas2.style.zIndex = '8';
 canvas2.style.position = 'absolute';
 canvas2.style.border = '1px solid black';
+canvas2.addEventListener('click', function (event) {
+    event.preventDefault();
+});
 divCanvas2.appendChild(canvas2);
 const svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 svg1.id = 'svg1';
@@ -893,6 +899,18 @@ class Circle extends Shape {
     }
 }
 exports.Circle = Circle;
+class Triangle extends Shape {
+    accept(visitor) {
+        throw new Error("Method not implemented.");
+    }
+    isHit(point) {
+        throw new Error("Method not implemented.");
+    }
+    scale(sx, sy) {
+        throw new Error("Method not implemented.");
+    }
+}
+exports.Triangle = Triangle;
 
 },{"../controller/utils":5,"../view/simpledraw_view":15}],11:[function(require,module,exports){
 "use strict";
@@ -952,9 +970,9 @@ class Renderer {
         this.oldLayers = layers;
         this.clearCanvas();
         this.init();
-        this.applyZoom();
         this.drawGrid();
         this.drawObjects(objs, layers);
+        this.applyZoom();
         this.finish();
     }
     renderAgain() {
@@ -990,13 +1008,14 @@ class Renderer {
 exports.Renderer = Renderer;
 
 },{"./simpledraw_view":15}],13:[function(require,module,exports){
-"use strict";
+'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const renderer_1 = require("./renderer");
 const shape_1 = require("../model/shape");
 class CanvasRenderer extends renderer_1.Renderer {
     constructor(elementID) {
         super(elementID);
+        this.factory = new CanvasShapeRendererFactory();
         this.element = document.getElementById(elementID);
         let canvas = this.element;
         this.ctx = canvas.getContext('2d');
@@ -1009,45 +1028,30 @@ class CanvasRenderer extends renderer_1.Renderer {
         y = (event.clientY - bb.top) * (canvas.height / bb.height);
         return this.ctx.isPointInPath(x, y);
     }
-    drawObjects(objs, layers, event) {
+    drawObjects(objs, layers) {
         this.objs = objs;
         this.layers = layers;
         for (const layer of layers) {
             for (const shape of objs.get(layer)) {
-                if (shape instanceof shape_1.Circle) {
-                    this.ctx.beginPath();
-                    this.ctx.fillStyle = shape.color;
-                    this.ctx.ellipse(shape.x, shape.y, shape.rx, shape.ry, 0, 0, 2 * Math.PI);
-                    if (event) {
-                        if (this.IsInPath(event)) {
-                            //selectedShape(shape, this.page)
-                        }
-                    }
-                    this.ctx.closePath();
-                    this.ctx.fillStyle = shape.color;
-                    this.ctx.stroke();
-                    //if (this.colorMode) this.ctx.fill()
-                    //meter rotate num circulo?
+                let renderableObject = this.factory.make(shape);
+                this.ctx.save();
+                this.ctx.beginPath();
+                switch (this.mode) {
+                    case 'Color':
+                        renderableObject = new CanvasColorDecorator(renderableObject);
+                        break;
+                    case 'Gradient':
+                        renderableObject = new CanvasGradientDecorator(renderableObject);
+                        break;
+                    case 'Wireframe':
+                    case 'None':
+                    default:
+                        break;
                 }
-                else if (shape instanceof shape_1.Rectangle) {
-                    //save the state to prevent all the objects from rotating
-                    this.ctx.save();
-                    this.ctx.beginPath();
-                    this.ctx.fillStyle = shape.color;
-                    this.ctx.translate(shape.x, shape.y);
-                    this.ctx.rotate((shape.angle * Math.PI) / 180);
-                    this.ctx.rect(-shape.width / 2, -shape.height / 2, shape.width, shape.height);
-                    this.ctx.closePath();
-                    this.ctx.stroke();
-                    //if (this.colorMode) this.ctx.fill()
-                    //restore the state before drawing next shape
-                    this.ctx.restore();
-                    if (event) {
-                        if (this.IsInPath(event)) {
-                            //selectedShape(shape, this.page)
-                        }
-                    }
-                }
+                renderableObject.render(this.ctx);
+                this.ctx.closePath();
+                this.ctx.stroke();
+                this.ctx.restore();
             }
         }
     }
@@ -1078,6 +1082,87 @@ class CanvasRenderer extends renderer_1.Renderer {
     }
 }
 exports.CanvasRenderer = CanvasRenderer;
+class CanvasShapeRenderer {
+    constructor(shape) {
+        this.shape = shape;
+    }
+}
+class CanvasShapeRendererFactory {
+    make(shape) {
+        if (shape instanceof shape_1.Rectangle)
+            return new CanvasRectangleRenderer(shape);
+        if (shape instanceof shape_1.Circle)
+            return new CanvasCircleRenderer(shape);
+        if (shape instanceof shape_1.Triangle)
+            return new CanvasTriangleRenderer(shape);
+        else
+            return new CanvasNullRenderer(shape);
+    }
+}
+class CanvasNullRenderer extends CanvasShapeRenderer {
+    constructor(shape) {
+        super(shape);
+    }
+    render(ctx) {
+        return;
+    }
+}
+class CanvasRectangleRenderer extends CanvasShapeRenderer {
+    constructor(shape) {
+        super(shape);
+    }
+    render(ctx) {
+        const shape = this.shape;
+        ctx.translate(shape.x, shape.y);
+        ctx.rotate((shape.angle * Math.PI) / 180);
+        ctx.rect(-shape.width / 2, -shape.height / 2, shape.width, shape.height);
+    }
+}
+class CanvasCircleRenderer extends CanvasShapeRenderer {
+    constructor(shape) {
+        super(shape);
+    }
+    render(ctx) {
+        const shape = this.shape;
+        ctx.ellipse(shape.x, shape.y, shape.rx, shape.ry, 0, 0, 2 * Math.PI);
+    }
+}
+class CanvasTriangleRenderer extends CanvasShapeRenderer {
+    constructor(shape) {
+        super(shape);
+    }
+    render(ctx) {
+        return;
+    }
+}
+class CanvasColorDecorator extends CanvasShapeRenderer {
+    constructor(obj) {
+        super(obj.shape);
+        this.obj = obj;
+    }
+    render(ctx) {
+        this.obj.render(ctx);
+        ctx.fillStyle = this.shape.color;
+        ctx.fill();
+    }
+}
+class CanvasGradientDecorator extends CanvasShapeRenderer {
+    constructor(obj) {
+        super(obj.shape);
+        this.obj = obj;
+    }
+    render(ctx) {
+        this.obj.render(ctx);
+        ctx.fillStyle = this.makeGradient(ctx);
+        ctx.fill();
+    }
+    makeGradient(ctx) {
+        const gradient = ctx.createLinearGradient(0, 100, 200, 100);
+        gradient.addColorStop(0, '#000000');
+        gradient.addColorStop(1, '#FFFFFF');
+        return gradient;
+    }
+}
 
 },{"../model/shape":10,"./renderer":12}],14:[function(require,module,exports){
 'use strict';
@@ -1096,21 +1181,20 @@ class SVGRenderer extends renderer_1.Renderer {
             for (const shape of objs.get(layer)) {
                 let renderableObject = this.factory.make(shape);
                 switch (this.mode) {
-                    case "Color":
+                    case 'Color':
                         renderableObject = new SVGColorDecorator(renderableObject);
                         break;
-                    case "Wireframe":
+                    case 'Wireframe':
                         renderableObject = new SVGWireframeDecorator(renderableObject);
                         break;
-                    case "Gradient":
+                    case 'Gradient':
                         renderableObject = new SVGGradientDecorator(renderableObject);
                         break;
-                    case "None":
+                    case 'None':
                     default:
                         break;
                 }
                 const e = renderableObject.render();
-                console.log(e);
                 this.element.appendChild(e);
             }
         }
@@ -1129,20 +1213,22 @@ class SVGRenderer extends renderer_1.Renderer {
     }
     init() {
         const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-        const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+        const gradient = (document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient'));
         const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
         const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        stop1.setAttribute("offset", "0%");
-        stop1.setAttribute("stop-color", "#05a");
-        stop2.setAttribute("offset", "100%");
-        stop2.setAttribute("stop-color", "#0a5");
+        stop1.setAttribute('offset', '0%');
+        stop1.setAttribute('stop-color', '#000000');
+        stop1.setAttribute('stop-opacity', '1');
+        stop2.setAttribute('offset', '100%');
+        stop2.setAttribute('stop-color', '#FFFFFF');
+        stop2.setAttribute('stop-opacity', '1');
         gradient.appendChild(stop1);
         gradient.appendChild(stop2);
-        gradient.setAttribute("id", "linear");
-        gradient.setAttribute("x1", "0%");
-        gradient.setAttribute("y1", "0%");
-        gradient.setAttribute("x2", "100%");
-        gradient.setAttribute("y2", "0%");
+        gradient.setAttribute('id', 'linear');
+        gradient.setAttribute('x1', '0%');
+        gradient.setAttribute('y1', '50%');
+        gradient.setAttribute('x2', '100%');
+        gradient.setAttribute('y2', '50%');
         defs.appendChild(gradient);
         this.element.appendChild(defs);
     }
@@ -1161,8 +1247,8 @@ class SVGShapeRendererFactory {
             return new SVGRectangleRenderer(shape);
         if (shape instanceof shape_1.Circle)
             return new SVGCircleRenderer(shape);
-        if (shape instanceof shape_1.Rectangle)
-            return new SVGRectangleRenderer(shape);
+        if (shape instanceof shape_1.Triangle)
+            return new SVGTriangleRenderer(shape);
         else
             return new SVGNullRenderer(shape);
     }

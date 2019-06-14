@@ -16,6 +16,9 @@ canvas1.height = divCanvas1.clientHeight
 canvas1.style.zIndex = '8'
 canvas1.style.position = 'absolute'
 canvas1.style.border = '1px solid black'
+canvas1.addEventListener('click', function(event) {
+    event.preventDefault()
+})
 divCanvas1.appendChild(canvas1)
 
 const canvas2 = document.createElement('canvas')
@@ -25,6 +28,9 @@ canvas2.height = divCanvas2.clientHeight
 canvas2.style.zIndex = '8'
 canvas2.style.position = 'absolute'
 canvas2.style.border = '1px solid black'
+canvas2.addEventListener('click', function(event) {
+    event.preventDefault()
+})
 divCanvas2.appendChild(canvas2)
 
 const svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg')

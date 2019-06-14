@@ -1,7 +1,7 @@
 'use strict'
 
 import { Renderer } from './renderer'
-import { Shape, Rectangle, Circle } from '../model/shape'
+import { Shape, Rectangle, Circle, Triangle } from '../model/shape'
 
 export class SVGRenderer extends Renderer {
     objs = new Array<Shape>()
@@ -18,21 +18,21 @@ export class SVGRenderer extends Renderer {
                 let renderableObject = this.factory.make(shape)
 
                 switch (this.mode) {
-                    case "Color":
+                    case 'Color':
                         renderableObject = new SVGColorDecorator(renderableObject)
-                        break;
-                    case "Wireframe":
-                            renderableObject = new SVGWireframeDecorator(renderableObject)
-                            break;
-                    case "Gradient":
-                            renderableObject = new SVGGradientDecorator(renderableObject)
-                            break;
-                    case "None": default:
-                        break;
+                        break
+                    case 'Wireframe':
+                        renderableObject = new SVGWireframeDecorator(renderableObject)
+                        break
+                    case 'Gradient':
+                        renderableObject = new SVGGradientDecorator(renderableObject)
+                        break
+                    case 'None':
+                    default:
+                        break
                 }
 
                 const e = renderableObject.render()
-                console.log(e)
                 this.element.appendChild(e)
             }
         }
@@ -54,23 +54,27 @@ export class SVGRenderer extends Renderer {
 
     init(): void {
         const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-        const gradient = <SVGLinearGradientElement>document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient')
+        const gradient = <SVGLinearGradientElement>(
+            document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient')
+        )
         const stop1 = <SVGStopElement>document.createElementNS('http://www.w3.org/2000/svg', 'stop')
         const stop2 = <SVGStopElement>document.createElementNS('http://www.w3.org/2000/svg', 'stop')
-        
-        stop1.setAttribute("offset", "0%")
-        stop1.setAttribute("stop-color", "#05a")
 
-        stop2.setAttribute("offset", "100%")
-        stop2.setAttribute("stop-color", "#0a5")
+        stop1.setAttribute('offset', '0%')
+        stop1.setAttribute('stop-color', '#000000')
+        stop1.setAttribute('stop-opacity', '1')
+
+        stop2.setAttribute('offset', '100%')
+        stop2.setAttribute('stop-color', '#FFFFFF')
+        stop2.setAttribute('stop-opacity', '1')
 
         gradient.appendChild(stop1)
         gradient.appendChild(stop2)
-        gradient.setAttribute("id", "linear")
-        gradient.setAttribute("x1", "0%")
-        gradient.setAttribute("y1", "0%")
-        gradient.setAttribute("x2", "100%")
-        gradient.setAttribute("y2", "0%")
+        gradient.setAttribute('id', 'linear')
+        gradient.setAttribute('x1', '0%')
+        gradient.setAttribute('y1', '50%')
+        gradient.setAttribute('x2', '100%')
+        gradient.setAttribute('y2', '50%')
 
         defs.appendChild(gradient)
         this.element.appendChild(defs)
@@ -91,7 +95,7 @@ class SVGShapeRendererFactory {
     make(shape: Shape): SVGShapeRenderer {
         if (shape instanceof Rectangle) return new SVGRectangleRenderer(shape)
         if (shape instanceof Circle) return new SVGCircleRenderer(shape)
-        if (shape instanceof Rectangle) return new SVGRectangleRenderer(shape)
+        if (shape instanceof Triangle) return new SVGTriangleRenderer(shape)
         else return new SVGNullRenderer(shape)
     }
 }
