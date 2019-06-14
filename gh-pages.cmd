@@ -6,6 +6,6 @@ copy style.css ../docs
 cd ..
 move style.css docs
 cd docs
-move bundle.js dist
 move style.css css
+setup-gh-pages.cmd dist/bundle.js bundle.js
 cd ..
