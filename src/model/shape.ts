@@ -1,12 +1,11 @@
-import { Visitor } from "../controller/converter";
+import { Visitor } from '../controller/converter'
 import { Point } from '../view/simpledraw_view'
 import { Utils } from '../controller/utils'
 export abstract class Shape {
-
     public angle: number = 0
     public layer: String
 
-    constructor(public x: number, public y: number, public color: string) { }
+    constructor(public x: number, public y: number, public color: string) {}
 
     translate(xd: number, yd: number): void {
         this.x += xd
@@ -18,21 +17,15 @@ export abstract class Shape {
     }
 
     //any for now until better solution -> when solution change in converter too
-    abstract accept(visitor: Visitor): any;
+    abstract accept(visitor: Visitor): any
 
-    abstract isHit(point: Point): boolean;
+    abstract isHit(point: Point): boolean
 
-    abstract scale(sx: number, sy:number):void;
+    abstract scale(sx: number, sy: number): void
 }
 
 export class Rectangle extends Shape {
-    constructor(
-        x: number,
-        y: number,
-        public width: number,
-        public height: number,
-        color: string
-    ) {
+    constructor(x: number, y: number, public width: number, public height: number, color: string) {
         super(x, y, color)
     }
 
@@ -73,13 +66,13 @@ export class Rectangle extends Shape {
     }
 
     scale(sx: number, sy: number): void {
-        this.width *= sx;
-        this.height *= sy;
+        this.width *= sx
+        this.height *= sy
     }
 }
 
 export class Circle extends Shape {
-    rx: number 
+    rx: number
     ry: number
 
     constructor(x: number, y: number, public radius: number, color: string) {
@@ -92,24 +85,38 @@ export class Circle extends Shape {
         return visitor.visitCircle(this)
     }
 
-    isHit(point: Point): boolean{
-       return Math.hypot(point.x - this.x, point.y - this.y) < this.radius
+    isHit(point: Point): boolean {
+        return Math.hypot(point.x - this.x, point.y - this.y) < this.radius
     }
 
     scale(sx: number, sy: number): void {
-        this.rx *= sx;
-        this.ry *= sy;
-
+        this.rx *= sx
+        this.ry *= sy
     }
 }
 
 export class Triangle extends Shape {
-    accept(visitor: Visitor) {
-        throw new Error("Method not implemented.");
-    }    isHit(point: Point): boolean {
-        throw new Error("Method not implemented.");
+    constructor(
+        public x1: number,
+        public y1: number,
+        public x2: number,
+        public y2: number,
+        public x3: number,
+        public y3: number,
+        color: string
+    ) {
+        super((x1 + x2 + x3) / 3.0, (y1 + y2 + y3) / 3.0, color)
     }
+
+    accept(visitor: Visitor) {
+        return
+    }
+
+    isHit(point: Point): boolean {
+        return false
+    }
+
     scale(sx: number, sy: number): void {
-        throw new Error("Method not implemented.");
+        return
     }
 }

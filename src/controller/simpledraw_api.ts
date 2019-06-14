@@ -2,6 +2,7 @@
 
 import { SimpleDrawDocument } from '../model/document'
 import { Action, Point } from '../view/simpledraw_view'
+import { throws } from 'assert';
 
 export class SimpleDrawAPI {
     readonly executers = new Map<Action, ActionExecuter>()
@@ -96,7 +97,7 @@ export class CreateSquareExecuter implements ActionExecuter {
 //args = {}, points = [vertex1, vertex2, vertex3]
 class CreateTriangleExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        console.log('create triangle')
+        document.createTriangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, "#3CAEA3")
     }
 }
 

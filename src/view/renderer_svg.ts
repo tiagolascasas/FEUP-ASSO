@@ -44,7 +44,7 @@ export class SVGRenderer extends Renderer {
         newLine.setAttribute('y1', y1.toString())
         newLine.setAttribute('x2', x2.toString())
         newLine.setAttribute('y2', y2.toString())
-        newLine.setAttribute('stroke', '#DDDDDD')
+        newLine.setAttribute('stroke', this.GRID_COLOR)
         this.element.appendChild(newLine)
     }
 
@@ -208,6 +208,24 @@ class SVGCircleRenderer extends SVGShapeRenderer {
 
 class SVGTriangleRenderer extends SVGShapeRenderer {
     render(): SVGElement {
-        return null
+        const e = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
+        const shape = <Triangle>this.shape
+
+        e.setAttribute(
+            'points',
+            shape.x1 +
+                ',' +
+                shape.y1 +
+                ' ' +
+                shape.x2 +
+                ',' +
+                shape.y2 +
+                ' ' +
+                shape.x3 +
+                ',' +
+                shape.y3
+        )
+
+        return e
     }
 }

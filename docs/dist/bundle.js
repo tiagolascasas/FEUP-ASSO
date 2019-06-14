@@ -51,13 +51,31 @@ class FirstPointClickedState {
             if ([simpledraw_view_1.Action.CREATE_SQUARE, simpledraw_view_1.Action.CREATE_CIRCLE, simpledraw_view_1.Action.TRANSLATE].includes(this.event.action)) {
                 context.api.execute(this.event.action, this.event.args, [this.point1, event.point]);
                 context.currState = new IdleState();
-            } //else second point clicked state
+            }
+            else
+                context.currState = new SecondPointClickedState(this.event, this.point1, event.point);
+        }
+    }
+}
+exports.FirstPointClickedState = FirstPointClickedState;
+class SecondPointClickedState {
+    constructor(event, point1, point2) {
+        this.event = event;
+        this.point1 = point1;
+        this.point2 = point2;
+    }
+    processEvent(context, event) {
+        if (event instanceof simpledraw_view_1.UserEventPoint) {
+            if ([simpledraw_view_1.Action.CREATE_TRIANGLE].includes(this.event.action)) {
+                context.api.execute(this.event.action, this.event.args, [this.point1, this.point2, event.point]);
+                context.currState = new IdleState();
+            }
             else
                 context.currState = new IdleState();
         }
     }
 }
-exports.FirstPointClickedState = FirstPointClickedState;
+exports.SecondPointClickedState = SecondPointClickedState;
 
 },{"../view/simpledraw_view":15}],2:[function(require,module,exports){
 "use strict";
@@ -520,7 +538,7 @@ exports.CreateSquareExecuter = CreateSquareExecuter;
 //args = {}, points = [vertex1, vertex2, vertex3]
 class CreateTriangleExecuter {
     executeAction(document, args, points) {
-        console.log('create triangle');
+        document.createTriangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, "#3CAEA3");
     }
 }
 //args = {}, points = [origin, destiny]
@@ -687,6 +705,19 @@ class CreateRectangleAction extends CreateShapeAction {
     }
 }
 exports.CreateRectangleAction = CreateRectangleAction;
+class CreateTriangleAction extends CreateShapeAction {
+    constructor(doc, x1, y1, x2, y2, x3, y3, color) {
+        super(doc, new shape_1.Triangle(x1, y1, x2, y2, x3, y3, color), doc.layersManager.activeLayer);
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
+        this.x3 = x3;
+        this.y3 = y3;
+        this.color = color;
+    }
+}
+exports.CreateTriangleAction = CreateTriangleAction;
 class TranslateAction {
     constructor(doc, shape, xd, yd) {
         this.doc = doc;
@@ -770,6 +801,9 @@ class SimpleDrawDocument {
     }
     createCircle(x, y, radius, color) {
         return this.do(new actions_1.CreateCircleAction(this, x, y, radius, color));
+    }
+    createTriangle(x1, y1, x2, y2, x3, y3, color) {
+        return this.do(new actions_1.CreateTriangleAction(this, x1, y1, x2, y2, x3, y3, color));
     }
     translate(s, xd, yd) {
         return this.do(new actions_1.TranslateAction(this, s, xd, yd));
@@ -900,14 +934,23 @@ class Circle extends Shape {
 }
 exports.Circle = Circle;
 class Triangle extends Shape {
+    constructor(x1, y1, x2, y2, x3, y3, color) {
+        super((x1 + x2 + x3) / 3.0, (y1 + y2 + y3) / 3.0, color);
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
+        this.x3 = x3;
+        this.y3 = y3;
+    }
     accept(visitor) {
-        throw new Error("Method not implemented.");
+        return;
     }
     isHit(point) {
-        throw new Error("Method not implemented.");
+        return false;
     }
     scale(sx, sy) {
-        throw new Error("Method not implemented.");
+        return;
     }
 }
 exports.Triangle = Triangle;
@@ -950,6 +993,7 @@ class Renderer {
     constructor(elementID) {
         this.elementID = elementID;
         this.GRID_STEP = 50;
+        this.GRID_COLOR = "#AAAAAA";
         this.mode = "Wireframe";
         this.zoom = 0;
         this.oldObjects = new Map();
@@ -1059,7 +1103,7 @@ class CanvasRenderer extends renderer_1.Renderer {
         const defaultWidth = this.ctx.lineWidth;
         const defaultColor = this.ctx.strokeStyle;
         this.ctx.lineWidth = 1;
-        this.ctx.strokeStyle = '#DDDDDD';
+        this.ctx.strokeStyle = this.GRID_COLOR;
         this.ctx.beginPath();
         this.ctx.moveTo(x1, y1);
         this.ctx.lineTo(x2, y2);
@@ -1132,7 +1176,10 @@ class CanvasTriangleRenderer extends CanvasShapeRenderer {
         super(shape);
     }
     render(ctx) {
-        return;
+        const shape = this.shape;
+        ctx.moveTo(shape.x1, shape.y1);
+        ctx.lineTo(shape.x2, shape.y2);
+        ctx.lineTo(shape.x3, shape.y3);
     }
 }
 class CanvasColorDecorator extends CanvasShapeRenderer {
@@ -1205,7 +1252,7 @@ class SVGRenderer extends renderer_1.Renderer {
         newLine.setAttribute('y1', y1.toString());
         newLine.setAttribute('x2', x2.toString());
         newLine.setAttribute('y2', y2.toString());
-        newLine.setAttribute('stroke', '#DDDDDD');
+        newLine.setAttribute('stroke', this.GRID_COLOR);
         this.element.appendChild(newLine);
     }
     clearCanvas() {
@@ -1351,7 +1398,20 @@ class SVGCircleRenderer extends SVGShapeRenderer {
 }
 class SVGTriangleRenderer extends SVGShapeRenderer {
     render() {
-        return null;
+        const e = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        const shape = this.shape;
+        e.setAttribute('points', shape.x1 +
+            ',' +
+            shape.y1 +
+            ' ' +
+            shape.x2 +
+            ',' +
+            shape.y2 +
+            ' ' +
+            shape.x3 +
+            ',' +
+            shape.y3);
+        return e;
     }
 }
 

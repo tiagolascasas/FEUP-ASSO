@@ -4,6 +4,7 @@ import { RendererObserver, SimpleDrawDocument } from '../model/document'
 
 export abstract class Renderer implements RendererObserver {
     readonly GRID_STEP = 50
+    readonly GRID_COLOR = "#BBBBBB"
     element: HTMLElement
     mode: string = "Wireframe"
     zoom: number = 0

@@ -5,6 +5,7 @@ import {
     CreateRectangleAction,
     TranslateAction,
     RotateAction,
+    CreateTriangleAction,
 } from './actions'
 import { Renderer } from '../view/renderer'
 import { UndoManager } from './undo'
@@ -70,6 +71,16 @@ export class SimpleDrawDocument {
     createCircle(x: number, y: number, radius: number, color: string): Shape {
         return this.do(new CreateCircleAction(this, x, y, radius, color))
     }
+
+    createTriangle(x1: number,
+        y1: number,
+        x2: number,
+        y2: number,
+        x3: number,
+        y3: number,
+        color: string): Shape {
+            return this.do(new CreateTriangleAction(this, x1, y1, x2, y2, x3, y3, color))
+        }
 
     translate(s: Shape, xd: number, yd: number): void {
         return this.do(new TranslateAction(this, s, xd, yd))

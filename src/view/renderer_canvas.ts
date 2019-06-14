@@ -62,7 +62,7 @@ export class CanvasRenderer extends Renderer {
         const defaultColor = this.ctx.strokeStyle
 
         this.ctx.lineWidth = 1
-        this.ctx.strokeStyle = '#DDDDDD'
+        this.ctx.strokeStyle = this.GRID_COLOR
 
         this.ctx.beginPath()
         this.ctx.moveTo(x1, y1)
@@ -146,7 +146,10 @@ class CanvasTriangleRenderer extends CanvasShapeRenderer {
     }
 
     render(ctx: CanvasRenderingContext2D): void {
-        return
+        const shape = <Triangle>this.shape
+        ctx.moveTo(shape.x1, shape.y1)
+        ctx.lineTo(shape.x2, shape.y2)
+        ctx.lineTo(shape.x3, shape.y3)
     }
 }
 
