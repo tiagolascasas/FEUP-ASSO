@@ -7,5 +7,5 @@ cd ..
 move style.css docs
 cd docs
 move style.css css
-move bundle.js dist/bundle.js 
+move bundle.js dist
 cd ..
