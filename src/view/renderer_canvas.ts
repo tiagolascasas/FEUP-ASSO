@@ -25,12 +25,9 @@ export class CanvasRenderer extends Renderer {
         return this.ctx.isPointInPath(x, y)
     }
 
-    drawObjects(objs: Map<String, Array<Shape>>, layers: Array<String>): void {
-        this.objs = objs
-        this.layers = layers
-
-        for (const layer of layers) {
-            for (const shape of objs.get(layer)) {
+    drawObjects(): void {
+        for (const layer of this.currLayers) {
+            for (const shape of this.currObjects.get(layer)) {
                 let renderableObject = this.factory.make(shape)
 
                 this.ctx.save()

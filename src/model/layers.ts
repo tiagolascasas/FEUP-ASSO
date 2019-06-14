@@ -37,7 +37,11 @@ export class LayersManager {
         return map
     }
 
-    getOrderedLayers(): Array<String> {
-        return this.layers.reverse()
+    getOrderedLayers(): Array<string> {
+        const reversed = this.layers.reverse()
+        const ret: Array<string> = []
+        for (const layer of reversed)
+            ret.push(layer.toString())
+        return ret
     }
 }

@@ -20,8 +20,8 @@ export interface State {
 export class IdleState implements State {
     processEvent(context: ClickController, event: UserEvent): void {
         if (event instanceof UserEventAction) {
-            if ([Action.UNDO, Action.REDO].includes(event.action)) {
-
+            if ([Action.UNDO, Action.REDO, Action.ADD_LAYER, Action.SET_LAYER].includes(event.action)) {
+                context.api.execute(event.action, event.args, [])
             }
             else
                 context.currState = new ActionPressedState(event)

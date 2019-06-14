@@ -8,8 +8,8 @@ export abstract class Renderer implements RendererObserver {
     element: HTMLElement
     mode: string = "Wireframe"
     zoom: number = 0
-    oldObjects: Map<String, Array<Shape>> = new Map<String, Array<Shape>>()
-    oldLayers: Array<String> = new Array<String>()
+    currObjects: Map<String, Array<Shape>> = new Map<String, Array<Shape>>()
+    currLayers: Array<String> = new Array<String>()
 
     constructor(private elementID: string) {
         const modeElem: HTMLSelectElement = <HTMLSelectElement>(
@@ -30,19 +30,19 @@ export abstract class Renderer implements RendererObserver {
     }
 
     render(objs: Map<String, Array<Shape>>, layers: Array<String>): void {
-        this.oldObjects = objs
-        this.oldLayers = layers
+        this.currObjects = objs
+        this.currLayers = layers.reverse()
 
         this.clearCanvas()
         this.init()
         this.drawGrid()
-        this.drawObjects(objs, layers)
+        this.drawObjects()
         this.applyZoom()
         this.finish()
     }
 
     renderAgain(): void {
-        this.render(this.oldObjects, this.oldLayers)
+        this.render(this.currObjects, this.currLayers)
     }
 
     mapToRenderer(point: Point): Point {
@@ -83,11 +83,7 @@ export abstract class Renderer implements RendererObserver {
         this.renderAgain()
     }
 
-    abstract drawObjects(
-        objs: Map<String, Array<Shape>>,
-        layers: Array<String>,
-        event?: MouseEvent
-    ): void
+    abstract drawObjects(): void
 
     abstract clearCanvas(): void
 

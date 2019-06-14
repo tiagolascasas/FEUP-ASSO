@@ -2,7 +2,7 @@
 
 import { SimpleDrawDocument } from '../model/document'
 import { Action, Point } from '../view/simpledraw_view'
-import { throws } from 'assert';
+import { LayersManager } from 'model/layers';
 
 export class SimpleDrawAPI {
     readonly executers = new Map<Action, ActionExecuter>()
@@ -17,6 +17,8 @@ export class SimpleDrawAPI {
         this.executers.set(Action.GRID, new GridExecuter())
         this.executers.set(Action.UNDO, new UndoExecuter())
         this.executers.set(Action.REDO, new RedoExecuter())
+        this.executers.set(Action.SET_LAYER, new SetLayerExecuter())
+        this.executers.set(Action.ADD_LAYER, new AddLayerExecuter())
     }
 
     execute(action: Action, args: any, points: Array<Point>): boolean {
@@ -24,7 +26,7 @@ export class SimpleDrawAPI {
         console.log(Action[action] + ' with args ' + args + ' and ' + points.length + ' points')
         if (this.executers.has(action)) {
             this.executers.get(action).executeAction(this.document, args, points)
-            this.document.notifyObservers()
+            this.document.notifyRendererObservers()
             return true
         } else return false
     }
@@ -142,5 +144,18 @@ class UndoExecuter implements ActionExecuter {
 class RedoExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
         document.redo()
+    }
+}
+
+class AddLayerExecuter implements ActionExecuter {
+    executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
+        console.log("CREATING LAYER " + args.layer)
+        document.createLayer(args.layer)
+    }
+}
+
+class SetLayerExecuter implements ActionExecuter {
+    executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
+        document.setLayer(args.layer)
     }
 }

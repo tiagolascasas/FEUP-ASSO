@@ -12,9 +12,9 @@ export class SVGRenderer extends Renderer {
         this.element = <HTMLElement>document.getElementById(elementID)
     }
 
-    drawObjects(objs: Map<String, Array<Shape>>, layers: Array<String>): void {
-        for (const layer of layers) {
-            for (const shape of objs.get(layer)) {
+    drawObjects(): void {
+        for (const layer of this.currLayers) {
+            for (const shape of this.currObjects.get(layer)) {
                 let renderableObject = this.factory.make(shape)
 
                 switch (this.mode) {

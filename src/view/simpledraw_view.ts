@@ -1,11 +1,11 @@
-import { SimpleDrawDocument } from '../model/document'
+import { SimpleDrawDocument, LayersObserver } from '../model/document'
 import { Renderer } from './renderer'
 import { Interpreter } from '../controller/interpreter'
 import { SimpleDrawAPI } from '../controller/simpledraw_api'
 import { ClickController } from '../controller/click_controller'
 import { XMLConverterVisitor, TXTConverterVisitor } from '../controller/converter'
 
-export class SimpleDrawView {
+export class SimpleDrawView implements LayersObserver {
     renderers = new Array<Renderer>()
     document = new SimpleDrawDocument()
     api: SimpleDrawAPI
@@ -16,6 +16,7 @@ export class SimpleDrawView {
         this.api = new SimpleDrawAPI(this.document)
         this.interpreter = new Interpreter(this.api)
         this.click_controller = new ClickController(this.api)
+        this.document.registerLayersObserver(this)
 
         document.getElementById('repl').addEventListener('submit', (e: Event) => {
             e.preventDefault()
@@ -113,6 +114,23 @@ export class SimpleDrawView {
             console.log('Save')
         })
 
+        document.getElementById('addLayerButton').addEventListener('click', (e: Event) => {
+            e.preventDefault()
+            const elem = <HTMLInputElement>document.getElementById('addLayerInput')
+            const layerName = elem.value
+            elem.value = ''
+
+            if (layerName != null && layerName.length < 2) return
+            this.click_controller.processEvent(
+                new UserEventAction(Action.ADD_LAYER, { layer: layerName })
+            )
+        })
+
+        document.getElementById('layers').addEventListener("change", () => {
+            const layer = (<HTMLSelectElement>document.getElementById('layers')).value
+            this.click_controller.processEvent(new UserEventAction(Action.SET_LAYER, {layer: layer}))
+        })
+
         document.body.addEventListener(
             'mousedown',
             (e: MouseEvent) => {
@@ -125,15 +143,14 @@ export class SimpleDrawView {
             true
         )
 
-        window.addEventListener("resize", () => {
-            for (const renderer of this.renderers)
-                renderer.resize()
+        window.addEventListener('resize', () => {
+            for (const renderer of this.renderers) renderer.resize()
         })
     }
 
     addRenderer(renderer: Renderer) {
         this.renderers.push(renderer)
-        this.document.registerObserver(renderer)
+        this.document.registerRendererObserver(renderer)
         renderer.drawGrid()
     }
 
@@ -144,6 +161,22 @@ export class SimpleDrawView {
             if (!res.isNil()) break
         }
         return res
+    }
+
+    notify(layers: string[]): void {
+        console.log('Here are the layers mate: ')
+        console.log(layers)
+        layers = layers.reverse()
+        const select = <HTMLSelectElement>document.getElementById('layers')
+
+        select.options.length = 0
+
+        for (let i = 0; i < layers.length; i++) {
+            const option = <HTMLOptionElement>document.createElement('option')
+            option.text = i + 1 + '. ' + layers[i]
+            select.add(option)
+            if (i == 0) select.value = option.text
+        }
     }
 }
 
@@ -175,6 +208,8 @@ export enum Action {
     SCALE,
     UNDO,
     REDO,
+    ADD_LAYER,
+    SET_LAYER,
 }
 
 export abstract class UserEvent {}

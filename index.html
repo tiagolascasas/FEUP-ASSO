@@ -164,10 +164,19 @@ redo                                   redoes the last undo command
                     </select>
                     <input type="submit" value="Save" />
                 </form>
+                <br>
+                <br>
+                <input id="undo" type="image" src="assets/undo.png"/>
+                <input id="redo" type="image" src="assets/redo.png" />
             </div>
             <div class="C1" style="background-color:#36393F">
-                <input id="undo" type="image" src="assets/undo.png" />
-                <input id="redo" type="image" src="assets/redo.png" />
+                <label>Active layer</label>
+                <select id="layers" name="layers">
+                    <option value="default">default</option>
+                </select>
+                <br>
+                <input id="addLayerInput" type="text" placeholder="Layer name"/>
+                <button id="addLayerButton">New layer</button>
             </div>
         </div>
         <script src="dist/bundle.js" type="text/javascript"></script>

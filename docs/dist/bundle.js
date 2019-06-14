@@ -15,7 +15,8 @@ exports.ClickController = ClickController;
 class IdleState {
     processEvent(context, event) {
         if (event instanceof simpledraw_view_1.UserEventAction) {
-            if ([simpledraw_view_1.Action.UNDO, simpledraw_view_1.Action.REDO].includes(event.action)) {
+            if ([simpledraw_view_1.Action.UNDO, simpledraw_view_1.Action.REDO, simpledraw_view_1.Action.ADD_LAYER, simpledraw_view_1.Action.SET_LAYER].includes(event.action)) {
+                context.api.execute(event.action, event.args, []);
             }
             else
                 context.currState = new ActionPressedState(event);
@@ -468,6 +469,8 @@ class SimpleDrawAPI {
         this.executers.set(simpledraw_view_1.Action.GRID, new GridExecuter());
         this.executers.set(simpledraw_view_1.Action.UNDO, new UndoExecuter());
         this.executers.set(simpledraw_view_1.Action.REDO, new RedoExecuter());
+        this.executers.set(simpledraw_view_1.Action.SET_LAYER, new SetLayerExecuter());
+        this.executers.set(simpledraw_view_1.Action.ADD_LAYER, new AddLayerExecuter());
     }
     execute(action, args, points) {
         if (args == undefined)
@@ -475,7 +478,7 @@ class SimpleDrawAPI {
         console.log(simpledraw_view_1.Action[action] + ' with args ' + args + ' and ' + points.length + ' points');
         if (this.executers.has(action)) {
             this.executers.get(action).executeAction(this.document, args, points);
-            this.document.notifyObservers();
+            this.document.notifyRendererObservers();
             return true;
         }
         else
@@ -577,6 +580,17 @@ class UndoExecuter {
 class RedoExecuter {
     executeAction(document, args, points) {
         document.redo();
+    }
+}
+class AddLayerExecuter {
+    executeAction(document, args, points) {
+        console.log("CREATING LAYER " + args.layer);
+        document.createLayer(args.layer);
+    }
+}
+class SetLayerExecuter {
+    executeAction(document, args, points) {
+        document.setLayer(args.layer);
     }
 }
 
@@ -761,7 +775,8 @@ const layers_1 = require("./layers");
 class SimpleDrawDocument {
     constructor() {
         this.objects = new Array();
-        this.observers = new Array();
+        this.rendererObservers = new Array();
+        this.layerObservers = new Array();
         this.undoManager = new undo_1.UndoManager();
         this.layersManager = new layers_1.LayersManager();
     }
@@ -779,9 +794,13 @@ class SimpleDrawDocument {
         this.undoManager.onActionDone(a);
         return a.do();
     }
-    notifyObservers() {
-        for (const obs of this.observers)
+    notifyRendererObservers() {
+        for (const obs of this.rendererObservers)
             obs.notify(this);
+    }
+    notifyLayersObservers() {
+        for (const obs of this.layerObservers)
+            obs.notify(this.getLayersForRendering());
     }
     save(saveMode) {
         // let doc: XMLDocument = document.implementation.createDocument("", "", null);
@@ -817,8 +836,19 @@ class SimpleDrawDocument {
     getLayersForRendering() {
         return this.layersManager.getOrderedLayers();
     }
-    registerObserver(observer) {
-        this.observers.push(observer);
+    registerRendererObserver(observer) {
+        this.rendererObservers.push(observer);
+    }
+    registerLayersObserver(observer) {
+        this.layerObservers.push(observer);
+    }
+    createLayer(layer) {
+        this.layersManager.createLayer(layer);
+        this.notifyLayersObservers();
+    }
+    setLayer(layer) {
+        this.layersManager.setActiveLayer(layer);
+        this.notifyLayersObservers();
     }
 }
 exports.SimpleDrawDocument = SimpleDrawDocument;
@@ -860,7 +890,11 @@ class LayersManager {
         return map;
     }
     getOrderedLayers() {
-        return this.layers.reverse();
+        const reversed = this.layers.reverse();
+        const ret = [];
+        for (const layer of reversed)
+            ret.push(layer.toString());
+        return ret;
     }
 }
 exports.LayersManager = LayersManager;
@@ -996,8 +1030,8 @@ class Renderer {
         this.GRID_COLOR = "#BBBBBB";
         this.mode = "Wireframe";
         this.zoom = 0;
-        this.oldObjects = new Map();
-        this.oldLayers = new Array();
+        this.currObjects = new Map();
+        this.currLayers = new Array();
         const modeElem = (document.getElementById(elementID + '_mode'));
         modeElem.addEventListener('change', () => {
             this.mode = modeElem.value;
@@ -1010,17 +1044,17 @@ class Renderer {
         });
     }
     render(objs, layers) {
-        this.oldObjects = objs;
-        this.oldLayers = layers;
+        this.currObjects = objs;
+        this.currLayers = layers.reverse();
         this.clearCanvas();
         this.init();
         this.drawGrid();
-        this.drawObjects(objs, layers);
+        this.drawObjects();
         this.applyZoom();
         this.finish();
     }
     renderAgain() {
-        this.render(this.oldObjects, this.oldLayers);
+        this.render(this.currObjects, this.currLayers);
     }
     mapToRenderer(point) {
         const dimensions = this.element.getBoundingClientRect();
@@ -1078,11 +1112,9 @@ class CanvasRenderer extends renderer_1.Renderer {
         y = (event.clientY - bb.top) * (canvas.height / bb.height);
         return this.ctx.isPointInPath(x, y);
     }
-    drawObjects(objs, layers) {
-        this.objs = objs;
-        this.layers = layers;
-        for (const layer of layers) {
-            for (const shape of objs.get(layer)) {
+    drawObjects() {
+        for (const layer of this.currLayers) {
+            for (const shape of this.currObjects.get(layer)) {
                 let renderableObject = this.factory.make(shape);
                 this.ctx.save();
                 this.ctx.beginPath();
@@ -1229,9 +1261,9 @@ class SVGRenderer extends renderer_1.Renderer {
         this.factory = new SVGShapeRendererFactory();
         this.element = document.getElementById(elementID);
     }
-    drawObjects(objs, layers) {
-        for (const layer of layers) {
-            for (const shape of objs.get(layer)) {
+    drawObjects() {
+        for (const layer of this.currLayers) {
+            for (const shape of this.currObjects.get(layer)) {
                 let renderableObject = this.factory.make(shape);
                 switch (this.mode) {
                     case 'Color':
@@ -1436,6 +1468,7 @@ class SimpleDrawView {
         this.api = new simpledraw_api_1.SimpleDrawAPI(this.document);
         this.interpreter = new interpreter_1.Interpreter(this.api);
         this.click_controller = new click_controller_1.ClickController(this.api);
+        this.document.registerLayersObserver(this);
         document.getElementById('repl').addEventListener('submit', (e) => {
             e.preventDefault();
             const replPrompt = document.querySelector('#prompt');
@@ -1509,6 +1542,19 @@ class SimpleDrawView {
             }
             console.log('Save');
         });
+        document.getElementById('addLayerButton').addEventListener('click', (e) => {
+            e.preventDefault();
+            const elem = document.getElementById('addLayerInput');
+            const layerName = elem.value;
+            elem.value = '';
+            if (layerName != null && layerName.length < 2)
+                return;
+            this.click_controller.processEvent(new UserEventAction(Action.ADD_LAYER, { layer: layerName }));
+        });
+        document.getElementById('layers').addEventListener("change", () => {
+            const layer = document.getElementById('layers').value;
+            this.click_controller.processEvent(new UserEventAction(Action.SET_LAYER, { layer: layer }));
+        });
         document.body.addEventListener('mousedown', (e) => {
             let screenClick = new Point(e.pageX, e.pageY);
             let renderCoord = this.mapScreenspaceToRenderspace(screenClick);
@@ -1516,14 +1562,14 @@ class SimpleDrawView {
             if (!renderCoord.isNil())
                 this.click_controller.processEvent(new UserEventPoint(renderCoord));
         }, true);
-        window.addEventListener("resize", () => {
+        window.addEventListener('resize', () => {
             for (const renderer of this.renderers)
                 renderer.resize();
         });
     }
     addRenderer(renderer) {
         this.renderers.push(renderer);
-        this.document.registerObserver(renderer);
+        this.document.registerRendererObserver(renderer);
         renderer.drawGrid();
     }
     mapScreenspaceToRenderspace(point) {
@@ -1534,6 +1580,20 @@ class SimpleDrawView {
                 break;
         }
         return res;
+    }
+    notify(layers) {
+        console.log('Here are the layers mate: ');
+        console.log(layers);
+        layers = layers.reverse();
+        const select = document.getElementById('layers');
+        select.options.length = 0;
+        for (let i = 0; i < layers.length; i++) {
+            const option = document.createElement('option');
+            option.text = i + 1 + '. ' + layers[i];
+            select.add(option);
+            if (i == 0)
+                select.value = option.text;
+        }
     }
 }
 exports.SimpleDrawView = SimpleDrawView;
@@ -1567,6 +1627,8 @@ var Action;
     Action[Action["SCALE"] = 6] = "SCALE";
     Action[Action["UNDO"] = 7] = "UNDO";
     Action[Action["REDO"] = 8] = "REDO";
+    Action[Action["ADD_LAYER"] = 9] = "ADD_LAYER";
+    Action[Action["SET_LAYER"] = 10] = "SET_LAYER";
 })(Action = exports.Action || (exports.Action = {}));
 class UserEvent {
 }

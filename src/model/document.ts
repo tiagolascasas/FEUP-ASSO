@@ -14,7 +14,8 @@ import { XMLConverterVisitor, Visitor } from '../controller/converter';
 
 export class SimpleDrawDocument {
     objects = new Array<Shape>()
-    observers = new Array<RendererObserver>()
+    rendererObservers = new Array<RendererObserver>()
+    layerObservers = new Array<LayersObserver>()
     undoManager = new UndoManager()
     layersManager = new LayersManager()
 
@@ -36,9 +37,14 @@ export class SimpleDrawDocument {
         return a.do()
     }
 
-    notifyObservers(): void {
-        for (const obs of this.observers)
+    notifyRendererObservers(): void {
+        for (const obs of this.rendererObservers)
             obs.notify(this)
+    }
+
+    notifyLayersObservers(): void {
+        for (const obs of this.layerObservers)
+            obs.notify(this.getLayersForRendering())
     }
 
     save(saveMode: Visitor){
@@ -94,15 +100,33 @@ export class SimpleDrawDocument {
         return this.layersManager.mapObjectsToLayers(this.objects)
     }
 
-    getLayersForRendering(): String[] {
+    getLayersForRendering(): string[] {
         return this.layersManager.getOrderedLayers()
     }
 
-    registerObserver(observer: RendererObserver) {
-        this.observers.push(observer)
+    registerRendererObserver(observer: RendererObserver) {
+        this.rendererObservers.push(observer)
+    }
+
+    registerLayersObserver(observer: LayersObserver) {
+        this.layerObservers.push(observer)
+    }
+
+    createLayer(layer: string): void {
+        this.layersManager.createLayer(layer)
+        this.notifyLayersObservers()
+    }
+
+    setLayer(layer: string): void {
+        this.layersManager.setActiveLayer(layer)
+        this.notifyLayersObservers()
     }
 }
 
 export interface RendererObserver {
     notify(document: SimpleDrawDocument): void
+}
+
+export interface LayersObserver {
+    notify(layers: string[]): void
 }
