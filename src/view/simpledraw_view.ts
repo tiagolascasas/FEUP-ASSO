@@ -124,6 +124,11 @@ export class SimpleDrawView {
             },
             true
         )
+
+        window.addEventListener("resize", () => {
+            for (const renderer of this.renderers)
+                renderer.resize()
+        })
     }
 
     addRenderer(renderer: Renderer) {

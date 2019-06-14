@@ -993,7 +993,7 @@ class Renderer {
     constructor(elementID) {
         this.elementID = elementID;
         this.GRID_STEP = 50;
-        this.GRID_COLOR = "#AAAAAA";
+        this.GRID_COLOR = "#BBBBBB";
         this.mode = "Wireframe";
         this.zoom = 0;
         this.oldObjects = new Map();
@@ -1047,6 +1047,12 @@ class Renderer {
     }
     notify(document) {
         this.render(document.getObjectsForRendering(), document.getLayersForRendering());
+    }
+    resize() {
+        const parent = this.element.parentElement;
+        this.element.setAttribute("width", parent.clientWidth.toString());
+        this.element.setAttribute("height", parent.clientHeight.toString());
+        this.renderAgain();
     }
 }
 exports.Renderer = Renderer;
@@ -1510,6 +1516,10 @@ class SimpleDrawView {
             if (!renderCoord.isNil())
                 this.click_controller.processEvent(new UserEventPoint(renderCoord));
         }, true);
+        window.addEventListener("resize", () => {
+            for (const renderer of this.renderers)
+                renderer.resize();
+        });
     }
     addRenderer(renderer) {
         this.renderers.push(renderer);

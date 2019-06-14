@@ -45,12 +45,6 @@ export abstract class Renderer implements RendererObserver {
         this.render(this.oldObjects, this.oldLayers)
     }
 
-    abstract drawObjects(
-        objs: Map<String, Array<Shape>>,
-        layers: Array<String>,
-        event?: MouseEvent
-    ): void
-
     mapToRenderer(point: Point): Point {
         const dimensions = this.element.getBoundingClientRect()
         const x = dimensions.left
@@ -81,6 +75,19 @@ export abstract class Renderer implements RendererObserver {
     notify(document: SimpleDrawDocument): void {
         this.render(document.getObjectsForRendering(), document.getLayersForRendering())
     }
+
+    resize(): void {
+        const parent = this.element.parentElement
+        this.element.setAttribute("width", parent.clientWidth.toString())
+        this.element.setAttribute("height", parent.clientHeight.toString())
+        this.renderAgain()
+    }
+
+    abstract drawObjects(
+        objs: Map<String, Array<Shape>>,
+        layers: Array<String>,
+        event?: MouseEvent
+    ): void
 
     abstract clearCanvas(): void
 
