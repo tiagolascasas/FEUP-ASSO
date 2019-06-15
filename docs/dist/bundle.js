@@ -754,12 +754,10 @@ class TranslateAction {
         this.newPoint = newPoint;
     }
     do() {
-        console.log(this.newPoint);
         this.oldPoint = this.shape.center;
         this.shape.translate(this.newPoint);
     }
     undo() {
-        console.log('manel undo');
         this.shape.translate(this.oldPoint);
     }
 }
@@ -1010,6 +1008,13 @@ class Triangle extends Shape {
         this.p0.y = sy * (this.p0.y - this.center.y) + this.center.y;
         this.p1.y = sy * (this.p1.y - this.center.y) + this.center.y;
         this.p2.y = sy * (this.p2.y - this.center.y) + this.center.y;
+    }
+    translate(newPoint) {
+        let delta = new utils_1.Point((newPoint.x - this.center.x), (newPoint.y - this.center.y));
+        this.p0 = new utils_1.Point((this.p0.x + delta.x), (this.p0.y + delta.y));
+        this.p1 = new utils_1.Point(this.p1.x + delta.x, this.p1.y + delta.y);
+        this.p2 = new utils_1.Point(this.p2.x + delta.x, this.p2.y + delta.y);
+        this.center = newPoint;
     }
 }
 exports.Triangle = Triangle;

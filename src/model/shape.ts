@@ -130,4 +130,12 @@ export class Triangle extends Shape {
         this.p1.y = sy * (this.p1.y - this.center.y) + this.center.y
         this.p2.y = sy * (this.p2.y - this.center.y) + this.center.y
     }
+
+    translate(newPoint: Point){
+        let delta = new Point(newPoint.x - this.center.x,newPoint.y - this.center.y)
+        this.p0 = new Point(this.p0.x + delta.x, this.p0.y + delta.y)
+        this.p1 = new Point(this.p1.x + delta.x, this.p1.y + delta.y)
+        this.p2 = new Point(this.p2.x + delta.x, this.p2.y + delta.y)
+        this.center = newPoint;
+    }
 }
