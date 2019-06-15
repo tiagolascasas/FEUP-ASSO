@@ -1255,7 +1255,6 @@ class CanvasCircleRenderer extends CanvasShapeRenderer {
     }
     render(ctx) {
         const shape = this.shape;
-        console.log(shape.angle);
         ctx.ellipse(shape.center.x, shape.center.y, shape.rx, shape.ry, (shape.angle * Math.PI) / 180, 0, 2 * Math.PI);
     }
 }
@@ -1265,9 +1264,11 @@ class CanvasTriangleRenderer extends CanvasShapeRenderer {
     }
     render(ctx) {
         const shape = this.shape;
-        ctx.moveTo(shape.p0.x, shape.p0.y);
-        ctx.lineTo(shape.p1.x, shape.p1.y);
-        ctx.lineTo(shape.p2.x, shape.p2.y);
+        ctx.translate(shape.center.x, shape.center.y);
+        ctx.rotate((shape.angle * Math.PI) / 180);
+        ctx.moveTo(shape.p0.x - shape.center.x, shape.p0.y - shape.center.y);
+        ctx.lineTo(shape.p1.x - shape.center.x, shape.p1.y - shape.center.y);
+        ctx.lineTo(shape.p2.x - shape.center.x, shape.p2.y - shape.center.y);
     }
 }
 class CanvasColorDecorator extends CanvasShapeRenderer {
@@ -1490,19 +1491,22 @@ class SVGCircleRenderer extends SVGShapeRenderer {
 class SVGTriangleRenderer extends SVGShapeRenderer {
     render() {
         const e = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         const shape = this.shape;
-        e.setAttribute('points', shape.p0.x +
+        g.setAttribute('transform', `translate(${shape.center.x}, ${shape.center.y}) rotate(${shape.angle})`);
+        e.setAttribute('points', (shape.p0.x - shape.center.x) +
             ',' +
-            shape.p0.y +
+            (shape.p0.y - shape.center.y) +
             ' ' +
-            shape.p1.x +
+            (shape.p1.x - shape.center.x) +
             ',' +
-            shape.p1.y +
+            (shape.p1.y - shape.center.y) +
             ' ' +
-            shape.p2.x +
+            (shape.p2.x - shape.center.x) +
             ',' +
-            shape.p2.y);
-        return e;
+            (shape.p2.y - shape.center.y));
+        g.appendChild(e);
+        return g;
     }
 }
 

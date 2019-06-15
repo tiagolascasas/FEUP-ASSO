@@ -144,9 +144,11 @@ class CanvasTriangleRenderer extends CanvasShapeRenderer {
 
     render(ctx: CanvasRenderingContext2D): void {
         const shape = <Triangle>this.shape
-        ctx.moveTo(shape.p0.x, shape.p0.y)
-        ctx.lineTo(shape.p1.x, shape.p1.y)
-        ctx.lineTo(shape.p2.x, shape.p2.y)
+        ctx.translate(shape.center.x, shape.center.y)
+        ctx.rotate((shape.angle * Math.PI) / 180)
+        ctx.moveTo(shape.p0.x - shape.center.x, shape.p0.y- shape.center.y)
+        ctx.lineTo(shape.p1.x - shape.center.x, shape.p1.y- shape.center.y)
+        ctx.lineTo(shape.p2.x - shape.center.x, shape.p2.y- shape.center.y)
     }
 }
 

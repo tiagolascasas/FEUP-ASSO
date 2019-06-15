@@ -218,23 +218,30 @@ class SVGCircleRenderer extends SVGShapeRenderer {
 class SVGTriangleRenderer extends SVGShapeRenderer {
     render(): SVGElement {
         const e = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
         const shape = <Triangle>this.shape
+        
+        g.setAttribute(
+            'transform',
+            `translate(${shape.center.x}, ${shape.center.y}) rotate(${shape.angle})`
+        )
 
         e.setAttribute(
             'points',
-            shape.p0.x +
+            (shape.p0.x - shape.center.x)+
                 ',' +
-                shape.p0.y +
+                (shape.p0.y - shape.center.y) +
                 ' ' +
-                shape.p1.x +
+                (shape.p1.x - shape.center.x)+
                 ',' +
-                shape.p1.y +
+                (shape.p1.y - shape.center.y) +
                 ' ' +
-                shape.p2.x +
+                (shape.p2.x - shape.center.x)+
                 ',' +
-                shape.p2.y
+                (shape.p2.y - shape.center.y)
         )
 
-        return e
+        g.appendChild(e)
+        return g
     }
 }
