@@ -943,6 +943,8 @@ class Shape {
         this.center = point;
     }
     rotate(angled) {
+        if (angled < 0)
+            angled = 360 + angled;
         this.angle = (this.angle + angled) % 360;
     }
 }
@@ -970,8 +972,21 @@ class Rectangle extends Shape {
         return Math.abs(rectangleArea - trianglesArea) < 1;
     }
     scale(sx, sy) {
-        this.width *= sx;
-        this.height *= sy;
+        // if(this.angle > 315 || this.angle < 45 || (this.angle > 135 && this.angle < 225)){
+        //     this.width *= sx
+        //     this.height *= sy
+        // }      
+        // else{
+        //     this.width *= sy
+        //     this.height *= sx
+        // }
+        let radAngle = (this.angle * Math.PI) / 180;
+        let addWidth = (Math.abs(Math.cos(radAngle)) * (sx - 1)) * this.width + (Math.abs(Math.sin(radAngle)) * (sy - 1)) * this.width;
+        let addHeight = (Math.abs(Math.cos(radAngle)) * (sy - 1)) * this.height + (Math.abs(Math.sin(radAngle)) * (sx - 1)) * this.height;
+        this.width += addWidth;
+        this.height += addHeight;
+        // console.log(ce.nax);
+        // let cenay = 
     }
 }
 exports.Rectangle = Rectangle;

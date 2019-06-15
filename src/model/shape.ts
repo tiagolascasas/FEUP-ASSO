@@ -14,6 +14,8 @@ export abstract class Shape {
     }
 
     rotate(angled: number) {
+        if(angled < 0)
+            angled = 360 + angled
         this.angle = (this.angle + angled) % 360
     }
 
@@ -67,8 +69,12 @@ export class Rectangle extends Shape {
     }
 
     scale(sx: number, sy: number): void {
-        this.width *= sx
-        this.height *= sy
+        let radAngle = (this.angle * Math.PI) / 180
+        let addWidth = (Math.abs(Math.cos(radAngle)) * (sx - 1)) * this.width + (Math.abs(Math.sin(radAngle)) * (sy - 1)) * this.width
+        let addHeight = (Math.abs(Math.cos(radAngle)) * (sy - 1)) * this.height + (Math.abs(Math.sin(radAngle)) * (sx - 1)) * this.height
+
+        this.width += addWidth
+        this.height += addHeight      
     }
 }
 
