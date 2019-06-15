@@ -567,7 +567,7 @@ class ScaleExecuter {
     executeAction(document, args, points) {
         for (const shape of document.objects) {
             if (shape.isHit(points[0]))
-                shape.scale(args.sx, args.sy);
+                document.scale(shape, new utils_1.Point(args.sx, args.sy));
         }
     }
 }
@@ -776,6 +776,19 @@ class RotateAction {
     }
 }
 exports.RotateAction = RotateAction;
+class ScaleAction {
+    constructor(shape, scaled) {
+        this.shape = shape;
+        this.scaled = scaled;
+    }
+    do() {
+        this.shape.scale(this.scaled.x, this.scaled.y);
+    }
+    undo() {
+        this.shape.scale(1.0 / this.scaled.x, 1.0 / this.scaled.y);
+    }
+}
+exports.ScaleAction = ScaleAction;
 
 },{"./shape":10}],8:[function(require,module,exports){
 'use strict';
@@ -840,6 +853,9 @@ class SimpleDrawDocument {
     }
     rotate(s, angled) {
         return this.do(new actions_1.RotateAction(s, angled));
+    }
+    scale(s, scaled) {
+        return this.do(new actions_1.ScaleAction(s, scaled));
     }
     getObjectsForRendering() {
         return this.layersManager.mapObjectsToLayers(this.objects);
@@ -1010,8 +1026,8 @@ class Triangle extends Shape {
         this.p2.y = sy * (this.p2.y - this.center.y) + this.center.y;
     }
     translate(newPoint) {
-        let delta = new utils_1.Point((newPoint.x - this.center.x), (newPoint.y - this.center.y));
-        this.p0 = new utils_1.Point((this.p0.x + delta.x), (this.p0.y + delta.y));
+        let delta = new utils_1.Point(newPoint.x - this.center.x, newPoint.y - this.center.y);
+        this.p0 = new utils_1.Point(this.p0.x + delta.x, this.p0.y + delta.y);
         this.p1 = new utils_1.Point(this.p1.x + delta.x, this.p1.y + delta.y);
         this.p2 = new utils_1.Point(this.p2.x + delta.x, this.p2.y + delta.y);
         this.center = newPoint;

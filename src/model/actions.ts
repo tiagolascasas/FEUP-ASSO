@@ -89,3 +89,14 @@ export class RotateAction implements Action<void> {
         this.shape.angle = this.oldAngle
     }
 }
+
+export class ScaleAction implements Action<void> {
+    constructor(public shape: Shape, public scaled: Point) {}
+
+    do(): void {
+        this.shape.scale(this.scaled.x,this.scaled.y)
+    }
+    undo(): void {
+        this.shape.scale(1.0/this.scaled.x, 1.0/this.scaled.y)
+    }
+}
