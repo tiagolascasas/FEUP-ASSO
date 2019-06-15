@@ -118,9 +118,10 @@ export class Triangle extends Shape {
 
     //Taken from here: https://stackoverflow.com/a/34093754
     isHit(p: Point): boolean {
-        const p0 = this.p0
-        const p1 = this.p1
-        const p2 = this.p2
+        
+        const p0 = Utils.getRotatedPoint(this.center, this.angle, this.p0)
+        const p1 = Utils.getRotatedPoint(this.center, this.angle, this.p1)
+        const p2 = Utils.getRotatedPoint(this.center, this.angle, this.p2)
 
         const dX = p.x - p2.x
         const dY = p.y - p2.y
@@ -134,12 +135,17 @@ export class Triangle extends Shape {
     }
 
     scale(sx: number, sy: number): void {
-        this.p0.x = sx * (this.p0.x - this.center.x) + this.center.x
-        this.p1.x = sx * (this.p1.x - this.center.x) + this.center.x
-        this.p2.x = sx * (this.p2.x - this.center.x) + this.center.x
-        this.p0.y = sy * (this.p0.y - this.center.y) + this.center.y
-        this.p1.y = sy * (this.p1.y - this.center.y) + this.center.y
-        this.p2.y = sy * (this.p2.y - this.center.y) + this.center.y
+    const p0 = Utils.getRotatedPoint(this.center, this.angle, this.p0)
+    const p1 = Utils.getRotatedPoint(this.center, this.angle, this.p1)
+    const p2 = Utils.getRotatedPoint(this.center, this.angle, this.p2)
+    
+    let newp0 = new Point(sx * (p0.x - this.center.x) + this.center.x, sy * (p0.y - this.center.y) + this.center.y)
+    let newp1 = new Point(sx * (p1.x - this.center.x) + this.center.x, sy * (p1.y - this.center.y) + this.center.y)
+    let newp2 = new Point(sx * (p2.x - this.center.x) + this.center.x, sy * (p2.y - this.center.y) + this.center.y)
+    
+    this.p0 = Utils.getRotatedPoint(this.center, -this.angle, newp0)
+    this.p1 = Utils.getRotatedPoint(this.center, -this.angle, newp1)
+    this.p2 = Utils.getRotatedPoint(this.center, -this.angle, newp2)
     }
 
     translate(newPoint: Point){
