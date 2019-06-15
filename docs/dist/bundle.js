@@ -559,7 +559,10 @@ class TranslateExecuter {
 //args = {angle}, points = [point]
 class RotateExecuter {
     executeAction(document, args, points) {
-        console.log('rotate');
+        for (const shape of document.objects) {
+            if (shape.isHit(points[0]))
+                document.rotate(shape, args.angle);
+        }
     }
 }
 //args = {sx, sy}, points = [point]
@@ -1252,7 +1255,8 @@ class CanvasCircleRenderer extends CanvasShapeRenderer {
     }
     render(ctx) {
         const shape = this.shape;
-        ctx.ellipse(shape.center.x, shape.center.y, shape.rx, shape.ry, 0, 0, 2 * Math.PI);
+        console.log(shape.angle);
+        ctx.ellipse(shape.center.x, shape.center.y, shape.rx, shape.ry, (shape.angle * Math.PI) / 180, 0, 2 * Math.PI);
     }
 }
 class CanvasTriangleRenderer extends CanvasShapeRenderer {
@@ -1472,12 +1476,15 @@ class SVGCircleRenderer extends SVGShapeRenderer {
     }
     render() {
         const e = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         const shape = this.shape;
-        e.setAttribute('cx', shape.center.x.toString());
-        e.setAttribute('cy', shape.center.y.toString());
+        g.setAttribute('transform', `translate(${shape.center.x}, ${shape.center.y}) rotate(${shape.angle})`);
+        e.setAttribute('cx', '0');
+        e.setAttribute('cy', '0');
         e.setAttribute('rx', shape.rx.toString());
         e.setAttribute('ry', shape.ry.toString());
-        return e;
+        g.appendChild(e);
+        return g;
     }
 }
 class SVGTriangleRenderer extends SVGShapeRenderer {

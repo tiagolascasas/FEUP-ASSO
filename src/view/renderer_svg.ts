@@ -198,14 +198,20 @@ class SVGCircleRenderer extends SVGShapeRenderer {
 
     render(): SVGElement {
         const e = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse')
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
         const shape = <Circle>this.shape
 
-        e.setAttribute('cx', shape.center.x.toString())
-        e.setAttribute('cy', shape.center.y.toString())
+        g.setAttribute(
+            'transform',
+            `translate(${shape.center.x}, ${shape.center.y}) rotate(${shape.angle})`
+        )
+        e.setAttribute('cx', '0')
+        e.setAttribute('cy', '0')
         e.setAttribute('rx', shape.rx.toString())
         e.setAttribute('ry', shape.ry.toString())
 
-        return e
+        g.appendChild(e)
+        return g
     }
 }
 

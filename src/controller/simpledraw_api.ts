@@ -107,7 +107,10 @@ class TranslateExecuter implements ActionExecuter {
 //args = {angle}, points = [point]
 class RotateExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        console.log('rotate')
+        for (const shape of document.objects) {
+            if (shape.isHit(points[0])) 
+                document.rotate(shape,args.angle)    
+        }
     }
 }
 

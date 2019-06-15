@@ -130,10 +130,10 @@ class CanvasCircleRenderer extends CanvasShapeRenderer {
     constructor(shape: Shape) {
         super(shape)
     }
-
+    
     render(ctx: CanvasRenderingContext2D): void {
         const shape = <Circle>this.shape
-        ctx.ellipse(shape.center.x, shape.center.y, shape.rx, shape.ry, 0, 0, 2 * Math.PI)
+        ctx.ellipse(shape.center.x, shape.center.y, shape.rx, shape.ry, (shape.angle * Math.PI) / 180, 0, 2 * Math.PI)
     }
 }
 
