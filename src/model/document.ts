@@ -79,8 +79,8 @@ export class SimpleDrawDocument {
         return this.do(new CreateTriangleAction(this, p0, p1, p2, color))
     }
 
-    translate(s: Shape, xd: number, yd: number): void {
-        return this.do(new TranslateAction( s, xd, yd))
+    translate(s: Shape, newPoint: Point): void {
+        return this.do(new TranslateAction( s, newPoint))
     }
 
     rotate(s: Shape, angled: number): void {

@@ -58,24 +58,21 @@ export class CreateTriangleAction extends CreateShapeAction<Triangle> {
 }
 
 export class TranslateAction implements Action<void> {
-    oldX: number
-    oldY: number
+    oldPoint: Point
 
     constructor(
         public shape: Shape,
-        private xd: number,
-        private yd: number
-    ) {}
+        private newPoint: Point
+    ) {
+    }
 
     do(): void {
-        this.oldX = this.shape.center.x
-        this.oldY = this.shape.center.y
-        this.shape.translate(new Point(this.xd, this.yd))
+        this.oldPoint = this.shape.center
+        this.shape.translate(this.newPoint)
     }
 
     undo() {
-        this.shape.center.x = this.oldX
-        this.shape.center.y = this.oldY
+        this.shape.translate(this.oldPoint)
     }
 }
 

@@ -550,7 +550,10 @@ class CreateTriangleExecuter {
 //args = {}, points = [origin, destiny]
 class TranslateExecuter {
     executeAction(document, args, points) {
-        console.log('translate');
+        for (const shape of document.objects) {
+            if (shape.isHit(points[0]))
+                document.translate(shape, points[1]);
+        }
     }
 }
 //args = {angle}, points = [point]
@@ -702,7 +705,6 @@ simpleDraw.addRenderer(new renderer_svg_1.SVGRenderer('svg2'));
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const shape_1 = require("./shape");
-const utils_1 = require("../controller/utils");
 class CreateShapeAction {
     constructor(doc, shape, layer) {
         this.doc = doc;
@@ -747,19 +749,18 @@ class CreateTriangleAction extends CreateShapeAction {
 }
 exports.CreateTriangleAction = CreateTriangleAction;
 class TranslateAction {
-    constructor(shape, xd, yd) {
+    constructor(shape, newPoint) {
         this.shape = shape;
-        this.xd = xd;
-        this.yd = yd;
+        this.newPoint = newPoint;
     }
     do() {
-        this.oldX = this.shape.center.x;
-        this.oldY = this.shape.center.y;
-        this.shape.translate(new utils_1.Point(this.xd, this.yd));
+        console.log(this.newPoint);
+        this.oldPoint = this.shape.center;
+        this.shape.translate(this.newPoint);
     }
     undo() {
-        this.shape.center.x = this.oldX;
-        this.shape.center.y = this.oldY;
+        console.log('manel undo');
+        this.shape.translate(this.oldPoint);
     }
 }
 exports.TranslateAction = TranslateAction;
@@ -778,7 +779,7 @@ class RotateAction {
 }
 exports.RotateAction = RotateAction;
 
-},{"../controller/utils":5,"./shape":10}],8:[function(require,module,exports){
+},{"./shape":10}],8:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("./actions");
@@ -836,8 +837,8 @@ class SimpleDrawDocument {
     createTriangle(p0, p1, p2, color) {
         return this.do(new actions_1.CreateTriangleAction(this, p0, p1, p2, color));
     }
-    translate(s, xd, yd) {
-        return this.do(new actions_1.TranslateAction(s, xd, yd));
+    translate(s, newPoint) {
+        return this.do(new actions_1.TranslateAction(s, newPoint));
     }
     rotate(s, angled) {
         return this.do(new actions_1.RotateAction(s, angled));
@@ -921,9 +922,8 @@ class Shape {
         this.color = color;
         this.angle = 0;
     }
-    translate(delta) {
-        this.center.x += delta.x;
-        this.center.y += delta.y;
+    translate(point) {
+        this.center = point;
     }
     rotate(angled) {
         this.angle = (this.angle + angled) % 360;

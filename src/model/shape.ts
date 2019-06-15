@@ -9,9 +9,8 @@ export abstract class Shape {
 
     constructor(public center: Point, public color: string) {}
 
-    translate(delta: Point): void {
-        this.center.x += delta.x
-        this.center.y += delta.y
+    translate(point: Point): void {
+        this.center = point
     }
 
     rotate(angled: number) {

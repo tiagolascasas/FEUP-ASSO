@@ -97,7 +97,10 @@ class CreateTriangleExecuter implements ActionExecuter {
 //args = {}, points = [origin, destiny]
 class TranslateExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        console.log('translate')
+        for (const shape of document.objects) {
+            if (shape.isHit(points[0])) 
+                document.translate(shape, points[1])
+        }
     }
 }
 
