@@ -198,10 +198,10 @@ class TXTConverterVisitor {
         return `translate ${action.clickedPoint.x} ${action.clickedPoint.y} ${action.newPoint.x} ${action.newPoint.y}\r\n`;
     }
     visitRotateAction(action) {
-        return `rotate ${action.clickedPoint.x} ${action.clickedPoint.y} ${action.angled}\r\n`;
+        return `rotate ${action.angled} ${action.clickedPoint.x} ${action.clickedPoint.y}\r\n`;
     }
     visitScaleAction(action) {
-        return `scale ${action.scaled.x} ${action.scaled.y} ${action.clickedPoint.x} ${action.clickedPoint.y}`;
+        return `scale ${action.scaled.x} ${action.scaled.y} ${action.clickedPoint.x} ${action.clickedPoint.y}\r\n`;
     }
     visitAll(objects) {
         let saved = '';
@@ -964,21 +964,24 @@ class SimpleDrawDocument {
         return this.do(new actions_1.CreateTriangleAction(this, p0, p1, p2, color));
     }
     translate(clickedPoint, newPoint) {
-        for (const shape of this.objects) {
+        for (let index = this.objects.length - 1; index >= 0; index--) {
+            const shape = this.objects[index];
             if (shape.isHit(clickedPoint))
-                this.do(new actions_1.TranslateAction(shape, newPoint, clickedPoint));
+                return this.do(new actions_1.TranslateAction(shape, newPoint, clickedPoint));
         }
     }
     rotate(clickedPoint, angled) {
-        for (const shape of this.objects) {
+        for (let index = this.objects.length - 1; index >= 0; index--) {
+            const shape = this.objects[index];
             if (shape.isHit(clickedPoint))
-                this.do(new actions_1.RotateAction(shape, angled, clickedPoint));
+                return this.do(new actions_1.RotateAction(shape, angled, clickedPoint));
         }
     }
     scale(clickedPoint, scaled) {
-        for (const shape of this.objects) {
+        for (let index = this.objects.length - 1; index >= 0; index--) {
+            const shape = this.objects[index];
             if (shape.isHit(clickedPoint))
-                this.do(new actions_1.ScaleAction(shape, scaled, clickedPoint));
+                return this.do(new actions_1.ScaleAction(shape, scaled, clickedPoint));
         }
     }
     getObjectsForRendering() {

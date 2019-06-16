@@ -77,20 +77,29 @@ export class SimpleDrawDocument {
     }
 
     translate(clickedPoint: Point, newPoint: Point): void {
-        for (const shape of this.objects) {
-            if (shape.isHit(clickedPoint)) this.do(new TranslateAction(shape, newPoint, clickedPoint))
+        //the transformation is only applied to one shape(the one in front)
+        for (let index = this.objects.length - 1; index >= 0; index--) {
+            const shape = this.objects[index]
+            if (shape.isHit(clickedPoint))
+                return this.do(new TranslateAction(shape, newPoint, clickedPoint))
         }
     }
 
     rotate(clickedPoint: Point, angled: number): void {
-        for (const shape of this.objects) {
-            if (shape.isHit(clickedPoint)) this.do(new RotateAction(shape, angled,clickedPoint))
+        //the transformation is only applied to one shape(the one in front)
+        for (let index = this.objects.length - 1; index >= 0; index--) {
+            const shape = this.objects[index]
+            if (shape.isHit(clickedPoint))
+                return this.do(new RotateAction(shape, angled, clickedPoint))
         }
     }
 
     scale(clickedPoint: Point, scaled: Point): void {
-        for (const shape of this.objects) {
-            if (shape.isHit(clickedPoint)) this.do(new ScaleAction(shape, scaled,clickedPoint))
+        //the transformation is only applied to one shape(the one in front)
+        for (let index = this.objects.length - 1; index >= 0; index--) {
+            const shape = this.objects[index]
+            if (shape.isHit(clickedPoint))
+                return this.do(new ScaleAction(shape, scaled, clickedPoint))
         }
     }
 
