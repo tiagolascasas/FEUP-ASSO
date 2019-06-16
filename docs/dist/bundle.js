@@ -964,6 +964,7 @@ class SimpleDrawDocument {
         return this.do(new actions_1.CreateTriangleAction(this, p0, p1, p2, color));
     }
     translate(clickedPoint, newPoint) {
+        //the transformation is only applied to one shape(the one in front)
         for (let index = this.objects.length - 1; index >= 0; index--) {
             const shape = this.objects[index];
             if (shape.isHit(clickedPoint))
@@ -971,6 +972,7 @@ class SimpleDrawDocument {
         }
     }
     rotate(clickedPoint, angled) {
+        //the transformation is only applied to one shape(the one in front)
         for (let index = this.objects.length - 1; index >= 0; index--) {
             const shape = this.objects[index];
             if (shape.isHit(clickedPoint))
@@ -978,6 +980,7 @@ class SimpleDrawDocument {
         }
     }
     scale(clickedPoint, scaled) {
+        //the transformation is only applied to one shape(the one in front)
         for (let index = this.objects.length - 1; index >= 0; index--) {
             const shape = this.objects[index];
             if (shape.isHit(clickedPoint))
@@ -1122,8 +1125,9 @@ class Circle extends Shape {
         let radAngle = (this.angle * Math.PI) / 180;
         let addX = (Math.abs(Math.cos(radAngle)) * (sx - 1)) * this.rx + (Math.abs(Math.sin(radAngle)) * (sy - 1)) * this.rx;
         let addY = (Math.abs(Math.cos(radAngle)) * (sy - 1)) * this.ry + (Math.abs(Math.sin(radAngle)) * (sx - 1)) * this.ry;
-        this.rx += addX;
-        this.ry += addY;
+        console.log(addX, addY);
+        this.rx = addX + +this.rx;
+        this.ry = addY + +this.rx;
     }
 }
 exports.Circle = Circle;
@@ -1616,6 +1620,7 @@ class SVGCircleRenderer extends SVGShapeRenderer {
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         const shape = this.shape;
         g.setAttribute('transform', `translate(${shape.center.x}, ${shape.center.y}) rotate(${shape.angle})`);
+        console.log(shape);
         e.setAttribute('cx', '0');
         e.setAttribute('cy', '0');
         e.setAttribute('rx', shape.rx.toString());
@@ -1731,6 +1736,24 @@ class SimpleDrawView {
                 default:
                     break;
             }
+        });
+        document.getElementById('file').addEventListener('change', (e) => {
+            //Taken from here https://stackoverflow.com/questions/23331546/how-to-use-javascript-to-read-local-text-file-and-read-line-by-line
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = event => {
+                console.log(event);
+                const file = reader.result;
+                const allLines = file.split('\r\n');
+                // Reading line by line
+                allLines.forEach(line => {
+                    this.interpreter.eval(line);
+                });
+            };
+            reader.onerror = event => {
+                alert(e.target.name);
+            };
+            reader.readAsText(file);
         });
         document.getElementById('addLayerButton').addEventListener('click', (e) => {
             e.preventDefault();

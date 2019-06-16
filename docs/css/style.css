@@ -121,3 +121,7 @@ label {
 .tooltip:hover .tooltiptext {
     visibility: visible;
 }
+
+#file {
+    width: 100px;
+}

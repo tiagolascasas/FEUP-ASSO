@@ -11,7 +11,6 @@ export abstract class Shape {
 
     translate(point: Point): void {
         this.center = point
-        console.log(this.center)
     }
 
     rotate(angled: number) {
@@ -98,13 +97,15 @@ export class Circle extends Shape {
     }
 
     scale(sx: number, sy: number): void {
+        
+        
         let radAngle = (this.angle * Math.PI) / 180
 
-        let addX= (Math.abs(Math.cos(radAngle)) * (sx - 1)) * this.rx + (Math.abs(Math.sin(radAngle)) * (sy - 1)) * this.rx
-        let addY = (Math.abs(Math.cos(radAngle)) * (sy - 1)) * this.ry + (Math.abs(Math.sin(radAngle)) * (sx - 1)) * this.ry
-        
-        this.rx += addX
-        this.ry += addY
+        let addX: number = (Math.abs(Math.cos(radAngle)) * (sx - 1)) * this.rx + (Math.abs(Math.sin(radAngle)) * (sy - 1)) * this.rx
+        let addY: number = (Math.abs(Math.cos(radAngle)) * (sy - 1)) * this.ry + (Math.abs(Math.sin(radAngle)) * (sx - 1)) * this.ry
+
+        this.rx = addX + +this.rx
+        this.ry = addY + +this.rx
     }
 }
 

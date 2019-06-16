@@ -205,6 +205,7 @@ class SVGCircleRenderer extends SVGShapeRenderer {
             'transform',
             `translate(${shape.center.x}, ${shape.center.y}) rotate(${shape.angle})`
         )
+        
         e.setAttribute('cx', '0')
         e.setAttribute('cy', '0')
         e.setAttribute('rx', shape.rx.toString())

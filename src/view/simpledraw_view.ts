@@ -112,6 +112,29 @@ export class SimpleDrawView implements LayersObserver {
             }
         })
 
+        document.getElementById('file').addEventListener('change', (e: Event) => {
+            //Taken from here https://stackoverflow.com/questions/23331546/how-to-use-javascript-to-read-local-text-file-and-read-line-by-line
+            const file = (<HTMLInputElement> e.target).files[0]
+            const reader = new FileReader()
+
+            reader.onload = event => {
+                
+                const file = reader.result
+                const allLines = (<String> file).split('\r\n')
+                // Reading line by line
+                allLines.forEach(line => {
+                    this.interpreter.eval(line)
+                })
+            }
+
+            reader.onerror = event => {
+                alert((<HTMLInputElement>e.target).name)
+            }
+
+            reader.readAsText(file)
+        })
+
+
         document.getElementById('addLayerButton').addEventListener('click', (e: Event) => {
             e.preventDefault()
             const elem = <HTMLInputElement>document.getElementById('addLayerInput')
