@@ -82,7 +82,7 @@ class SecondPointClickedState {
 }
 exports.SecondPointClickedState = SecondPointClickedState;
 
-},{"../view/simpledraw_view":15}],2:[function(require,module,exports){
+},{"../view/simpledraw_view":16}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("./utils");
@@ -294,7 +294,7 @@ class TXTConverterVisitor {
 }
 exports.TXTConverterVisitor = TXTConverterVisitor;
 
-},{"./utils":5}],3:[function(require,module,exports){
+},{"./utils":6}],3:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("../view/simpledraw_view");
@@ -596,7 +596,95 @@ class Interpreter {
 }
 exports.Interpreter = Interpreter;
 
-},{"../view/simpledraw_view":15,"./utils":5}],4:[function(require,module,exports){
+},{"../view/simpledraw_view":16,"./utils":6}],4:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const simpledraw_view_1 = require("../view/simpledraw_view");
+const utils_1 = require("./utils");
+class loadXML {
+    constructor(xmlDocument, api) {
+        this.xmlDocument = xmlDocument;
+        this.api = api;
+    }
+    load() {
+        for (const node of this.xmlDocument.childNodes) {
+            switch (node.nodeName) {
+                case 'createRectangle':
+                    this.createRectangle(node);
+                    break;
+                case 'createCircle':
+                    this.createCircle(node);
+                    break;
+                case 'createTriangle':
+                    this.createTriangle(node);
+                    break;
+                case 'translate':
+                    this.translate(node);
+                    break;
+                case 'rotate':
+                    this.rotate(node);
+                    break;
+                case 'scale':
+                    this.scale(node);
+                    break;
+                default:
+                    console.error(`Couldn't find action: ${node.nodeName}`);
+                    break;
+            }
+        }
+    }
+    createRectangle(node) {
+        let point0Element = node.children[0];
+        let point1Element = node.children[1];
+        let point0 = new utils_1.Point(+point0Element.attributes.x.nodeValue, +point0Element.attributes.y.nodeValue);
+        let point1 = new utils_1.Point(+point1Element.attributes.x.nodeValue, +point1Element.attributes.y.nodeValue);
+        this.api.execute(simpledraw_view_1.Action.CREATE_SQUARE, {}, [point0, point1]);
+    }
+    createCircle(node) {
+        let centerElement = node.children[0];
+        let radius = +node.attributes.radius.nodeValue;
+        let center = new utils_1.Point(+centerElement.attributes.x.nodeValue, +centerElement.attributes.y.nodeValue);
+        this.api.execute(simpledraw_view_1.Action.CREATE_CIRCLE, { radius: radius }, [center]);
+    }
+    createTriangle(node) {
+        let point0Element = node.children[0];
+        let point1Element = node.children[1];
+        let point2Element = node.children[2];
+        let point0 = new utils_1.Point(+point0Element.attributes.x.nodeValue, +point0Element.attributes.y.nodeValue);
+        let point1 = new utils_1.Point(+point1Element.attributes.x.nodeValue, +point1Element.attributes.y.nodeValue);
+        let point2 = new utils_1.Point(+point2Element.attributes.x.nodeValue, +point2Element.attributes.y.nodeValue);
+        this.api.execute(simpledraw_view_1.Action.CREATE_TRIANGLE, {}, [point0, point1, point2]);
+    }
+    translate(node) {
+        let clickedElement = node.children[0];
+        let newPointElement = node.children[1];
+        let clicked = new utils_1.Point(+clickedElement.attributes.x.nodeValue, +clickedElement.attributes.y.nodeValue);
+        let newPoint = new utils_1.Point(+newPointElement.attributes.x.nodeValue, +newPointElement.attributes.y.nodeValue);
+        console.log('translate');
+        console.log(clicked, newPoint);
+        this.api.execute(simpledraw_view_1.Action.TRANSLATE, {}, [clicked, newPoint]);
+    }
+    rotate(node) {
+        let angle = +node.attributes.angle.nodeValue;
+        let clickedElement = node.children[0];
+        let clicked = new utils_1.Point(+clickedElement.attributes.x.nodeValue, +clickedElement.attributes.y.nodeValue);
+        console.log('rotate');
+        console.log(clicked, angle);
+        this.api.execute(simpledraw_view_1.Action.ROTATE, { angle: angle }, [clicked]);
+    }
+    scale(node) {
+        let sx = +node.attributes.sx.nodeValue;
+        let sy = +node.attributes.sy.nodeValue;
+        let clickedElement = node.children[0];
+        let clicked = new utils_1.Point(+clickedElement.attributes.x.nodeValue, +clickedElement.attributes.y.nodeValue);
+        console.log("scale");
+        console.log(clicked, sx, sy);
+        this.api.execute(simpledraw_view_1.Action.SCALE, { sx: sx, sy: sy }, [clicked]);
+    }
+}
+exports.loadXML = loadXML;
+
+},{"../view/simpledraw_view":16,"./utils":6}],5:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("../view/simpledraw_view");
@@ -731,7 +819,7 @@ class SetLayerExecuter {
     }
 }
 
-},{"../view/simpledraw_view":15,"./utils":5}],5:[function(require,module,exports){
+},{"../view/simpledraw_view":16,"./utils":6}],6:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 class Utils {
@@ -779,7 +867,7 @@ class NullPoint extends Point {
 }
 exports.NullPoint = NullPoint;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("./view/simpledraw_view");
@@ -834,7 +922,7 @@ simpleDraw.addRenderer(new renderer_canvas_1.CanvasRenderer('canvas2'));
 simpleDraw.addRenderer(new renderer_svg_1.SVGRenderer('svg1'));
 simpleDraw.addRenderer(new renderer_svg_1.SVGRenderer('svg2'));
 
-},{"./view/renderer_canvas":13,"./view/renderer_svg":14,"./view/simpledraw_view":15}],7:[function(require,module,exports){
+},{"./view/renderer_canvas":14,"./view/renderer_svg":15,"./view/simpledraw_view":16}],8:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const shape_1 = require("./shape");
@@ -944,7 +1032,7 @@ class ScaleAction {
 }
 exports.ScaleAction = ScaleAction;
 
-},{"./shape":10}],8:[function(require,module,exports){
+},{"./shape":11}],9:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("./actions");
@@ -1050,7 +1138,7 @@ class SimpleDrawDocument {
 }
 exports.SimpleDrawDocument = SimpleDrawDocument;
 
-},{"./actions":7,"./layers":9,"./undo":11}],9:[function(require,module,exports){
+},{"./actions":8,"./layers":10,"./undo":12}],10:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 class LayersManager {
@@ -1096,7 +1184,7 @@ class LayersManager {
 }
 exports.LayersManager = LayersManager;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("../controller/utils");
@@ -1216,7 +1304,7 @@ class Triangle extends Shape {
 }
 exports.Triangle = Triangle;
 
-},{"../controller/utils":5}],11:[function(require,module,exports){
+},{"../controller/utils":6}],12:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 class UndoManager {
@@ -1246,7 +1334,7 @@ class UndoManager {
 }
 exports.UndoManager = UndoManager;
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("../controller/utils");
@@ -1318,7 +1406,7 @@ class Renderer {
 }
 exports.Renderer = Renderer;
 
-},{"../controller/utils":5}],13:[function(require,module,exports){
+},{"../controller/utils":6}],14:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const renderer_1 = require("./renderer");
@@ -1478,7 +1566,7 @@ class CanvasGradientDecorator extends CanvasShapeRenderer {
     }
 }
 
-},{"../model/shape":10,"./renderer":12}],14:[function(require,module,exports){
+},{"../model/shape":11,"./renderer":13}],15:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const renderer_1 = require("./renderer");
@@ -1688,7 +1776,7 @@ class SVGTriangleRenderer extends SVGShapeRenderer {
     }
 }
 
-},{"../model/shape":10,"./renderer":12}],15:[function(require,module,exports){
+},{"../model/shape":11,"./renderer":13}],16:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const document_1 = require("../model/document");
@@ -1697,6 +1785,7 @@ const simpledraw_api_1 = require("../controller/simpledraw_api");
 const click_controller_1 = require("../controller/click_controller");
 const converter_1 = require("../controller/converter");
 const utils_1 = require("../controller/utils");
+const loadXML_1 = require("../controller/loadXML");
 class SimpleDrawView {
     constructor() {
         this.renderers = new Array();
@@ -1793,7 +1882,8 @@ class SimpleDrawView {
                     const fileResult = reader.result;
                     var oParser = new DOMParser();
                     var oDOM = oParser.parseFromString(fileResult, "application/xml");
-                    console.log([oDOM.documentElement]);
+                    let load = new loadXML_1.loadXML(oDOM.documentElement, this.api);
+                    load.load();
                     // print the name of the root element or error message
                     console.log(oDOM.documentElement.nodeName == "parsererror" ? "error while parsing" : oDOM.documentElement.children);
                 }
@@ -1889,4 +1979,4 @@ class UserEventPoint extends UserEvent {
 }
 exports.UserEventPoint = UserEventPoint;
 
-},{"../controller/click_controller":1,"../controller/converter":2,"../controller/interpreter":3,"../controller/simpledraw_api":4,"../controller/utils":5,"../model/document":8}]},{},[6]);
+},{"../controller/click_controller":1,"../controller/converter":2,"../controller/interpreter":3,"../controller/loadXML":4,"../controller/simpledraw_api":5,"../controller/utils":6,"../model/document":9}]},{},[7]);

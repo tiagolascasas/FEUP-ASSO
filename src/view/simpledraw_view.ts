@@ -7,7 +7,7 @@ import { SimpleDrawAPI } from '../controller/simpledraw_api'
 import { ClickController } from '../controller/click_controller'
 import { XMLConverterVisitor, TXTConverterVisitor } from '../controller/converter'
 import { Point, NullPoint } from '../controller/utils'
-import { loadXML } from 'controller/loadXML';
+import { loadXML } from '../controller/loadXML'
 
 export class SimpleDrawView implements LayersObserver {
     renderers = new Array<Renderer>()
@@ -132,7 +132,6 @@ export class SimpleDrawView implements LayersObserver {
                     const fileResult = (<string>reader.result)
                     var oParser = new DOMParser();
                     var oDOM = oParser.parseFromString(fileResult, "application/xml");
-                    console.log([oDOM.documentElement]);
                     let load = new loadXML(oDOM.documentElement,this.api)
                     load.load()
                     // print the name of the root element or error message
