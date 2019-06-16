@@ -1,6 +1,6 @@
 'use strict'
 
-type UndoableAction<S> = { do(): S; undo(): void }
+export type UndoableAction<S> = { do(): S; undo(): void }
 
 export class UndoManager<S, A extends UndoableAction<S>> {
     doStack = new Array<A>()

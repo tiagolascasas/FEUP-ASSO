@@ -11,6 +11,7 @@ export abstract class Shape {
 
     translate(point: Point): void {
         this.center = point
+        console.log(this.center)
     }
 
     rotate(angled: number) {

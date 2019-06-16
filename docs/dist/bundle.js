@@ -90,6 +90,24 @@ class XMLConverterVisitor {
     constructor() {
         this.doc = document.implementation.createDocument('', '', null);
     }
+    visitCreateRectangleAction(action) {
+        throw new Error("Method not implemented.");
+    }
+    visitCreateCircleAction(action) {
+        throw new Error("Method not implemented.");
+    }
+    visitCreateTriangleAction(action) {
+        throw new Error("Method not implemented.");
+    }
+    visitTranslateAction(action) {
+        throw new Error("Method not implemented.");
+    }
+    visitRotateAction(action) {
+        throw new Error("Method not implemented.");
+    }
+    visitScaleAction(action) {
+        throw new Error("Method not implemented.");
+    }
     visitAll(objects) {
         let savedObjets = this.doc.createElement('objects');
         for (const object of objects) {
@@ -121,9 +139,56 @@ class XMLConverterVisitor {
         circleElem.setAttribute('y', circle.center.y.toString());
         return circleElem;
     }
+    visitAllDoActions(actions) {
+        let savedObjets = this.doc.createElement('objects');
+        for (const action of actions) {
+            savedObjets.appendChild(action.accept(this));
+        }
+        this.doc.appendChild(savedObjets);
+        utils_1.Utils.download('save.xml', new XMLSerializer().serializeToString(this.doc.documentElement));
+    }
 }
 exports.XMLConverterVisitor = XMLConverterVisitor;
 class TXTConverterVisitor {
+    //     Start :=  <add> AddExpr 
+    //         | <translate> TranslateExpr
+    //         | <rotate> RotateExpr
+    //         | <scale> ScaleExpr
+    //         | <grid> GridExpr
+    //         | <undo>
+    //         | <redo>
+    // AddExpr := <square> SquareExpr
+    //         |  <circle> CircleExpr 
+    //         |  <triangle> TriangleExpr
+    // SquareExpr := <number> <number> <number> <number> <color>
+    // CircleExpr := <number> <number> <number> <color>
+    // TriangleExpr := <number> <number> <number> <number> <number> <number> <color>
+    // TranslateExpr := <number> <number> <number> <number>
+    // RotateExpr := <number> <number> <number>
+    // ScaleExpr := <number> <number> <number> <number>
+    // GridExpr := <number> <number> <number> <number
+    visitCreateRectangleAction(action) {
+        let point1x = action.center.x - action.width / 2;
+        let point1y = action.center.y - action.height / 2;
+        let point2x = action.center.x + action.width / 2;
+        let point2y = action.center.y + action.height / 2;
+        return `add square ${point1x} ${point1y} ${point2x} ${point2y} ${action.color}\r\n`;
+    }
+    visitCreateCircleAction(action) {
+        return `add circle ${action.center.x} ${action.center.y} ${action.radius} ${action.color}\r\n`;
+    }
+    visitCreateTriangleAction(action) {
+        return `add triangle ${action.p0.x} ${action.p0.y} ${action.p1.x} ${action.p1.y} ${action.p2.x} ${action.p2.y} ${action.color}\r\n`;
+    }
+    visitTranslateAction(action) {
+        return `translate ${action.clickedPoint.x} ${action.clickedPoint.y} ${action.newPoint.x} ${action.newPoint.y}\r\n`;
+    }
+    visitRotateAction(action) {
+        throw new Error("Method not implemented.");
+    }
+    visitScaleAction(action) {
+        throw new Error("Method not implemented.");
+    }
     visitAll(objects) {
         let saved = '';
         for (const object of objects) {
@@ -151,6 +216,13 @@ class TXTConverterVisitor {
         saved = saved.concat('x= ', circle.center.x.toString(), '\r\n');
         saved = saved.concat('y= ', circle.center.y.toString(), '\r\n');
         return saved;
+    }
+    visitAllDoActions(actions) {
+        let saved = '';
+        for (const action of actions) {
+            saved = saved.concat(action.accept(this));
+        }
+        utils_1.Utils.download('save.txt', saved);
     }
 }
 exports.TXTConverterVisitor = TXTConverterVisitor;
@@ -248,7 +320,7 @@ class TerminalNumberExpression extends TerminalExpression {
     interpret(context) {
         if (context.hasNext()) {
             let token = context.next();
-            const regex = new RegExp('^[0-9]+$');
+            const regex = new RegExp('^[0-9]+\.?[0-9]*$');
             return regex.test(token);
         }
         else
@@ -312,7 +384,7 @@ class TranslateExpression {
             termExp.interpret(context) &&
             termExp.interpret(context)) {
             let p1 = new utils_1.Point(Number(context.get(1)), Number(context.get(2)));
-            let p2 = new utils_1.Point(Number(context.get(4)), Number(context.get(3)));
+            let p2 = new utils_1.Point(Number(context.get(3)), Number(context.get(4)));
             context.api.execute(simpledraw_view_1.Action.TRANSLATE, {}, [p1, p2]);
             return true;
         }
@@ -550,10 +622,7 @@ class CreateTriangleExecuter {
 //args = {}, points = [origin, destiny]
 class TranslateExecuter {
     executeAction(document, args, points) {
-        for (const shape of document.objects) {
-            if (shape.isHit(points[0]))
-                document.translate(shape, points[1]);
-        }
+        document.translate(points[0], points[1]);
     }
 }
 //args = {angle}, points = [point]
@@ -729,6 +798,9 @@ class CreateCircleAction extends CreateShapeAction {
         this.radius = radius;
         this.color = color;
     }
+    accept(visitor) {
+        return visitor.visitCreateCircleAction(this);
+    }
 }
 exports.CreateCircleAction = CreateCircleAction;
 class CreateRectangleAction extends CreateShapeAction {
@@ -738,6 +810,9 @@ class CreateRectangleAction extends CreateShapeAction {
         this.width = width;
         this.height = height;
         this.color = color;
+    }
+    accept(visitor) {
+        return visitor.visitCreateRectangleAction(this);
     }
 }
 exports.CreateRectangleAction = CreateRectangleAction;
@@ -749,12 +824,16 @@ class CreateTriangleAction extends CreateShapeAction {
         this.p2 = p2;
         this.color = color;
     }
+    accept(visitor) {
+        return visitor.visitCreateTriangleAction(this);
+    }
 }
 exports.CreateTriangleAction = CreateTriangleAction;
 class TranslateAction {
-    constructor(shape, newPoint) {
+    constructor(shape, newPoint, clickedPoint) {
         this.shape = shape;
         this.newPoint = newPoint;
+        this.clickedPoint = clickedPoint;
     }
     do() {
         this.oldPoint = this.shape.center;
@@ -762,6 +841,9 @@ class TranslateAction {
     }
     undo() {
         this.shape.translate(this.oldPoint);
+    }
+    accept(visitor) {
+        return visitor.visitTranslateAction(this);
     }
 }
 exports.TranslateAction = TranslateAction;
@@ -777,6 +859,9 @@ class RotateAction {
     undo() {
         this.shape.angle = this.oldAngle;
     }
+    accept(visitor) {
+        return visitor.visitRotateAction(this);
+    }
 }
 exports.RotateAction = RotateAction;
 class ScaleAction {
@@ -789,6 +874,9 @@ class ScaleAction {
     }
     undo() {
         this.shape.scale(1.0 / this.scaled.x, 1.0 / this.scaled.y);
+    }
+    accept(visitor) {
+        return visitor.visitScaleAction(this);
     }
 }
 exports.ScaleAction = ScaleAction;
@@ -840,7 +928,8 @@ class SimpleDrawDocument {
         //try to write into file later cause it's "dangerous", either blob or file
         //let newFile = new File(, { type: "text/xml", endings: 'native' });
         // console.log(doc);
-        saveMode.visitAll(this.objects);
+        // saveMode.visitAll(this.objects)
+        saveMode.visitAllDoActions(this.undoManager.doStack);
     }
     createRectangle(center, width, height, color) {
         return this.do(new actions_1.CreateRectangleAction(this, center, width, height, color));
@@ -851,8 +940,11 @@ class SimpleDrawDocument {
     createTriangle(p0, p1, p2, color) {
         return this.do(new actions_1.CreateTriangleAction(this, p0, p1, p2, color));
     }
-    translate(s, newPoint) {
-        return this.do(new actions_1.TranslateAction(s, newPoint));
+    translate(clickedPoint, newPoint) {
+        for (const shape of this.objects) {
+            if (shape.isHit(clickedPoint))
+                this.do(new actions_1.TranslateAction(shape, newPoint, clickedPoint));
+        }
     }
     rotate(s, angled) {
         return this.do(new actions_1.RotateAction(s, angled));
@@ -941,6 +1033,7 @@ class Shape {
     }
     translate(point) {
         this.center = point;
+        console.log(this.center);
     }
     rotate(angled) {
         if (angled < 0)

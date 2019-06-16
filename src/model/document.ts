@@ -13,7 +13,7 @@ import {
 import { UndoManager } from './undo'
 import { LayersManager } from './layers'
 import { Visitor } from '../controller/converter'
-import { Point } from '../controller/utils';
+import { Point } from '../controller/utils'
 
 export class SimpleDrawDocument {
     objects = new Array<Shape>()
@@ -60,7 +60,8 @@ export class SimpleDrawDocument {
         //let newFile = new File(, { type: "text/xml", endings: 'native' });
         // console.log(doc);
 
-        saveMode.visitAll(this.objects)
+        // saveMode.visitAll(this.objects)
+        saveMode.visitAllDoActions(this.undoManager.doStack)
     }
 
     createRectangle(center: Point, width: number, height: number, color: string): Shape {
@@ -71,24 +72,21 @@ export class SimpleDrawDocument {
         return this.do(new CreateCircleAction(this, center, radius, color))
     }
 
-    createTriangle(
-        p0: Point,
-        p1: Point,
-        p2: Point,
-        color: string
-    ): Shape {
+    createTriangle(p0: Point, p1: Point, p2: Point, color: string): Shape {
         return this.do(new CreateTriangleAction(this, p0, p1, p2, color))
     }
 
-    translate(s: Shape, newPoint: Point): void {
-        return this.do(new TranslateAction( s, newPoint))
+    translate(clickedPoint: Point, newPoint: Point): void {
+        for (const shape of this.objects) {
+            if (shape.isHit(clickedPoint)) this.do(new TranslateAction(shape, newPoint, clickedPoint))
+        }
     }
 
     rotate(s: Shape, angled: number): void {
         return this.do(new RotateAction(s, angled))
     }
 
-    scale(s: Shape, scaled: Point): void{
+    scale(s: Shape, scaled: Point): void {
         return this.do(new ScaleAction(s, scaled))
     }
 

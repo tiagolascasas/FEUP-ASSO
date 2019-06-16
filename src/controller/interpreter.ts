@@ -104,7 +104,7 @@ class TerminalNumberExpression extends TerminalExpression {
     interpret(context: Context): boolean {
         if (context.hasNext()) {
             let token = context.next()
-            const regex = new RegExp('^[0-9]+$')
+            const regex = new RegExp('^[0-9]+\.?[0-9]*$')
             return regex.test(token)
         } else return false
     }
@@ -176,7 +176,7 @@ class TranslateExpression implements Expression {
             termExp.interpret(context)
         ) {
             let p1 = new Point(Number(context.get(1)), Number(context.get(2)))
-            let p2 = new Point(Number(context.get(4)), Number(context.get(3)))
+            let p2 = new Point(Number(context.get(3)), Number(context.get(4)))
             context.api.execute(Action.TRANSLATE, {}, [p1, p2])
             return true
         } else return false
