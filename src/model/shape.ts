@@ -113,8 +113,9 @@ export class Triangle extends Shape {
         super(new Point((p0.x + p1.x + p2.x) / 3.0, (p0.y + p1.y + p2.y) / 3.0), color)
     }
 
-    accept(visitor: Visitor) {
-        return
+
+    accept(visitor: Visitor): Element {
+        return visitor.visitTriangle(this)
     }
 
     //Taken from here: https://stackoverflow.com/a/34093754
