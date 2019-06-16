@@ -19,23 +19,107 @@ export interface Visitor {
 
 export class XMLConverterVisitor implements Visitor {
     visitCreateRectangleAction(action: CreateRectangleAction) {
-        throw new Error("Method not implemented.");
+        let point1x = action.center.x - action.width / 2
+        let point1y = action.center.y - action.height / 2
+
+        let point2x = action.center.x + action.width / 2
+        let point2y = action.center.y + action.height / 2
+
+        let rectElem: Element = this.doc.createElement('createRectangle')
+        let point1: Element = this.doc.createElement('point')
+        let point2: Element = this.doc.createElement('point')
+
+        point1.setAttribute('x', point1x.toString())
+        point1.setAttribute('y', point1y.toString())
+
+        point2.setAttribute('x', point2x.toString())
+        point2.setAttribute('y', point2y.toString())
+        rectElem.setAttribute('color', action.color)
+        rectElem.appendChild(point1)
+        rectElem.appendChild(point2)
+        return rectElem
     }
 
     visitCreateCircleAction(action: CreateCircleAction): Element {
-        throw new Error("Method not implemented.");
+        let circleElem: Element = this.doc.createElement('createCircle')
+
+        let point1: Element = this.doc.createElement('point')
+
+        point1.setAttribute('x', action.center.x.toString())
+        point1.setAttribute('y', action.center.y.toString())
+
+        circleElem.setAttribute('radius', action.radius.toString())
+        circleElem.setAttribute('color', action.color)
+        circleElem.appendChild(point1)
+        return circleElem
     }
+
     visitCreateTriangleAction(action: CreateTriangleAction): Element {
-        throw new Error("Method not implemented.");
+        let triangleElem: Element = this.doc.createElement('createTriangle')
+
+        let point0: Element = this.doc.createElement('point')
+
+        point0.setAttribute('x', action.p0.x.toString())
+        point0.setAttribute('y', action.p0.y.toString())
+
+        let point1: Element = this.doc.createElement('point')
+
+        point1.setAttribute('x', action.p1.x.toString())
+        point1.setAttribute('y', action.p1.y.toString())
+
+        let point2: Element = this.doc.createElement('point')
+
+        point2.setAttribute('x', action.p2.x.toString())
+        point2.setAttribute('y', action.p2.y.toString())
+
+
+        triangleElem.setAttribute('color', action.color)
+        triangleElem.appendChild(point0)
+        triangleElem.appendChild(point1)
+        triangleElem.appendChild(point2)
+        return triangleElem
     }
+
     visitTranslateAction(action: TranslateAction): Element {
-        throw new Error("Method not implemented.");
+        let translateElem: Element = this.doc.createElement('translate')
+        let clickedPoint: Element = this.doc.createElement('clickedPoint')
+
+        clickedPoint.setAttribute('x', action.clickedPoint.x.toString())
+        clickedPoint.setAttribute('y', action.clickedPoint.y.toString())
+
+        let newPoint: Element = this.doc.createElement('newPoint')
+
+        newPoint.setAttribute('x', action.newPoint.x.toString())
+        newPoint.setAttribute('y', action.newPoint.y.toString())
+        
+        translateElem.appendChild(clickedPoint)
+        translateElem.appendChild(newPoint)
+        return translateElem
     }
+
     visitRotateAction(action: RotateAction): Element {
-        throw new Error("Method not implemented.");
+        let rotateElem: Element = this.doc.createElement('rotate')
+        let clickedPoint: Element = this.doc.createElement('clickedPoint')
+
+        clickedPoint.setAttribute('x', action.clickedPoint.x.toString())
+        clickedPoint.setAttribute('y', action.clickedPoint.y.toString())
+
+        rotateElem.setAttribute('angle', action.angled.toString())
+        rotateElem.appendChild(clickedPoint)
+        return rotateElem
     }
+
     visitScaleAction(action: ScaleAction): Element {
-        throw new Error("Method not implemented.");
+        let scaleElem: Element = this.doc.createElement('scale')
+        let clickedPoint: Element = this.doc.createElement('clickedPoint')
+
+        clickedPoint.setAttribute('x', action.clickedPoint.x.toString())
+        clickedPoint.setAttribute('y', action.clickedPoint.y.toString())
+
+        scaleElem.setAttribute('sx', action.scaled.x.toString())
+        scaleElem.setAttribute('sy', action.scaled.y.toString())
+        scaleElem.appendChild(clickedPoint)
+        return scaleElem
     }
     doc: XMLDocument = document.implementation.createDocument('', '', null)
     visitAll(objects: Shape[]) {
@@ -74,7 +158,7 @@ export class XMLConverterVisitor implements Visitor {
     }
 
     visitAllDoActions(actions: Action<any>[]){
-        let savedObjets = this.doc.createElement('objects')
+        let savedObjets = this.doc.createElement('actions')
         for (const action of actions) {
             savedObjets.appendChild(action.accept(this))
         }
@@ -100,23 +184,6 @@ export class XMLConverterVisitor implements Visitor {
 }
 
 export class TXTConverterVisitor implements Visitor {
-    //     Start :=  <add> AddExpr 
-    //         | <translate> TranslateExpr
-    //         | <rotate> RotateExpr
-    //         | <scale> ScaleExpr
-    //         | <grid> GridExpr
-    //         | <undo>
-    //         | <redo>
-    // AddExpr := <square> SquareExpr
-    //         |  <circle> CircleExpr 
-    //         |  <triangle> TriangleExpr
-    // SquareExpr := <number> <number> <number> <number> <color>
-    // CircleExpr := <number> <number> <number> <color>
-    // TriangleExpr := <number> <number> <number> <number> <number> <number> <color>
-    // TranslateExpr := <number> <number> <number> <number>
-    // RotateExpr := <number> <number> <number>
-    // ScaleExpr := <number> <number> <number> <number>
-    // GridExpr := <number> <number> <number> <number
     visitCreateRectangleAction(action: CreateRectangleAction): String {
         let point1x = action.center.x - action.width / 2
         let point1y = action.center.y - action.height / 2

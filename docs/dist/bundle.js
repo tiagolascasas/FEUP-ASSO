@@ -91,22 +91,79 @@ class XMLConverterVisitor {
         this.doc = document.implementation.createDocument('', '', null);
     }
     visitCreateRectangleAction(action) {
-        throw new Error("Method not implemented.");
+        let point1x = action.center.x - action.width / 2;
+        let point1y = action.center.y - action.height / 2;
+        let point2x = action.center.x + action.width / 2;
+        let point2y = action.center.y + action.height / 2;
+        let rectElem = this.doc.createElement('createRectangle');
+        let point1 = this.doc.createElement('point');
+        let point2 = this.doc.createElement('point');
+        point1.setAttribute('x', point1x.toString());
+        point1.setAttribute('y', point1y.toString());
+        point2.setAttribute('x', point2x.toString());
+        point2.setAttribute('y', point2y.toString());
+        rectElem.setAttribute('color', action.color);
+        rectElem.appendChild(point1);
+        rectElem.appendChild(point2);
+        return rectElem;
     }
     visitCreateCircleAction(action) {
-        throw new Error("Method not implemented.");
+        let circleElem = this.doc.createElement('createCircle');
+        let point1 = this.doc.createElement('point');
+        point1.setAttribute('x', action.center.x.toString());
+        point1.setAttribute('y', action.center.y.toString());
+        circleElem.setAttribute('radius', action.radius.toString());
+        circleElem.setAttribute('color', action.color);
+        circleElem.appendChild(point1);
+        return circleElem;
     }
     visitCreateTriangleAction(action) {
-        throw new Error("Method not implemented.");
+        let triangleElem = this.doc.createElement('createTriangle');
+        let point0 = this.doc.createElement('point');
+        point0.setAttribute('x', action.p0.x.toString());
+        point0.setAttribute('y', action.p0.y.toString());
+        let point1 = this.doc.createElement('point');
+        point1.setAttribute('x', action.p1.x.toString());
+        point1.setAttribute('y', action.p1.y.toString());
+        let point2 = this.doc.createElement('point');
+        point2.setAttribute('x', action.p2.x.toString());
+        point2.setAttribute('y', action.p2.y.toString());
+        triangleElem.setAttribute('color', action.color);
+        triangleElem.appendChild(point0);
+        triangleElem.appendChild(point1);
+        triangleElem.appendChild(point2);
+        return triangleElem;
     }
     visitTranslateAction(action) {
-        throw new Error("Method not implemented.");
+        let translateElem = this.doc.createElement('translate');
+        let clickedPoint = this.doc.createElement('clickedPoint');
+        clickedPoint.setAttribute('x', action.clickedPoint.x.toString());
+        clickedPoint.setAttribute('y', action.clickedPoint.y.toString());
+        let newPoint = this.doc.createElement('newPoint');
+        newPoint.setAttribute('x', action.newPoint.x.toString());
+        newPoint.setAttribute('y', action.newPoint.y.toString());
+        translateElem.appendChild(clickedPoint);
+        translateElem.appendChild(newPoint);
+        return translateElem;
     }
     visitRotateAction(action) {
-        throw new Error("Method not implemented.");
+        let rotateElem = this.doc.createElement('rotate');
+        let clickedPoint = this.doc.createElement('clickedPoint');
+        clickedPoint.setAttribute('x', action.clickedPoint.x.toString());
+        clickedPoint.setAttribute('y', action.clickedPoint.y.toString());
+        rotateElem.setAttribute('angle', action.angled.toString());
+        rotateElem.appendChild(clickedPoint);
+        return rotateElem;
     }
     visitScaleAction(action) {
-        throw new Error("Method not implemented.");
+        let scaleElem = this.doc.createElement('scale');
+        let clickedPoint = this.doc.createElement('clickedPoint');
+        clickedPoint.setAttribute('x', action.clickedPoint.x.toString());
+        clickedPoint.setAttribute('y', action.clickedPoint.y.toString());
+        scaleElem.setAttribute('sx', action.scaled.x.toString());
+        scaleElem.setAttribute('sy', action.scaled.y.toString());
+        scaleElem.appendChild(clickedPoint);
+        return scaleElem;
     }
     visitAll(objects) {
         let savedObjets = this.doc.createElement('objects');
@@ -140,7 +197,7 @@ class XMLConverterVisitor {
         return circleElem;
     }
     visitAllDoActions(actions) {
-        let savedObjets = this.doc.createElement('objects');
+        let savedObjets = this.doc.createElement('actions');
         for (const action of actions) {
             savedObjets.appendChild(action.accept(this));
         }
@@ -164,23 +221,6 @@ class XMLConverterVisitor {
 }
 exports.XMLConverterVisitor = XMLConverterVisitor;
 class TXTConverterVisitor {
-    //     Start :=  <add> AddExpr 
-    //         | <translate> TranslateExpr
-    //         | <rotate> RotateExpr
-    //         | <scale> ScaleExpr
-    //         | <grid> GridExpr
-    //         | <undo>
-    //         | <redo>
-    // AddExpr := <square> SquareExpr
-    //         |  <circle> CircleExpr 
-    //         |  <triangle> TriangleExpr
-    // SquareExpr := <number> <number> <number> <number> <color>
-    // CircleExpr := <number> <number> <number> <color>
-    // TriangleExpr := <number> <number> <number> <number> <number> <number> <color>
-    // TranslateExpr := <number> <number> <number> <number>
-    // RotateExpr := <number> <number> <number>
-    // ScaleExpr := <number> <number> <number> <number>
-    // GridExpr := <number> <number> <number> <number
     visitCreateRectangleAction(action) {
         let point1x = action.center.x - action.width / 2;
         let point1y = action.center.y - action.height / 2;
@@ -1068,7 +1108,6 @@ class Shape {
     }
     translate(point) {
         this.center = point;
-        console.log(this.center);
     }
     rotate(angled) {
         if (angled < 0)
@@ -1125,7 +1164,6 @@ class Circle extends Shape {
         let radAngle = (this.angle * Math.PI) / 180;
         let addX = (Math.abs(Math.cos(radAngle)) * (sx - 1)) * this.rx + (Math.abs(Math.sin(radAngle)) * (sy - 1)) * this.rx;
         let addY = (Math.abs(Math.cos(radAngle)) * (sy - 1)) * this.ry + (Math.abs(Math.sin(radAngle)) * (sx - 1)) * this.ry;
-        console.log(addX, addY);
         this.rx = addX + +this.rx;
         this.ry = addY + +this.rx;
     }
@@ -1620,7 +1658,6 @@ class SVGCircleRenderer extends SVGShapeRenderer {
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         const shape = this.shape;
         g.setAttribute('transform', `translate(${shape.center.x}, ${shape.center.y}) rotate(${shape.angle})`);
-        console.log(shape);
         e.setAttribute('cx', '0');
         e.setAttribute('cy', '0');
         e.setAttribute('rx', shape.rx.toString());
@@ -1741,14 +1778,25 @@ class SimpleDrawView {
             //Taken from here https://stackoverflow.com/questions/23331546/how-to-use-javascript-to-read-local-text-file-and-read-line-by-line
             const file = e.target.files[0];
             const reader = new FileReader();
+            console.log(file);
             reader.onload = event => {
-                console.log(event);
-                const file = reader.result;
-                const allLines = file.split('\r\n');
-                // Reading line by line
-                allLines.forEach(line => {
-                    this.interpreter.eval(line);
-                });
+                const extention = file.name.split('.').pop();
+                if (extention === "txt") {
+                    const fileResult = reader.result;
+                    const allLines = fileResult.split('\r\n');
+                    // Reading line by line and executing each action
+                    allLines.forEach(line => {
+                        this.interpreter.eval(line);
+                    });
+                }
+                else if (extention === "xml") {
+                    const fileResult = reader.result;
+                    var oParser = new DOMParser();
+                    var oDOM = oParser.parseFromString(fileResult, "application/xml");
+                    console.log([oDOM.documentElement]);
+                    // print the name of the root element or error message
+                    console.log(oDOM.documentElement.nodeName == "parsererror" ? "error while parsing" : oDOM.documentElement.children);
+                }
             };
             reader.onerror = event => {
                 alert(e.target.name);

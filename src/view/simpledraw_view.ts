@@ -7,6 +7,7 @@ import { SimpleDrawAPI } from '../controller/simpledraw_api'
 import { ClickController } from '../controller/click_controller'
 import { XMLConverterVisitor, TXTConverterVisitor } from '../controller/converter'
 import { Point, NullPoint } from '../controller/utils'
+import { loadXML } from 'controller/loadXML';
 
 export class SimpleDrawView implements LayersObserver {
     renderers = new Array<Renderer>()
@@ -116,15 +117,28 @@ export class SimpleDrawView implements LayersObserver {
             //Taken from here https://stackoverflow.com/questions/23331546/how-to-use-javascript-to-read-local-text-file-and-read-line-by-line
             const file = (<HTMLInputElement> e.target).files[0]
             const reader = new FileReader()
-
+            console.log(file)
             reader.onload = event => {
+                const extention = file.name.split('.').pop()
+                if(extention === "txt"){
+                    const fileResult = (<string>reader.result)
+
+                    const allLines = fileResult.split('\r\n')
+                    // Reading line by line and executing each action
+                    allLines.forEach(line => {
+                        this.interpreter.eval(line)
+                    })
+                }else if (extention === "xml"){
+                    const fileResult = (<string>reader.result)
+                    var oParser = new DOMParser();
+                    var oDOM = oParser.parseFromString(fileResult, "application/xml");
+                    console.log([oDOM.documentElement]);
+                    let load = new loadXML(oDOM.documentElement,this.api)
+                    load.load()
+                    // print the name of the root element or error message
+                    console.log(oDOM.documentElement.nodeName == "parsererror" ? "error while parsing" : oDOM.documentElement.children);
+                }
                 
-                const file = reader.result
-                const allLines = (<String> file).split('\r\n')
-                // Reading line by line
-                allLines.forEach(line => {
-                    this.interpreter.eval(line)
-                })
             }
 
             reader.onerror = event => {
