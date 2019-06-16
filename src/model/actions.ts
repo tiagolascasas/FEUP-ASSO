@@ -100,7 +100,7 @@ export class TranslateAction implements Action<void> {
 export class RotateAction implements Action<void> {
     oldAngle: number
 
-    constructor(public shape: Shape, public angled: number) {}
+    constructor(public shape: Shape, public angled: number, public readonly clickedPoint: Point) {}
 
     do(): void {
         this.oldAngle = this.shape.angle
@@ -116,7 +116,7 @@ export class RotateAction implements Action<void> {
 }
 
 export class ScaleAction implements Action<void> {
-    constructor(public shape: Shape, public scaled: Point) {}
+    constructor(public shape: Shape, public scaled: Point, public readonly clickedPoint: Point) {}
 
     do(): void {
         this.shape.scale(this.scaled.x,this.scaled.y)

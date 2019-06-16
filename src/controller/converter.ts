@@ -3,13 +3,13 @@ import { Utils, Point } from './utils'
 import { Action, CreateCircleAction, CreateRectangleAction, CreateTriangleAction, TranslateAction, RotateAction, ScaleAction } from 'model/actions';
 import { UndoableAction } from 'model/undo';
 export interface Visitor {
+    //everything is any for now until better solution
     visitCreateRectangleAction(action: CreateRectangleAction): any
     visitCreateCircleAction(action: CreateCircleAction): any
     visitCreateTriangleAction(action: CreateTriangleAction): any
     visitTranslateAction(action: TranslateAction): any
     visitRotateAction(action: RotateAction): any
     visitScaleAction(action: ScaleAction): any
-    //everything is any for now until better solution
     visitAll(objects: Array<Shape>): void
     visitRectangle(rect: Rectangle): any
     visitCircle(circle: Circle): any
@@ -135,10 +135,10 @@ export class TXTConverterVisitor implements Visitor {
         return `translate ${action.clickedPoint.x} ${action.clickedPoint.y} ${action.newPoint.x} ${action.newPoint.y}\r\n`
     }
     visitRotateAction(action: RotateAction): String {
-        throw new Error("Method not implemented.");
+        return `rotate ${action.angled} ${action.clickedPoint.x} ${action.clickedPoint.y}\r\n`
     }
     visitScaleAction(action: ScaleAction): String {
-        throw new Error("Method not implemented.");
+        return `scale ${action.scaled.x} ${action.scaled.y} ${action.clickedPoint.x} ${action.clickedPoint.y}\r\n`
     }
     
     visitAll(objects: Shape[]) {

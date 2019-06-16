@@ -147,7 +147,6 @@ class XMLConverterVisitor {
         this.doc.appendChild(savedObjets);
         utils_1.Utils.download('save.xml', new XMLSerializer().serializeToString(this.doc.documentElement));
     }
-    
     visitTriangle(triangle) {
         console.log('I am XML Converter for the Triangle element');
         var triangleElem = this.doc.createElement('triangle');
@@ -199,10 +198,10 @@ class TXTConverterVisitor {
         return `translate ${action.clickedPoint.x} ${action.clickedPoint.y} ${action.newPoint.x} ${action.newPoint.y}\r\n`;
     }
     visitRotateAction(action) {
-        throw new Error("Method not implemented.");
+        return `rotate ${action.clickedPoint.x} ${action.clickedPoint.y} ${action.angled}\r\n`;
     }
     visitScaleAction(action) {
-        throw new Error("Method not implemented.");
+        return `scale ${action.scaled.x} ${action.scaled.y} ${action.clickedPoint.x} ${action.clickedPoint.y}`;
     }
     visitAll(objects) {
         let saved = '';
@@ -239,7 +238,6 @@ class TXTConverterVisitor {
         }
         utils_1.Utils.download('save.txt', saved);
     }
-    
     visitTriangle(triangle) {
         let saved = 'Triangle \r\n';
         saved = saved.concat('angle= ', triangle.angle.toString(), '\r\n');
@@ -657,19 +655,13 @@ class TranslateExecuter {
 //args = {angle}, points = [point]
 class RotateExecuter {
     executeAction(document, args, points) {
-        for (const shape of document.objects) {
-            if (shape.isHit(points[0]))
-                document.rotate(shape, args.angle);
-        }
+        document.rotate(points[0], args.angle);
     }
 }
 //args = {sx, sy}, points = [point]
 class ScaleExecuter {
     executeAction(document, args, points) {
-        for (const shape of document.objects) {
-            if (shape.isHit(points[0]))
-                document.scale(shape, new utils_1.Point(args.sx, args.sy));
-        }
+        document.scale(points[0], new utils_1.Point(args.sx, args.sy));
     }
 }
 //args = {horizontal_units, vertical_units}, points = [point]
@@ -877,9 +869,10 @@ class TranslateAction {
 }
 exports.TranslateAction = TranslateAction;
 class RotateAction {
-    constructor(shape, angled) {
+    constructor(shape, angled, clickedPoint) {
         this.shape = shape;
         this.angled = angled;
+        this.clickedPoint = clickedPoint;
     }
     do() {
         this.oldAngle = this.shape.angle;
@@ -894,9 +887,10 @@ class RotateAction {
 }
 exports.RotateAction = RotateAction;
 class ScaleAction {
-    constructor(shape, scaled) {
+    constructor(shape, scaled, clickedPoint) {
         this.shape = shape;
         this.scaled = scaled;
+        this.clickedPoint = clickedPoint;
     }
     do() {
         this.shape.scale(this.scaled.x, this.scaled.y);
@@ -975,11 +969,17 @@ class SimpleDrawDocument {
                 this.do(new actions_1.TranslateAction(shape, newPoint, clickedPoint));
         }
     }
-    rotate(s, angled) {
-        return this.do(new actions_1.RotateAction(s, angled));
+    rotate(clickedPoint, angled) {
+        for (const shape of this.objects) {
+            if (shape.isHit(clickedPoint))
+                this.do(new actions_1.RotateAction(shape, angled, clickedPoint));
+        }
     }
-    scale(s, scaled) {
-        return this.do(new actions_1.ScaleAction(s, scaled));
+    scale(clickedPoint, scaled) {
+        for (const shape of this.objects) {
+            if (shape.isHit(clickedPoint))
+                this.do(new actions_1.ScaleAction(shape, scaled, clickedPoint));
+        }
     }
     getObjectsForRendering() {
         return this.layersManager.mapObjectsToLayers(this.objects);

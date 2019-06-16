@@ -82,12 +82,16 @@ export class SimpleDrawDocument {
         }
     }
 
-    rotate(s: Shape, angled: number): void {
-        return this.do(new RotateAction(s, angled))
+    rotate(clickedPoint: Point, angled: number): void {
+        for (const shape of this.objects) {
+            if (shape.isHit(clickedPoint)) this.do(new RotateAction(shape, angled,clickedPoint))
+        }
     }
 
-    scale(s: Shape, scaled: Point): void {
-        return this.do(new ScaleAction(s, scaled))
+    scale(clickedPoint: Point, scaled: Point): void {
+        for (const shape of this.objects) {
+            if (shape.isHit(clickedPoint)) this.do(new ScaleAction(shape, scaled,clickedPoint))
+        }
     }
 
     getObjectsForRendering(): Map<String, Shape[]> {

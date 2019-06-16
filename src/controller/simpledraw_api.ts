@@ -104,20 +104,14 @@ class TranslateExecuter implements ActionExecuter {
 //args = {angle}, points = [point]
 class RotateExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        for (const shape of document.objects) {
-            if (shape.isHit(points[0])) 
-                document.rotate(shape,args.angle)    
-        }
+        document.rotate(points[0],args.angle)       
     }
 }
 
 //args = {sx, sy}, points = [point]
 class ScaleExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        for (const shape of document.objects) {
-            if (shape.isHit(points[0])) 
-                document.scale(shape,new Point(args.sx, args.sy))    
-        }
+        document.scale(points[0], new Point(args.sx, args.sy))  
     }
 }
 
