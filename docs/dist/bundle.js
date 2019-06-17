@@ -414,7 +414,7 @@ class GridExpression {
             let p1 = new utils_1.Point(Number(context.get(3)), Number(context.get(4)));
             let horizontal_units = context.get(1);
             let vertical_units = context.get(2);
-            context.api.execute(simpledraw_view_1.Action.GRID, { horizontal_units: horizontal_units, vertical_units: vertical_units }, [p1]);
+            context.api.execute(simpledraw_view_1.Action.GRID, { x_units: horizontal_units, y_units: vertical_units }, [p1]);
             return true;
         }
         else
@@ -802,7 +802,7 @@ class ScaleExecuter {
         document.scale(points[0], new utils_1.Point(args.sx, args.sy));
     }
 }
-//args = {horizontal_units, vertical_units}, points = [point]
+//args = {x_units, y_units}, points = [point]
 class GridExecuter {
     executeAction(document, args, points) {
         document.grid(points[0], args.x_units, args.y_units, '#ED553B');
@@ -1491,9 +1491,9 @@ class Renderer {
         this.currLayers = layers;
         this.clearCanvas();
         this.init();
+        this.applyZoom();
         this.drawGrid();
         this.drawObjects();
-        this.applyZoom();
         this.finish();
     }
     renderAgain() {

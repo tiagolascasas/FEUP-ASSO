@@ -37,9 +37,9 @@ export abstract class Renderer implements RendererObserver {
 
         this.clearCanvas()
         this.init()
+        this.applyZoom()
         this.drawGrid()
         this.drawObjects()
-        this.applyZoom()
         this.finish()
     }
 

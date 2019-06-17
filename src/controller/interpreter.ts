@@ -124,7 +124,7 @@ class GridExpression implements Expression {
             let vertical_units = context.get(2)
             context.api.execute(
                 Action.GRID,
-                { horizontal_units: horizontal_units, vertical_units: vertical_units },
+                { x_units: horizontal_units, y_units: vertical_units },
                 [p1]
             )
             return true
