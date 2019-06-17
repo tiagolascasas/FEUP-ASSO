@@ -47,3 +47,12 @@ The rendering algorithms were implemented using the [**Template Method Pattern**
 Since each shape is rendered in a different way, we implemented a class for each shape type that renders it (one class per renderer type, so technically there is a SVGShapeRenderer and a CanvasShapeRenderer for each shape). In order to build each rendering object, we used the [**Factory Method Pattern**](https://sourcemaking.com/design_patterns/factory_method), which, given any shape, creates the right renderer. We used the [**Null Object Pattern**](https://en.wikipedia.org/wiki/Null_object_pattern) inside the Factory in order to return something when it gets an unrecognized shape type as input.
 
 The Wireframe, Color and Gradient modes also integrate into this logic. All rendering objects, by default, render the shape in all black, but in order to alter this behaviour we used the [**Decorator Pattern**](https://sourcemaking.com/design_patterns/decorator). If the Wireframe or Color mode are on, the renderer decorates all its rendering objects with the new behaviours, and renders them accordingly. This is a change that requires the model to be rendered again, but since nothing changed on the model the view does not get notified that it should render again. Instead, the view holds references to all the objects it rendered last time, and re-renders them again with the appropriate decorators.
+
+### Save
+
+We can save our work by saving all the actions that were made to the document in two distinct ways: a .txt file and a .xml file.
+These two ways of saving the document were implemented using the Strategy Pattern and the Visitor Pattern.
+
+The [**Strategy Pattern**](https://en.wikipedia.org/wiki/Strategy_pattern) is used to define and make the saving operation interchangable between different saving methods, in this case the txt and the xml.
+
+The [**Visitor Pattern**](https://en.wikipedia.org/wiki/Visitor_pattern) is used to define a saving operation for all the actions without having the code that represents the saving method directly explicit in the actions.
