@@ -112,7 +112,7 @@ export class SimpleDrawDocument {
         }
     }
 
-    getObjectsForRendering(): Map<String, Shape[]> {
+    getObjectsForRendering(): Map<string, Shape[]> {
         return this.layersManager.mapObjectsToLayers(this.objects)
     }
 

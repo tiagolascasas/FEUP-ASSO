@@ -3,30 +3,30 @@
 import { Shape } from './shape'
 
 export class LayersManager {
-    layers = new Array<String>()
-    activeLayer: String
+    layers = new Array<string>()
+    activeLayer: string
 
     constructor() {
         this.createLayer('default')
         this.setActiveLayer('default')
     }
 
-    createLayer(layerName: String): void {
-        if (this.layers.indexOf(layerName) == -1) this.layers.push(layerName)
+    createLayer(layerName: string): void {
+        if (this.layers.indexOf(layerName) == -1) this.layers.unshift(layerName)
         this.setActiveLayer(layerName)
     }
 
-    setActiveLayer(layerName: String): boolean {
+    setActiveLayer(layerName: string): boolean {
+        console.log(layerName)
         if (this.layers.indexOf(layerName) != -1) {
             this.activeLayer = layerName
-            this.layers.splice(this.layers.indexOf(layerName), 1)
-            this.layers.unshift(layerName)
+            console.log("Setting active layer")
             return true
         } else return false
     }
 
-    mapObjectsToLayers(objects: Array<Shape>): Map<String, Array<Shape>> {
-        const map = new Map<String, Array<Shape>>()
+    mapObjectsToLayers(objects: Array<Shape>): Map<string, Array<Shape>> {
+        const map = new Map<string, Array<Shape>>()
 
         for (const layer of this.layers) {
             let objsInLayer: Array<Shape> = new Array<Shape>()
@@ -40,9 +40,9 @@ export class LayersManager {
     }
 
     getOrderedLayers(): Array<string> {
-        const reversed = this.layers.reverse()
-        const ret: Array<string> = []
-        for (const layer of reversed) ret.push(layer.toString())
+        let ret = this.layers
+        ret = ret.filter(o => o !== this.activeLayer)
+        ret.push(this.activeLayer)
         return ret
     }
 }

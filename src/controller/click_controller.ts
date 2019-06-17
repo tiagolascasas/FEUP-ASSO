@@ -63,7 +63,7 @@ export class FirstPointClickedState implements State {
                     this.point1,
                     event.point
                 )
-        }
+        } else context.currState = new IdleState()
     }
 }
 
@@ -80,6 +80,6 @@ export class SecondPointClickedState implements State {
                 ])
                 context.currState = new IdleState()
             } else context.currState = new IdleState()
-        }
+        } else context.currState = new IdleState()
     }
 }

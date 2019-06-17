@@ -169,7 +169,8 @@ export class SimpleDrawView implements LayersObserver {
         })
 
         document.getElementById('layers').addEventListener('change', () => {
-            const layer = (<HTMLSelectElement>document.getElementById('layers')).value
+            let layer = (<HTMLSelectElement>document.getElementById('layers')).value
+            layer = layer.replace(/\d\.\ /, '')
             this.click_controller.processEvent(
                 new UserEventAction(Action.SET_LAYER, { layer: layer })
             )

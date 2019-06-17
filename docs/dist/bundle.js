@@ -56,6 +56,8 @@ class FirstPointClickedState {
             else
                 context.currState = new SecondPointClickedState(this.event, this.point1, event.point);
         }
+        else
+            context.currState = new IdleState();
     }
 }
 exports.FirstPointClickedState = FirstPointClickedState;
@@ -78,6 +80,8 @@ class SecondPointClickedState {
             else
                 context.currState = new IdleState();
         }
+        else
+            context.currState = new IdleState();
     }
 }
 exports.SecondPointClickedState = SecondPointClickedState;
@@ -1220,14 +1224,14 @@ class LayersManager {
     }
     createLayer(layerName) {
         if (this.layers.indexOf(layerName) == -1)
-            this.layers.push(layerName);
+            this.layers.unshift(layerName);
         this.setActiveLayer(layerName);
     }
     setActiveLayer(layerName) {
+        console.log(layerName);
         if (this.layers.indexOf(layerName) != -1) {
             this.activeLayer = layerName;
-            this.layers.splice(this.layers.indexOf(layerName), 1);
-            this.layers.unshift(layerName);
+            console.log("Setting active layer");
             return true;
         }
         else
@@ -1246,10 +1250,9 @@ class LayersManager {
         return map;
     }
     getOrderedLayers() {
-        const reversed = this.layers.reverse();
-        const ret = [];
-        for (const layer of reversed)
-            ret.push(layer.toString());
+        let ret = this.layers;
+        ret = ret.filter(o => o !== this.activeLayer);
+        ret.push(this.activeLayer);
         return ret;
     }
 }
@@ -1479,7 +1482,7 @@ class Renderer {
     }
     render(objs, layers) {
         this.currObjects = objs;
-        this.currLayers = layers.reverse();
+        this.currLayers = layers;
         this.clearCanvas();
         this.init();
         this.drawGrid();
@@ -2029,7 +2032,8 @@ class SimpleDrawView {
             this.click_controller.processEvent(new UserEventAction(Action.ADD_LAYER, { layer: layerName }));
         });
         document.getElementById('layers').addEventListener('change', () => {
-            const layer = document.getElementById('layers').value;
+            let layer = document.getElementById('layers').value;
+            layer = layer.replace(/\d\.\ /, '');
             this.click_controller.processEvent(new UserEventAction(Action.SET_LAYER, { layer: layer }));
         });
         document.body.addEventListener('mousedown', (e) => {
