@@ -809,7 +809,7 @@ class ScaleExecuter {
         document.scale(points[0], new utils_1.Point(args.sx, args.sy));
     }
 }
-//args = {horizontal_units, vertical_units}, points = [point]
+//args = {x_units, y_units}, points = [point]
 class GridExecuter {
     executeAction(document, args, points) {
         document.grid(points[0], args.x_units, args.y_units, '#ED553B');
@@ -890,54 +890,56 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const simpledraw_view_1 = require("./view/simpledraw_view");
 const renderer_canvas_1 = require("./view/renderer_canvas");
 const renderer_svg_1 = require("./view/renderer_svg");
-const divCanvas1 = document.querySelector('#divCanvas1');
-const divCanvas2 = document.querySelector('#divCanvas2');
-const divSVG1 = document.querySelector('#divSVG1');
-const divSVG2 = document.querySelector('#divSVG2');
-const canvas1 = document.createElement('canvas');
-canvas1.id = 'canvas1';
-canvas1.width = divCanvas1.clientWidth;
-canvas1.height = divCanvas1.clientHeight;
-canvas1.style.zIndex = '8';
-canvas1.style.position = 'absolute';
-canvas1.style.border = '1px solid black';
-canvas1.addEventListener('click', function (event) {
-    event.preventDefault();
-});
-divCanvas1.appendChild(canvas1);
-const canvas2 = document.createElement('canvas');
-canvas2.id = 'canvas2';
-canvas2.width = divCanvas2.clientWidth;
-canvas2.height = divCanvas2.clientHeight;
-canvas2.style.zIndex = '8';
-canvas2.style.position = 'absolute';
-canvas2.style.border = '1px solid black';
-canvas2.addEventListener('click', function (event) {
-    event.preventDefault();
-});
-divCanvas2.appendChild(canvas2);
-const svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-svg1.id = 'svg1';
-svg1.setAttribute('width', divSVG1.clientWidth.toString());
-svg1.setAttribute('height', divSVG1.clientHeight.toString());
-svg1.style.zIndex = '8';
-svg1.style.position = 'absolute';
-svg1.style.border = '1px solid black';
-divSVG1.appendChild(svg1);
-const svg2 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-svg2.id = 'svg2';
-svg2.setAttribute('width', divSVG2.clientWidth.toString());
-svg2.setAttribute('height', divSVG2.clientHeight.toString());
-svg2.style.zIndex = '8';
-svg2.style.position = 'absolute';
-svg2.style.border = '1px solid black';
-divSVG2.appendChild(svg2);
-//Create view and add renderers
-const simpleDraw = new simpledraw_view_1.SimpleDrawView();
-simpleDraw.addRenderer(new renderer_canvas_1.CanvasRenderer('canvas1'));
-simpleDraw.addRenderer(new renderer_canvas_1.CanvasRenderer('canvas2'));
-simpleDraw.addRenderer(new renderer_svg_1.SVGRenderer('svg1'));
-simpleDraw.addRenderer(new renderer_svg_1.SVGRenderer('svg2'));
+window.setTimeout(() => {
+    const divCanvas1 = document.querySelector('#divCanvas1');
+    const divCanvas2 = document.querySelector('#divCanvas2');
+    const divSVG1 = document.querySelector('#divSVG1');
+    const divSVG2 = document.querySelector('#divSVG2');
+    const canvas1 = document.createElement('canvas');
+    canvas1.id = 'canvas1';
+    canvas1.width = divCanvas1.clientWidth;
+    canvas1.height = divCanvas1.clientHeight;
+    canvas1.style.zIndex = '8';
+    canvas1.style.position = 'absolute';
+    canvas1.style.border = '1px solid black';
+    canvas1.addEventListener('click', function (event) {
+        event.preventDefault();
+    });
+    divCanvas1.appendChild(canvas1);
+    const canvas2 = document.createElement('canvas');
+    canvas2.id = 'canvas2';
+    canvas2.width = divCanvas2.clientWidth;
+    canvas2.height = divCanvas2.clientHeight;
+    canvas2.style.zIndex = '8';
+    canvas2.style.position = 'absolute';
+    canvas2.style.border = '1px solid black';
+    canvas2.addEventListener('click', function (event) {
+        event.preventDefault();
+    });
+    divCanvas2.appendChild(canvas2);
+    const svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg1.id = 'svg1';
+    svg1.setAttribute('width', divSVG1.clientWidth.toString());
+    svg1.setAttribute('height', divSVG1.clientHeight.toString());
+    svg1.style.zIndex = '8';
+    svg1.style.position = 'absolute';
+    svg1.style.border = '1px solid black';
+    divSVG1.appendChild(svg1);
+    const svg2 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg2.id = 'svg2';
+    svg2.setAttribute('width', divSVG2.clientWidth.toString());
+    svg2.setAttribute('height', divSVG2.clientHeight.toString());
+    svg2.style.zIndex = '8';
+    svg2.style.position = 'absolute';
+    svg2.style.border = '1px solid black';
+    divSVG2.appendChild(svg2);
+    //Create view and add renderers
+    const simpleDraw = new simpledraw_view_1.SimpleDrawView();
+    simpleDraw.addRenderer(new renderer_canvas_1.CanvasRenderer('canvas1'));
+    simpleDraw.addRenderer(new renderer_canvas_1.CanvasRenderer('canvas2'));
+    simpleDraw.addRenderer(new renderer_svg_1.SVGRenderer('svg1'));
+    simpleDraw.addRenderer(new renderer_svg_1.SVGRenderer('svg2'));
+}, 600);
 
 },{"./view/renderer_canvas":14,"./view/renderer_svg":15,"./view/simpledraw_view":16}],8:[function(require,module,exports){
 'use strict';
@@ -1482,7 +1484,7 @@ class Renderer {
         this.GRID_STEP = 50;
         this.GRID_COLOR = '#BBBBBB';
         this.mode = 'Wireframe';
-        this.zoom = 0;
+        this.zoom = 1.0;
         this.currObjects = new Map();
         this.currLayers = new Array();
         const modeElem = (document.getElementById(elementID + '_mode'));
@@ -1501,9 +1503,9 @@ class Renderer {
         this.currLayers = layers;
         this.clearCanvas();
         this.init();
+        this.applyZoom();
         this.drawGrid();
         this.drawObjects();
-        this.applyZoom();
         this.finish();
     }
     renderAgain() {
@@ -1517,7 +1519,10 @@ class Renderer {
         const height = y + dimensions.height;
         if (point.x < x || point.x > width || point.y < y || point.y > height)
             return new utils_1.NullPoint();
-        return new utils_1.Point(point.x - x, point.y - y);
+        const mapped = new utils_1.Point(point.x - x, point.y - y);
+        mapped.x *= (1 / this.zoom);
+        mapped.y *= (1 / this.zoom);
+        return mapped;
     }
     getDimensions() {
         const width = this.element.getBoundingClientRect().width;
@@ -1525,8 +1530,8 @@ class Renderer {
         return [width, height];
     }
     drawGrid() {
-        const width = this.getDimensions()[0];
-        const height = this.getDimensions()[1];
+        const width = this.getDimensions()[0] * (1 / this.zoom);
+        const height = this.getDimensions()[1] * (1 / this.zoom);
         for (let i = 0; i < width; i += this.GRID_STEP)
             this.drawLine(i, 0, i, height);
         for (let i = 0; i < height; i += this.GRID_STEP)
@@ -1608,9 +1613,10 @@ class CanvasRenderer extends renderer_1.Renderer {
     }
     init() {
         this.ctx.save();
+        this.ctx.resetTransform();
     }
     applyZoom() {
-        this.ctx.scale(1 + this.zoom, 1 + this.zoom);
+        this.ctx.scale(this.zoom, this.zoom);
     }
     finish() {
         this.ctx.restore();
@@ -1772,7 +1778,12 @@ class SVGRenderer extends renderer_1.Renderer {
         defs.appendChild(gradient);
         this.element.appendChild(defs);
     }
-    applyZoom() { }
+    applyZoom() {
+        const zoomX = Number(this.element.getAttribute("width")) * (1 / this.zoom);
+        const zoomY = Number(this.element.getAttribute("height")) * (1 / this.zoom);
+        const viewBox = "0 0 " + zoomX + " " + zoomY;
+        this.element.setAttribute("viewBox", viewBox);
+    }
     finish() { }
 }
 exports.SVGRenderer = SVGRenderer;

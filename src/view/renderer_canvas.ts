@@ -77,10 +77,11 @@ export class CanvasRenderer extends Renderer {
 
     init(): void {
         this.ctx.save()
+        this.ctx.resetTransform()
     }
 
     applyZoom(): void {
-        this.ctx.scale(1 + this.zoom, 1 + this.zoom)
+        this.ctx.scale(this.zoom, this.zoom)
     }
 
     finish(): void {

@@ -9,7 +9,7 @@ export abstract class Renderer implements RendererObserver {
     readonly GRID_COLOR = '#BBBBBB'
     element: HTMLElement
     mode: string = 'Wireframe'
-    zoom: number = 0
+    zoom: number = 1.0
     currObjects: Map<string, Array<Shape>> = new Map<string, Array<Shape>>()
     currLayers: Array<string> = new Array<string>()
 
@@ -37,9 +37,9 @@ export abstract class Renderer implements RendererObserver {
 
         this.clearCanvas()
         this.init()
+        this.applyZoom()
         this.drawGrid()
         this.drawObjects()
-        this.applyZoom()
         this.finish()
     }
 
@@ -56,7 +56,10 @@ export abstract class Renderer implements RendererObserver {
 
         if (point.x < x || point.x > width || point.y < y || point.y > height)
             return new NullPoint()
-        return new Point(point.x - x, point.y - y)
+        const mapped = new Point(point.x - x, point.y - y)
+        mapped.x *= (1 / this.zoom)
+        mapped.y *= (1 / this.zoom)
+        return mapped
     }
 
     getDimensions(): number[] {
@@ -66,8 +69,8 @@ export abstract class Renderer implements RendererObserver {
     }
 
     drawGrid(): void {
-        const width = this.getDimensions()[0]
-        const height = this.getDimensions()[1]
+        const width = this.getDimensions()[0] * (1 / this.zoom)
+        const height = this.getDimensions()[1] * (1 / this.zoom)
 
         for (let i = 0; i < width; i += this.GRID_STEP) this.drawLine(i, 0, i, height)
 
