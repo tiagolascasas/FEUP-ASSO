@@ -77,12 +77,15 @@ export class GridAction implements Action<void> {
     constructor(
         private doc: SimpleDrawDocument,
         private shape: Shape,
-        private x_units: number,
-        private y_units: number,
-        private color: string
+        public readonly x_units: number,
+        public readonly y_units: number,
+        private color: string,
+        public readonly clickedPoint: Point
     ) {}
 
     do(): void {
+        console.log(this);
+        
         for (
             let i = 0, w = 0;
             i < this.x_units;
@@ -112,7 +115,7 @@ export class GridAction implements Action<void> {
     }
 
     accept(visitor: Visitor) {
-        return
+        return visitor.visitGridAction(this)
     }
 }
 

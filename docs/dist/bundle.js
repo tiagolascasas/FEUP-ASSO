@@ -144,6 +144,9 @@ class XMLConverterVisitor {
         triangleElem.appendChild(point2);
         return triangleElem;
     }
+    visitGridAction(action) {
+        throw new Error("Method not implemented.");
+    }
     visitTranslateAction(action) {
         let translateElem = this.doc.createElement('translate');
         let clickedPoint = this.doc.createElement('clickedPoint');
@@ -243,6 +246,10 @@ class TXTConverterVisitor {
     }
     visitCreateTriangleAction(action) {
         return `add triangle ${action.p0.x} ${action.p0.y} ${action.p1.x} ${action.p1.y} ${action.p2.x} ${action.p2.y} ${action.color}\r\n`;
+    }
+    visitGridAction(action) {
+        // grid x_replicas y_replicas x1 y1 
+        return `grid ${action.x_units} ${action.y_units} ${action.clickedPoint.x} ${action.clickedPoint.y}\r\n`;
     }
     visitTranslateAction(action) {
         return `translate ${action.clickedPoint.x} ${action.clickedPoint.y} ${action.newPoint.x} ${action.newPoint.y}\r\n`;
@@ -414,7 +421,7 @@ class GridExpression {
             let p1 = new utils_1.Point(Number(context.get(3)), Number(context.get(4)));
             let horizontal_units = context.get(1);
             let vertical_units = context.get(2);
-            context.api.execute(simpledraw_view_1.Action.GRID, { horizontal_units: horizontal_units, vertical_units: vertical_units }, [p1]);
+            context.api.execute(simpledraw_view_1.Action.GRID, { x_units: horizontal_units, y_units: vertical_units }, [p1]);
             return true;
         }
         else
@@ -990,14 +997,16 @@ class CreateTriangleAction extends CreateShapeAction {
 }
 exports.CreateTriangleAction = CreateTriangleAction;
 class GridAction {
-    constructor(doc, shape, x_units, y_units, color) {
+    constructor(doc, shape, x_units, y_units, color, clickedPoint) {
         this.doc = doc;
         this.shape = shape;
         this.x_units = x_units;
         this.y_units = y_units;
         this.color = color;
+        this.clickedPoint = clickedPoint;
     }
     do() {
+        console.log(this);
         for (let i = 0, w = 0; i < this.x_units; i++, w += this.shape.getWidthFromCenter() * 2 + 5) {
             for (let j = 0, h = 0; j < this.y_units; j++, h += this.shape.getHeightFromCenter() * 2 + 5) {
                 if (i == 0 && j == 0)
@@ -1018,7 +1027,7 @@ class GridAction {
         this.shape.isGrid = false;
     }
     accept(visitor) {
-        return;
+        return visitor.visitGridAction(this);
     }
 }
 exports.GridAction = GridAction;
@@ -1166,10 +1175,11 @@ class SimpleDrawDocument {
         return this.do(new actions_1.CreateTriangleAction(this, p0, p1, p2, color));
     }
     grid(p, x_units, y_units, color) {
+        console.log(x_units, y_units, p);
         for (let index = this.objects.length - 1; index >= 0; index--) {
             const shape = this.objects[index];
             if (shape.isHit(p) && !shape.isGrid)
-                return this.do(new actions_1.GridAction(this, shape, x_units, y_units, color));
+                return this.do(new actions_1.GridAction(this, shape, x_units, y_units, color, p));
         }
     }
     translate(clickedPoint, newPoint) {
@@ -1346,7 +1356,7 @@ class Circle extends Shape {
         let addX = (Math.abs(Math.cos(radAngle)) * (sx - 1)) * this.rx + (Math.abs(Math.sin(radAngle)) * (sy - 1)) * this.rx;
         let addY = (Math.abs(Math.cos(radAngle)) * (sy - 1)) * this.ry + (Math.abs(Math.sin(radAngle)) * (sx - 1)) * this.ry;
         this.rx = addX + +this.rx;
-        this.ry = addY + +this.rx;
+        this.ry = addY + +this.ry;
     }
     getWidthFromCenter() {
         return this.rx;

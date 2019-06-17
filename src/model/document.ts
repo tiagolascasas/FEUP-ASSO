@@ -78,10 +78,11 @@ export class SimpleDrawDocument {
     }
 
     grid(p: Point, x_units: number, y_units: number, color: string): void {
+        console.log(x_units, y_units, p)
         for (let index = this.objects.length - 1; index >= 0; index--) {
             const shape: Shape = this.objects[index]
             if (shape.isHit(p) && !shape.isGrid)
-                return this.do(new GridAction(this, shape, x_units, y_units, color))
+                return this.do(new GridAction(this, shape, x_units, y_units, color, p))
         }
     }
 

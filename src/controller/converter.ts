@@ -1,12 +1,13 @@
 import { Rectangle, Circle, Shape, Triangle } from 'model/shape'
 import { Utils, Point } from './utils'
-import { Action, CreateCircleAction, CreateRectangleAction, CreateTriangleAction, TranslateAction, RotateAction, ScaleAction } from 'model/actions';
+import { Action, CreateCircleAction, CreateRectangleAction, CreateTriangleAction, TranslateAction, RotateAction, ScaleAction, GridAction } from 'model/actions';
 import { UndoableAction } from 'model/undo';
 export interface Visitor {
     //everything is any for now until better solution
     visitCreateRectangleAction(action: CreateRectangleAction): any
     visitCreateCircleAction(action: CreateCircleAction): any
     visitCreateTriangleAction(action: CreateTriangleAction): any
+    visitGridAction(action: GridAction): any
     visitTranslateAction(action: TranslateAction): any
     visitRotateAction(action: RotateAction): any
     visitScaleAction(action: ScaleAction): any
@@ -18,6 +19,7 @@ export interface Visitor {
 }
 
 export class XMLConverterVisitor implements Visitor {
+    
     visitCreateRectangleAction(action: CreateRectangleAction) {
         let point1x = action.center.x - action.width / 2
         let point1y = action.center.y - action.height / 2
@@ -78,6 +80,10 @@ export class XMLConverterVisitor implements Visitor {
         triangleElem.appendChild(point1)
         triangleElem.appendChild(point2)
         return triangleElem
+    }
+
+    visitGridAction(action: GridAction) {
+        throw new Error("Method not implemented.");
     }
 
     visitTranslateAction(action: TranslateAction): Element {
@@ -197,6 +203,10 @@ export class TXTConverterVisitor implements Visitor {
     }
     visitCreateTriangleAction(action: CreateTriangleAction): String {
         return `add triangle ${action.p0.x} ${action.p0.y} ${action.p1.x} ${action.p1.y} ${action.p2.x} ${action.p2.y} ${action.color}\r\n`
+    }
+    visitGridAction(action: GridAction): String {
+        // grid x_replicas y_replicas x1 y1 
+        return `grid ${action.x_units} ${action.y_units} ${action.clickedPoint.x} ${action.clickedPoint.y}\r\n`
     }
     visitTranslateAction(action: TranslateAction): String {
         return `translate ${action.clickedPoint.x} ${action.clickedPoint.y} ${action.newPoint.x} ${action.newPoint.y}\r\n`

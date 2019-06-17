@@ -127,7 +127,7 @@ export class Circle extends Shape {
         let addY: number = (Math.abs(Math.cos(radAngle)) * (sy - 1)) * this.ry + (Math.abs(Math.sin(radAngle)) * (sx - 1)) * this.ry
 
         this.rx = addX + +this.rx
-        this.ry = addY + +this.rx
+        this.ry = addY + +this.ry
     }
 
     getWidthFromCenter(): number {
