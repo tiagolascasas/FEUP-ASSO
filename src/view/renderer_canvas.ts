@@ -81,7 +81,6 @@ export class CanvasRenderer extends Renderer {
     }
 
     applyZoom(): void {
-        console.log()
         this.ctx.scale(this.zoom, this.zoom)
     }
 

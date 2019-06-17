@@ -1601,7 +1601,6 @@ class CanvasRenderer extends renderer_1.Renderer {
         this.ctx.resetTransform();
     }
     applyZoom() {
-        console.log();
         this.ctx.scale(this.zoom, this.zoom);
     }
     finish() {
@@ -1764,7 +1763,12 @@ class SVGRenderer extends renderer_1.Renderer {
         defs.appendChild(gradient);
         this.element.appendChild(defs);
     }
-    applyZoom() { }
+    applyZoom() {
+        const zoomX = Number(this.element.getAttribute("width")) * (1 / this.zoom);
+        const zoomY = Number(this.element.getAttribute("height")) * (1 / this.zoom);
+        const viewBox = "0 0 " + zoomX + " " + zoomY;
+        this.element.setAttribute("viewBox", viewBox);
+    }
     finish() { }
 }
 exports.SVGRenderer = SVGRenderer;

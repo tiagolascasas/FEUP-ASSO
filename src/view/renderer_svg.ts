@@ -80,7 +80,12 @@ export class SVGRenderer extends Renderer {
         this.element.appendChild(defs)
     }
 
-    applyZoom(): void {}
+    applyZoom(): void {
+        const zoomX = Number(this.element.getAttribute("width")) * (1 / this.zoom)
+        const zoomY = Number(this.element.getAttribute("height")) * (1 / this.zoom)
+        const viewBox = "0 0 " + zoomX + " " + zoomY
+        this.element.setAttribute("viewBox", viewBox)
+    }
 
     finish(): void {}
 }
