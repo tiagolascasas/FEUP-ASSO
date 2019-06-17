@@ -145,7 +145,14 @@ class XMLConverterVisitor {
         return triangleElem;
     }
     visitGridAction(action) {
-        throw new Error("Method not implemented.");
+        let gridElem = this.doc.createElement('grid');
+        let clickedPoint = this.doc.createElement('clickedPoint');
+        clickedPoint.setAttribute('x', action.clickedPoint.x.toString());
+        clickedPoint.setAttribute('y', action.clickedPoint.y.toString());
+        gridElem.setAttribute('x_units', action.x_units.toString());
+        gridElem.setAttribute('y_units', action.y_units.toString());
+        gridElem.appendChild(clickedPoint);
+        return gridElem;
     }
     visitTranslateAction(action) {
         let translateElem = this.doc.createElement('translate');
@@ -248,7 +255,6 @@ class TXTConverterVisitor {
         return `add triangle ${action.p0.x} ${action.p0.y} ${action.p1.x} ${action.p1.y} ${action.p2.x} ${action.p2.y} ${action.color}\r\n`;
     }
     visitGridAction(action) {
-        // grid x_replicas y_replicas x1 y1 
         return `grid ${action.x_units} ${action.y_units} ${action.clickedPoint.x} ${action.clickedPoint.y}\r\n`;
     }
     visitTranslateAction(action) {
@@ -635,6 +641,9 @@ class loadXML {
                 case 'createTriangle':
                     this.createTriangle(node);
                     break;
+                case 'grid':
+                    this.grid(node);
+                    break;
                 case 'translate':
                     this.translate(node);
                     break;
@@ -672,13 +681,18 @@ class loadXML {
         let point2 = new utils_1.Point(+point2Element.attributes.x.nodeValue, +point2Element.attributes.y.nodeValue);
         this.api.execute(simpledraw_view_1.Action.CREATE_TRIANGLE, {}, [point0, point1, point2]);
     }
+    grid(node) {
+        let x_units = +node.attributes.x_units.nodeValue;
+        let y_units = +node.attributes.y_units.nodeValue;
+        let clickedElement = node.children[0];
+        let clicked = new utils_1.Point(+clickedElement.attributes.x.nodeValue, +clickedElement.attributes.y.nodeValue);
+        this.api.execute(simpledraw_view_1.Action.GRID, { x_units: x_units, y_units: y_units }, [clicked]);
+    }
     translate(node) {
         let clickedElement = node.children[0];
         let newPointElement = node.children[1];
         let clicked = new utils_1.Point(+clickedElement.attributes.x.nodeValue, +clickedElement.attributes.y.nodeValue);
         let newPoint = new utils_1.Point(+newPointElement.attributes.x.nodeValue, +newPointElement.attributes.y.nodeValue);
-        console.log('translate');
-        console.log(clicked, newPoint);
         this.api.execute(simpledraw_view_1.Action.TRANSLATE, {}, [clicked, newPoint]);
     }
     rotate(node) {
@@ -939,7 +953,7 @@ window.setTimeout(() => {
     simpleDraw.addRenderer(new renderer_canvas_1.CanvasRenderer('canvas2'));
     simpleDraw.addRenderer(new renderer_svg_1.SVGRenderer('svg1'));
     simpleDraw.addRenderer(new renderer_svg_1.SVGRenderer('svg2'));
-}, 600);
+}, 500);
 
 },{"./view/renderer_canvas":14,"./view/renderer_svg":15,"./view/simpledraw_view":16}],8:[function(require,module,exports){
 'use strict';

@@ -19,6 +19,10 @@ export class loadXML {
           case 'createTriangle':
             this.createTriangle(node)
             break
+          
+          case 'grid':
+            this.grid(node)
+            break
 
           case 'translate':
             this.translate(node)
@@ -39,7 +43,7 @@ export class loadXML {
       
     }
   }
-
+  
   createRectangle(node: HTMLElement){
     let point0Element = node.children[0];
     let point1Element = node.children[1];
@@ -69,14 +73,21 @@ export class loadXML {
     this.api.execute(Action.CREATE_TRIANGLE, {}, [point0, point1, point2])
   }
 
+  grid(node: any) {
+    let x_units = +(<any>node.attributes).x_units.nodeValue
+    let y_units = +(<any>node.attributes).y_units.nodeValue
+    let clickedElement = node.children[0]
+    let clicked = new Point(+(<any>clickedElement.attributes).x.nodeValue,+(<any>clickedElement.attributes).y.nodeValue)
+  
+    this.api.execute(Action.GRID, { x_units: x_units, y_units: y_units }, [clicked])
+  }
+
   translate(node: HTMLElement){
     let clickedElement = node.children[0]
     let newPointElement = node.children[1]
 
     let clicked = new Point(+(<any>clickedElement.attributes).x.nodeValue,+(<any>clickedElement.attributes).y.nodeValue)
     let newPoint = new Point(+(<any>newPointElement.attributes).x.nodeValue,+(<any>newPointElement.attributes).y.nodeValue)
-    console.log('translate')
-    console.log(clicked, newPoint)
     this.api.execute(Action.TRANSLATE, {}, [clicked, newPoint])
   }
 

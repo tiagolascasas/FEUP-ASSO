@@ -82,8 +82,18 @@ export class XMLConverterVisitor implements Visitor {
         return triangleElem
     }
 
-    visitGridAction(action: GridAction) {
-        throw new Error("Method not implemented.");
+    visitGridAction(action: GridAction): Element {
+        let gridElem: Element = this.doc.createElement('grid')
+        let clickedPoint: Element = this.doc.createElement('clickedPoint')
+
+        clickedPoint.setAttribute('x', action.clickedPoint.x.toString())
+        clickedPoint.setAttribute('y', action.clickedPoint.y.toString())
+
+        gridElem.setAttribute('x_units',action.x_units.toString())
+        gridElem.setAttribute('y_units', action.y_units.toString())
+        gridElem.appendChild(clickedPoint)
+        return gridElem
+
     }
 
     visitTranslateAction(action: TranslateAction): Element {
@@ -205,7 +215,6 @@ export class TXTConverterVisitor implements Visitor {
         return `add triangle ${action.p0.x} ${action.p0.y} ${action.p1.x} ${action.p1.y} ${action.p2.x} ${action.p2.y} ${action.color}\r\n`
     }
     visitGridAction(action: GridAction): String {
-        // grid x_replicas y_replicas x1 y1 
         return `grid ${action.x_units} ${action.y_units} ${action.clickedPoint.x} ${action.clickedPoint.y}\r\n`
     }
     visitTranslateAction(action: TranslateAction): String {
