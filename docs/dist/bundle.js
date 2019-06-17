@@ -795,8 +795,7 @@ class ScaleExecuter {
 //args = {horizontal_units, vertical_units}, points = [point]
 class GridExecuter {
     executeAction(document, args, points) {
-        console.log("Here");
-        document.grid(points[0], args.x_units, args.y_units);
+        document.grid(points[0], args.x_units, args.y_units, '#ED553B');
     }
 }
 class UndoExecuter {
@@ -981,11 +980,12 @@ class CreateTriangleAction extends CreateShapeAction {
 }
 exports.CreateTriangleAction = CreateTriangleAction;
 class GridAction {
-    constructor(doc, shape, x_units, y_units) {
+    constructor(doc, shape, x_units, y_units, color) {
         this.doc = doc;
         this.shape = shape;
         this.x_units = x_units;
         this.y_units = y_units;
+        this.color = color;
     }
     do() {
         for (let i = 0, w = 0; i < this.x_units; i++, w += this.shape.getWidthFromCenter() * 2 + 5) {
@@ -993,15 +993,19 @@ class GridAction {
                 if (i == 0 && j == 0)
                     continue;
                 const s = this.shape.clone();
+                s.color = this.color;
+                s.isGrid = true;
                 s.translate(new utils_1.Point(this.shape.center.x + w, this.shape.center.y + h));
                 this.shape.children.push(s);
                 this.doc.objects.push(s);
             }
         }
+        this.shape.isGrid = true;
     }
     undo() {
         for (const shape of this.shape.children)
             this.doc.objects = this.doc.objects.filter(o => o !== shape);
+        this.shape.isGrid = false;
     }
     accept(visitor) {
         return;
@@ -1017,9 +1021,23 @@ class TranslateAction {
     do() {
         this.oldPoint = this.shape.center;
         this.shape.translate(this.newPoint);
+        if (this.shape.isGrid) {
+            for (const s of this.shape.children) {
+                const p = new utils_1.Point(s.center.x - this.oldPoint.x, s.center.y - this.oldPoint.y);
+                const np = new utils_1.Point(this.newPoint.x + p.x, this.newPoint.y + p.y);
+                s.translate(np);
+            }
+        }
     }
     undo() {
         this.shape.translate(this.oldPoint);
+        if (this.shape.isGrid) {
+            for (const s of this.shape.children) {
+                const p = new utils_1.Point(s.center.x - this.newPoint.x, s.center.y - this.newPoint.y);
+                const np = new utils_1.Point(this.oldPoint.x + p.x, this.oldPoint.y + p.y);
+                s.translate(np);
+            }
+        }
     }
     accept(visitor) {
         return visitor.visitTranslateAction(this);
@@ -1035,9 +1053,17 @@ class RotateAction {
     do() {
         this.oldAngle = this.shape.angle;
         this.shape.rotate(this.angled);
+        if (this.shape.isGrid) {
+            for (const s of this.shape.children)
+                s.rotate(this.angled);
+        }
     }
     undo() {
         this.shape.angle = this.oldAngle;
+        if (this.shape.isGrid) {
+            for (const s of this.shape.children)
+                s.angle = this.oldAngle;
+        }
     }
     accept(visitor) {
         return visitor.visitRotateAction(this);
@@ -1052,9 +1078,17 @@ class ScaleAction {
     }
     do() {
         this.shape.scale(this.scaled.x, this.scaled.y);
+        if (this.shape.isGrid) {
+            for (const s of this.shape.children)
+                s.scale(this.scaled.x, this.scaled.y);
+        }
     }
     undo() {
         this.shape.scale(1.0 / this.scaled.x, 1.0 / this.scaled.y);
+        if (this.shape.isGrid) {
+            for (const s of this.shape.children)
+                s.scale(1.0 / this.scaled.x, 1.0 / this.scaled.y);
+        }
     }
     accept(visitor) {
         return visitor.visitScaleAction(this);
@@ -1121,11 +1155,11 @@ class SimpleDrawDocument {
     createTriangle(p0, p1, p2, color) {
         return this.do(new actions_1.CreateTriangleAction(this, p0, p1, p2, color));
     }
-    grid(p, x_units, y_units) {
+    grid(p, x_units, y_units, color) {
         for (let index = this.objects.length - 1; index >= 0; index--) {
             const shape = this.objects[index];
-            if (shape.isHit(p))
-                return this.do(new actions_1.GridAction(this, shape, x_units, y_units));
+            if (shape.isHit(p) && !shape.isGrid)
+                return this.do(new actions_1.GridAction(this, shape, x_units, y_units, color));
         }
     }
     translate(clickedPoint, newPoint) {
@@ -1917,7 +1951,7 @@ class SimpleDrawView {
             const y_units = Number(document.getElementById('y_units').value);
             const isPositiveInt = (str) => {
                 const n = Math.floor(Number(str));
-                return n !== Infinity && n === str && n >= 0;
+                return n !== Infinity && n === str && n > 0;
             };
             if (isPositiveInt(x_units) && isPositiveInt(y_units)) {
                 this.click_controller.processEvent(new UserEventAction(Action.GRID, { x_units: x_units, y_units: y_units }));

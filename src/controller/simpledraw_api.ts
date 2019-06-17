@@ -104,22 +104,21 @@ class TranslateExecuter implements ActionExecuter {
 //args = {angle}, points = [point]
 class RotateExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        document.rotate(points[0],args.angle)       
+        document.rotate(points[0], args.angle)
     }
 }
 
 //args = {sx, sy}, points = [point]
 class ScaleExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        document.scale(points[0], new Point(args.sx, args.sy))  
+        document.scale(points[0], new Point(args.sx, args.sy))
     }
 }
 
 //args = {horizontal_units, vertical_units}, points = [point]
 class GridExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        console.log("Here")
-        document.grid(points[0], args.x_units, args.y_units)
+        document.grid(points[0], args.x_units, args.y_units, '#ED553B')
     }
 }
 

@@ -77,11 +77,11 @@ export class SimpleDrawDocument {
         return this.do(new CreateTriangleAction(this, p0, p1, p2, color))
     }
 
-    grid(p: Point, x_units: number, y_units: number): void {
+    grid(p: Point, x_units: number, y_units: number, color: string): void {
         for (let index = this.objects.length - 1; index >= 0; index--) {
             const shape: Shape = this.objects[index]
-            if (shape.isHit(p))
-                return this.do(new GridAction(this, shape, x_units, y_units))
+            if (shape.isHit(p) && !shape.isGrid)
+                return this.do(new GridAction(this, shape, x_units, y_units, color))
         }
     }
 
