@@ -16,12 +16,6 @@ abstract class CreateShapeAction<S extends Shape> implements Action<S> {
 
     do(): S {
         this.doc.add(this.shape)
-
-        //test
-        let a = new GridAction(this.doc, this.shape, 5, 4)
-        a.do()
-        //----
-
         return this.shape
     }
 
@@ -88,8 +82,7 @@ export class GridAction implements Action<void> {
                 if (i == 0 && j == 0)
                     continue
                 const s = this.shape.clone()
-                s.translate(this.shape.center)
-                s.translate(new Point(w, h))
+                s.translate(new Point(this.shape.center.x + w, this.shape.center.y + h))
                 this.shape.children.push(s)
                 this.doc.objects.push(s)
             }
@@ -98,7 +91,8 @@ export class GridAction implements Action<void> {
     }
 
     undo(): void {
-        throw new Error("Method not implemented.");
+        for (const shape of this.shape.children)
+            this.doc.objects = this.doc.objects.filter(o => o !== shape)
     }
 
     accept(visitor: Visitor) {

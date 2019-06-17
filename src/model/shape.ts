@@ -203,7 +203,7 @@ export class Triangle extends Shape {
             maxX = this.p1.x
         if (this.p2.x > maxX)
             maxX = this.p2.x
-        return maxX
+        return maxX - this.center.x
     }
 
     getHeightFromCenter(): number {
@@ -212,7 +212,7 @@ export class Triangle extends Shape {
             maxY = this.p1.y
         if (this.p2.y > maxY)
             maxY = this.p2.y
-        return maxY
+        return maxY - this.center.y
     }
 
     clone(): Shape {

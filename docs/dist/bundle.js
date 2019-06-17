@@ -996,8 +996,7 @@ class GridAction {
                 if (i == 0 && j == 0)
                     continue;
                 const s = this.shape.clone();
-                s.translate(this.shape.center);
-                s.translate(new utils_1.Point(w, h));
+                s.translate(new utils_1.Point(this.shape.center.x + w, this.shape.center.y + h));
                 this.shape.children.push(s);
                 this.doc.objects.push(s);
             }
@@ -1373,7 +1372,7 @@ class Triangle extends Shape {
             maxX = this.p1.x;
         if (this.p2.x > maxX)
             maxX = this.p2.x;
-        return maxX;
+        return maxX - this.center.x;
     }
     getHeightFromCenter() {
         let maxY = this.p0.y;
@@ -1381,7 +1380,7 @@ class Triangle extends Shape {
             maxY = this.p1.y;
         if (this.p2.y > maxY)
             maxY = this.p2.y;
-        return maxY;
+        return maxY - this.center.y;
     }
     clone() {
         const s = new Triangle(this.p0, this.p1, this.p2, this.color);
