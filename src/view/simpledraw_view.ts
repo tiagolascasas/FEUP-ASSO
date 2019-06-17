@@ -64,13 +64,19 @@ export class SimpleDrawView implements LayersObserver {
 
         document.getElementById('grid').addEventListener('submit', (e: Event) => {
             e.preventDefault()
-            const units_x = Number(document.getElementById('x_units').nodeValue)
-            const units_y = Number(document.getElementById('y_units').nodeValue)
+            const x_units = Number((<HTMLInputElement>document.getElementById('x_units')).value)
+            const y_units = Number((<HTMLInputElement>document.getElementById('y_units')).value)
 
-            if (!isNaN(units_x) && isNaN(units_y))
+            const isPositiveInt = (str: Number) => {
+                const n = Math.floor(Number(str));
+                return n !== Infinity && n === str && n > 0;
+            }
+
+            if (isPositiveInt(x_units) && isPositiveInt(y_units)) {
                 this.click_controller.processEvent(
-                    new UserEventAction(Action.GRID, { units_x: units_x, units_y: units_y })
+                    new UserEventAction(Action.GRID, { x_units: x_units, y_units: y_units })
                 )
+            }
         })
 
         document.getElementById('scale').addEventListener('submit', (e: Event) => {
@@ -115,29 +121,32 @@ export class SimpleDrawView implements LayersObserver {
 
         document.getElementById('file').addEventListener('change', (e: Event) => {
             //Taken from here https://stackoverflow.com/questions/23331546/how-to-use-javascript-to-read-local-text-file-and-read-line-by-line
-            const file = (<HTMLInputElement> e.target).files[0]
+            const file = (<HTMLInputElement>e.target).files[0]
             const reader = new FileReader()
             console.log(file)
             reader.onload = event => {
                 const extention = file.name.split('.').pop()
-                if(extention === "txt"){
-                    const fileResult = (<string>reader.result)
+                if (extention === 'txt') {
+                    const fileResult = <string>reader.result
 
                     const allLines = fileResult.split('\r\n')
                     // Reading line by line and executing each action
                     allLines.forEach(line => {
                         this.interpreter.eval(line)
                     })
-                }else if (extention === "xml"){
-                    const fileResult = (<string>reader.result)
-                    var oParser = new DOMParser();
-                    var oDOM = oParser.parseFromString(fileResult, "application/xml");
-                    let load = new loadXML(oDOM.documentElement,this.api)
+                } else if (extention === 'xml') {
+                    const fileResult = <string>reader.result
+                    var oParser = new DOMParser()
+                    var oDOM = oParser.parseFromString(fileResult, 'application/xml')
+                    let load = new loadXML(oDOM.documentElement, this.api)
                     load.load()
                     // print the name of the root element or error message
-                    console.log(oDOM.documentElement.nodeName == "parsererror" ? "error while parsing" : oDOM.documentElement.children);
+                    console.log(
+                        oDOM.documentElement.nodeName == 'parsererror'
+                            ? 'error while parsing'
+                            : oDOM.documentElement.children
+                    )
                 }
-                
             }
 
             reader.onerror = event => {
@@ -146,7 +155,6 @@ export class SimpleDrawView implements LayersObserver {
 
             reader.readAsText(file)
         })
-
 
         document.getElementById('addLayerButton').addEventListener('click', (e: Event) => {
             e.preventDefault()

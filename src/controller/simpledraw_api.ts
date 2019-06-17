@@ -118,7 +118,8 @@ class ScaleExecuter implements ActionExecuter {
 //args = {horizontal_units, vertical_units}, points = [point]
 class GridExecuter implements ActionExecuter {
     executeAction(document: SimpleDrawDocument, args: any, points: Point[]): void {
-        console.log('grid')
+        console.log("Here")
+        document.grid(points[0], args.x_units, args.y_units)
     }
 }
 

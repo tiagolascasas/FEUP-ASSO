@@ -795,7 +795,8 @@ class ScaleExecuter {
 //args = {horizontal_units, vertical_units}, points = [point]
 class GridExecuter {
     executeAction(document, args, points) {
-        console.log('grid');
+        console.log("Here");
+        document.grid(points[0], args.x_units, args.y_units);
     }
 }
 class UndoExecuter {
@@ -935,10 +936,6 @@ class CreateShapeAction {
     }
     do() {
         this.doc.add(this.shape);
-        //test
-        let a = new GridAction(this.doc, this.shape, 5, 4);
-        a.do();
-        //----
         return this.shape;
     }
     undo() {
@@ -1003,7 +1000,8 @@ class GridAction {
         }
     }
     undo() {
-        throw new Error("Method not implemented.");
+        for (const shape of this.shape.children)
+            this.doc.objects = this.doc.objects.filter(o => o !== shape);
     }
     accept(visitor) {
         return;
@@ -1915,10 +1913,15 @@ class SimpleDrawView {
         });
         document.getElementById('grid').addEventListener('submit', (e) => {
             e.preventDefault();
-            const units_x = Number(document.getElementById('x_units').nodeValue);
-            const units_y = Number(document.getElementById('y_units').nodeValue);
-            if (!isNaN(units_x) && isNaN(units_y))
-                this.click_controller.processEvent(new UserEventAction(Action.GRID, { units_x: units_x, units_y: units_y }));
+            const x_units = Number(document.getElementById('x_units').value);
+            const y_units = Number(document.getElementById('y_units').value);
+            const isPositiveInt = (str) => {
+                const n = Math.floor(Number(str));
+                return n !== Infinity && n === str && n >= 0;
+            };
+            if (isPositiveInt(x_units) && isPositiveInt(y_units)) {
+                this.click_controller.processEvent(new UserEventAction(Action.GRID, { x_units: x_units, y_units: y_units }));
+            }
         });
         document.getElementById('scale').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -1957,7 +1960,7 @@ class SimpleDrawView {
             console.log(file);
             reader.onload = event => {
                 const extention = file.name.split('.').pop();
-                if (extention === "txt") {
+                if (extention === 'txt') {
                     const fileResult = reader.result;
                     const allLines = fileResult.split('\r\n');
                     // Reading line by line and executing each action
@@ -1965,14 +1968,16 @@ class SimpleDrawView {
                         this.interpreter.eval(line);
                     });
                 }
-                else if (extention === "xml") {
+                else if (extention === 'xml') {
                     const fileResult = reader.result;
                     var oParser = new DOMParser();
-                    var oDOM = oParser.parseFromString(fileResult, "application/xml");
+                    var oDOM = oParser.parseFromString(fileResult, 'application/xml');
                     let load = new loadXML_1.loadXML(oDOM.documentElement, this.api);
                     load.load();
                     // print the name of the root element or error message
-                    console.log(oDOM.documentElement.nodeName == "parsererror" ? "error while parsing" : oDOM.documentElement.children);
+                    console.log(oDOM.documentElement.nodeName == 'parsererror'
+                        ? 'error while parsing'
+                        : oDOM.documentElement.children);
                 }
             };
             reader.onerror = event => {
