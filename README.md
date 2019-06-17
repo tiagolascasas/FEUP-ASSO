@@ -72,6 +72,6 @@ The [**Visitor Pattern**](https://en.wikipedia.org/wiki/Visitor_pattern) is used
 
 ### Grid operation
 
-The grid operation allows for the replication in both dimensions of an object. The original object becomes the pivot, and every operation applied to the pivot is also applied to all its replicas. However, an operation on a replica has no influence on the other replicas or the pivot. To achieve this, we used the [**Composite Pattern**](https://en.wikipedia.org/wiki/Composite_pattern), which allows for all the operations that were applied to the pivot to be applied to all the other objects as well. 
+The grid operation allows for the replication in both dimensions of an object. The original object becomes the pivot, and every operation applied to the pivot is also applied to all its replicas. However, an operation on a replica has no influence on the other replicas or the pivot. To achieve this, we used the [**Composite Pattern**](https://en.wikipedia.org/wiki/Composite_pattern), which allows for all the operations that were applied to the pivot to be applied to all other objects as well.
 
 To better visualize this, the pivot keeps its original color, while the replicas are set to red.
