@@ -1472,7 +1472,7 @@ class Renderer {
         this.GRID_STEP = 50;
         this.GRID_COLOR = '#BBBBBB';
         this.mode = 'Wireframe';
-        this.zoom = 0;
+        this.zoom = 1.0;
         this.currObjects = new Map();
         this.currLayers = new Array();
         const modeElem = (document.getElementById(elementID + '_mode'));
@@ -1515,8 +1515,8 @@ class Renderer {
         return [width, height];
     }
     drawGrid() {
-        const width = this.getDimensions()[0];
-        const height = this.getDimensions()[1];
+        const width = this.getDimensions()[0] * (1 / this.zoom);
+        const height = this.getDimensions()[1] * (1 / this.zoom);
         for (let i = 0; i < width; i += this.GRID_STEP)
             this.drawLine(i, 0, i, height);
         for (let i = 0; i < height; i += this.GRID_STEP)
@@ -1598,9 +1598,11 @@ class CanvasRenderer extends renderer_1.Renderer {
     }
     init() {
         this.ctx.save();
+        this.ctx.resetTransform();
     }
     applyZoom() {
-        this.ctx.scale(1 + this.zoom, 1 + this.zoom);
+        console.log();
+        this.ctx.scale(this.zoom, this.zoom);
     }
     finish() {
         this.ctx.restore();
