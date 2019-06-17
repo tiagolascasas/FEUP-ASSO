@@ -56,7 +56,10 @@ export abstract class Renderer implements RendererObserver {
 
         if (point.x < x || point.x > width || point.y < y || point.y > height)
             return new NullPoint()
-        return new Point(point.x - x, point.y - y)
+        const mapped = new Point(point.x - x, point.y - y)
+        mapped.x *= (1 / this.zoom)
+        mapped.y *= (1 / this.zoom)
+        return mapped
     }
 
     getDimensions(): number[] {
