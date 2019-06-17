@@ -41,7 +41,10 @@ export class ActionPressedState implements State {
                 context.api.execute(this.event.action, this.event.args, [event.point])
                 context.currState = new IdleState()
             } else context.currState = new FirstPointClickedState(this.event, event.point)
-        } else context.currState = new IdleState()
+        } else {
+            context.currState = new IdleState()
+            context.currState.processEvent(context, event)
+        }
     }
 }
 
@@ -63,7 +66,10 @@ export class FirstPointClickedState implements State {
                     this.point1,
                     event.point
                 )
-        } else context.currState = new IdleState()
+        } else {
+            context.currState = new IdleState()
+            context.currState.processEvent(context, event)
+        }
     }
 }
 
@@ -80,6 +86,9 @@ export class SecondPointClickedState implements State {
                 ])
                 context.currState = new IdleState()
             } else context.currState = new IdleState()
-        } else context.currState = new IdleState()
+        } else {
+            context.currState = new IdleState()
+            context.currState.processEvent(context, event)
+        }
     }
 }

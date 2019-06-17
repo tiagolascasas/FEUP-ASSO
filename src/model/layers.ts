@@ -40,7 +40,7 @@ export class LayersManager {
     }
 
     getOrderedLayers(): Array<string> {
-        let ret = this.layers
+        let ret = this.layers.reverse()
         ret = ret.filter(o => o !== this.activeLayer)
         ret.push(this.activeLayer)
         return ret

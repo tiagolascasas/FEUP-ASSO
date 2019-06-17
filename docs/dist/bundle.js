@@ -37,8 +37,10 @@ class ActionPressedState {
             else
                 context.currState = new FirstPointClickedState(this.event, event.point);
         }
-        else
+        else {
             context.currState = new IdleState();
+            context.currState.processEvent(context, event);
+        }
     }
 }
 exports.ActionPressedState = ActionPressedState;
@@ -56,8 +58,10 @@ class FirstPointClickedState {
             else
                 context.currState = new SecondPointClickedState(this.event, this.point1, event.point);
         }
-        else
+        else {
             context.currState = new IdleState();
+            context.currState.processEvent(context, event);
+        }
     }
 }
 exports.FirstPointClickedState = FirstPointClickedState;
@@ -80,8 +84,10 @@ class SecondPointClickedState {
             else
                 context.currState = new IdleState();
         }
-        else
+        else {
             context.currState = new IdleState();
+            context.currState.processEvent(context, event);
+        }
     }
 }
 exports.SecondPointClickedState = SecondPointClickedState;
@@ -1250,7 +1256,7 @@ class LayersManager {
         return map;
     }
     getOrderedLayers() {
-        let ret = this.layers;
+        let ret = this.layers.reverse();
         ret = ret.filter(o => o !== this.activeLayer);
         ret.push(this.activeLayer);
         return ret;
