@@ -926,6 +926,7 @@ simpleDraw.addRenderer(new renderer_svg_1.SVGRenderer('svg2'));
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const shape_1 = require("./shape");
+const utils_1 = require("../controller/utils");
 class CreateShapeAction {
     constructor(doc, shape, layer) {
         this.doc = doc;
@@ -934,6 +935,10 @@ class CreateShapeAction {
     }
     do() {
         this.doc.add(this.shape);
+        //test
+        let a = new GridAction(this.doc, this.shape, 5, 4);
+        a.do();
+        //----
         return this.shape;
     }
     undo() {
@@ -978,6 +983,34 @@ class CreateTriangleAction extends CreateShapeAction {
     }
 }
 exports.CreateTriangleAction = CreateTriangleAction;
+class GridAction {
+    constructor(doc, shape, x_units, y_units) {
+        this.doc = doc;
+        this.shape = shape;
+        this.x_units = x_units;
+        this.y_units = y_units;
+    }
+    do() {
+        for (let i = 0, w = 0; i < this.x_units; i++, w += this.shape.getWidthFromCenter() * 2 + 5) {
+            for (let j = 0, h = 0; j < this.y_units; j++, h += this.shape.getHeightFromCenter() * 2 + 5) {
+                if (i == 0 && j == 0)
+                    continue;
+                const s = this.shape.clone();
+                s.translate(this.shape.center);
+                s.translate(new utils_1.Point(w, h));
+                this.shape.children.push(s);
+                this.doc.objects.push(s);
+            }
+        }
+    }
+    undo() {
+        throw new Error("Method not implemented.");
+    }
+    accept(visitor) {
+        return;
+    }
+}
+exports.GridAction = GridAction;
 class TranslateAction {
     constructor(shape, newPoint, clickedPoint) {
         this.shape = shape;
@@ -1032,7 +1065,7 @@ class ScaleAction {
 }
 exports.ScaleAction = ScaleAction;
 
-},{"./shape":11}],9:[function(require,module,exports){
+},{"../controller/utils":6,"./shape":11}],9:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 const actions_1 = require("./actions");
@@ -1090,6 +1123,13 @@ class SimpleDrawDocument {
     }
     createTriangle(p0, p1, p2, color) {
         return this.do(new actions_1.CreateTriangleAction(this, p0, p1, p2, color));
+    }
+    grid(p, x_units, y_units) {
+        for (let index = this.objects.length - 1; index >= 0; index--) {
+            const shape = this.objects[index];
+            if (shape.isHit(p))
+                return this.do(new actions_1.GridAction(this, shape, x_units, y_units));
+        }
     }
     translate(clickedPoint, newPoint) {
         //the transformation is only applied to one shape(the one in front)
@@ -1193,6 +1233,8 @@ class Shape {
         this.center = center;
         this.color = color;
         this.angle = 0;
+        this.isGrid = false;
+        this.children = new Array();
     }
     translate(point) {
         this.center = point;
@@ -1233,6 +1275,17 @@ class Rectangle extends Shape {
         this.width += addWidth;
         this.height += addHeight;
     }
+    getWidthFromCenter() {
+        return this.width / 2;
+    }
+    getHeightFromCenter() {
+        return this.height / 2;
+    }
+    clone() {
+        const s = new Rectangle(this.center, this.width, this.height, this.color);
+        s.layer = this.layer;
+        return s;
+    }
 }
 exports.Rectangle = Rectangle;
 class Circle extends Shape {
@@ -1254,6 +1307,19 @@ class Circle extends Shape {
         let addY = (Math.abs(Math.cos(radAngle)) * (sy - 1)) * this.ry + (Math.abs(Math.sin(radAngle)) * (sx - 1)) * this.ry;
         this.rx = addX + +this.rx;
         this.ry = addY + +this.rx;
+    }
+    getWidthFromCenter() {
+        return this.rx;
+    }
+    getHeightFromCenter() {
+        return this.ry;
+    }
+    clone() {
+        const s = new Circle(this.center, this.radius, this.color);
+        s.rx = this.rx;
+        s.ry = this.ry;
+        s.layer = this.layer;
+        return s;
     }
 }
 exports.Circle = Circle;
@@ -1300,6 +1366,28 @@ class Triangle extends Shape {
         this.p1 = new utils_1.Point(this.p1.x + delta.x, this.p1.y + delta.y);
         this.p2 = new utils_1.Point(this.p2.x + delta.x, this.p2.y + delta.y);
         this.center = newPoint;
+    }
+    getWidthFromCenter() {
+        let maxX = this.p0.x;
+        if (this.p1.x > maxX)
+            maxX = this.p1.x;
+        if (this.p2.x > maxX)
+            maxX = this.p2.x;
+        return maxX;
+    }
+    getHeightFromCenter() {
+        let maxY = this.p0.y;
+        if (this.p1.y > maxY)
+            maxY = this.p1.y;
+        if (this.p2.y > maxY)
+            maxY = this.p2.y;
+        return maxY;
+    }
+    clone() {
+        const s = new Triangle(this.p0, this.p1, this.p2, this.color);
+        s.center = this.center;
+        s.layer = this.layer;
+        return s;
     }
 }
 exports.Triangle = Triangle;

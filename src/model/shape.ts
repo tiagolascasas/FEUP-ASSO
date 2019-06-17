@@ -6,6 +6,8 @@ import { Utils, Point } from '../controller/utils'
 export abstract class Shape {
     public angle: number = 0
     public layer: String
+    public isGrid: boolean = false
+    public children = new Array<Shape>()
 
     constructor(public center: Point, public color: string) {}
 
@@ -25,6 +27,12 @@ export abstract class Shape {
     abstract isHit(point: Point): boolean
 
     abstract scale(sx: number, sy: number): void
+
+    abstract getWidthFromCenter(): number
+
+    abstract getHeightFromCenter(): number
+
+    abstract clone(): Shape
 }
 
 export class Rectangle extends Shape {
@@ -76,11 +84,25 @@ export class Rectangle extends Shape {
         this.width += addWidth
         this.height += addHeight      
     }
+
+    getWidthFromCenter(): number {
+        return this.width / 2
+    }
+
+    getHeightFromCenter(): number {
+        return this.height / 2
+    }
+
+    clone(): Shape {
+        const s = new Rectangle(this.center, this.width, this.height, this.color)
+        s.layer = this.layer
+        return s
+    }
 }
 
 export class Circle extends Shape {
-    rx: number
-    ry: number
+    public rx: number
+    public ry: number
 
     constructor(center: Point, public radius: number, color: string) {
         super(center, color)
@@ -106,6 +128,22 @@ export class Circle extends Shape {
 
         this.rx = addX + +this.rx
         this.ry = addY + +this.rx
+    }
+
+    getWidthFromCenter(): number {
+        return this.rx
+    }
+
+    getHeightFromCenter(): number {
+        return this.ry
+    }
+
+    clone(): Shape {
+        const s = new Circle(this.center, this.radius, this.color)
+        s.rx = this.rx
+        s.ry = this.ry
+        s.layer = this.layer
+        return s
     }
 }
 
@@ -157,5 +195,30 @@ export class Triangle extends Shape {
         this.p1 = new Point(this.p1.x + delta.x, this.p1.y + delta.y)
         this.p2 = new Point(this.p2.x + delta.x, this.p2.y + delta.y)
         this.center = newPoint;
+    }
+
+    getWidthFromCenter(): number {
+        let maxX = this.p0.x
+        if (this.p1.x > maxX)
+            maxX = this.p1.x
+        if (this.p2.x > maxX)
+            maxX = this.p2.x
+        return maxX
+    }
+
+    getHeightFromCenter(): number {
+        let maxY = this.p0.y
+        if (this.p1.y > maxY)
+            maxY = this.p1.y
+        if (this.p2.y > maxY)
+            maxY = this.p2.y
+        return maxY
+    }
+
+    clone(): Shape {
+        const s = new Triangle(this.p0, this.p1, this.p2, this.color)
+        s.center = this.center
+        s.layer = this.layer
+        return s
     }
 }

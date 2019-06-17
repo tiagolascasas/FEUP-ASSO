@@ -16,6 +16,12 @@ abstract class CreateShapeAction<S extends Shape> implements Action<S> {
 
     do(): S {
         this.doc.add(this.shape)
+
+        //test
+        let a = new GridAction(this.doc, this.shape, 5, 4)
+        a.do()
+        //----
+
         return this.shape
     }
 
@@ -70,6 +76,33 @@ export class CreateTriangleAction extends CreateShapeAction<Triangle> {
 
     accept(visitor: Visitor): Element {
         return visitor.visitCreateTriangleAction(this)
+    }
+}
+
+export class GridAction implements Action<void> {
+    constructor(private doc: SimpleDrawDocument, private shape: Shape, private x_units: number, private y_units: number){}
+
+    do(): void {
+        for (let i = 0, w = 0; i < this.x_units; i++, w += this.shape.getWidthFromCenter() * 2  + 5){
+            for (let j = 0, h = 0; j < this.y_units; j++, h += this.shape.getHeightFromCenter() * 2 + 5){
+                if (i == 0 && j == 0)
+                    continue
+                const s = this.shape.clone()
+                s.translate(this.shape.center)
+                s.translate(new Point(w, h))
+                this.shape.children.push(s)
+                this.doc.objects.push(s)
+            }
+        }
+
+    }
+
+    undo(): void {
+        throw new Error("Method not implemented.");
+    }
+
+    accept(visitor: Visitor) {
+        return
     }
 }
 

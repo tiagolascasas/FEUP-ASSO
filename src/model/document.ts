@@ -9,6 +9,7 @@ import {
     RotateAction,
     ScaleAction,
     CreateTriangleAction,
+    GridAction,
 } from './actions'
 import { UndoManager } from './undo'
 import { LayersManager } from './layers'
@@ -74,6 +75,14 @@ export class SimpleDrawDocument {
 
     createTriangle(p0: Point, p1: Point, p2: Point, color: string): Shape {
         return this.do(new CreateTriangleAction(this, p0, p1, p2, color))
+    }
+
+    grid(p: Point, x_units: number, y_units: number): void {
+        for (let index = this.objects.length - 1; index >= 0; index--) {
+            const shape: Shape = this.objects[index]
+            if (shape.isHit(p))
+                return this.do(new GridAction(this, shape, x_units, y_units))
+        }
     }
 
     translate(clickedPoint: Point, newPoint: Point): void {
